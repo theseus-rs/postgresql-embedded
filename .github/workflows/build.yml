@@ -47,9 +47,9 @@ jobs:
 
     - name: Tests
       run: |
-        cargo test --package postgresql_archive
+        cargo test --package postgresql_archive --no-default-features
         cargo test --package postgresql_archive --all-features
-        cargo test --package postgresql_embedded
+        cargo test --package postgresql_embedded --no-default-features
         cargo test --package postgresql_embedded --features blocking
         cargo test --package postgresql_embedded --features bundled
         cargo test --package postgresql_embedded --features tokio

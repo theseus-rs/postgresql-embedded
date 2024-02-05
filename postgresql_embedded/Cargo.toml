@@ -32,7 +32,7 @@ tokio = { workspace = true, optional = true }
 tokio = { workspace = true }
 
 [features]
-default = []
+default = ["bundled"]
 blocking = ["tokio"]
 bundled = []
 tokio = ["dep:tokio"]
