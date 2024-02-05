@@ -61,7 +61,7 @@ impl PsqlBuilder {
         self
     }
 
-    /// database name to connect to (default: "<host user>")
+    /// database name to connect to
     pub fn dbname<S: AsRef<OsStr>>(mut self, dbname: S) -> Self {
         self.dbname = Some(dbname.as_ref().to_os_string());
         self

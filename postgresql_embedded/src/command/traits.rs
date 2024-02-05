@@ -179,6 +179,7 @@ mod test {
         assert_eq!(r#"cd "/tmp" && "foo" "-l""#, command.to_command_string(),);
     }
 
+    #[cfg(feature = "tokio")]
     #[tokio::test]
     async fn test_standard_command_execute() -> Result<()> {
         #[cfg(not(target_os = "windows"))]
