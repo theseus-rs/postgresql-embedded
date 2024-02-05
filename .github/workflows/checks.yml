@@ -17,6 +17,8 @@ jobs:
         uses: dtolnay/rust-toolchain@master
         with:
           toolchain: stable
+      - name: Enable caching
+        uses: Swatinem/rust-cache@v2
       - name: Install cargo audit
         run: cargo install cargo-audit
       - name: Audit dependencies
@@ -47,6 +49,8 @@ jobs:
         uses: dtolnay/rust-toolchain@master
         with:
           toolchain: stable
+      - name: Enable caching
+        uses: Swatinem/rust-cache@v2
       - name: Check lints
         run: |
           cargo clippy --workspace --features blocking
@@ -63,6 +67,8 @@ jobs:
         uses: dtolnay/rust-toolchain@master
         with:
           toolchain: stable
+      - name: Enable caching
+        uses: Swatinem/rust-cache@v2
       - name: Install cargo deny
         run: cargo install cargo-deny
       - name: Check licenses
@@ -104,6 +110,8 @@ jobs:
         uses: dtolnay/rust-toolchain@master
         with:
           toolchain: stable
+      - name: Enable caching
+        uses: Swatinem/rust-cache@v2
       - name: Install cargo vet
         run: cargo install cargo-vet
       - name: Vet thirdparty dependencies

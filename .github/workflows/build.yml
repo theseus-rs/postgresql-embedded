@@ -45,9 +45,12 @@ jobs:
       with:
         toolchain: stable
 
+    - name: Enable caching
+      uses: Swatinem/rust-cache@v2
+
     - name: Tests
       run: |
-        cargo test ---workspace --all-features
+        cargo test --workspace --all-features
 
     - name: Install toolchain
       if: ${{ matrix.platform == 'linux-x64' }}
