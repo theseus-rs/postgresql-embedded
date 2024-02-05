@@ -91,7 +91,7 @@
 //!
 //! ## Notes
 //!
-//! Uses PostgreSQL binaries from [theseus-rs/postgresql-binaries](https://github.com/theseus-rs/postgresql_binaries).
+//! Uses PostgreSQL binaries from [theseus-rs/postgresql-binaries](https://github.com/theseus-rs/postgresql-binaries).
 
 #![forbid(unsafe_code)]
 #![allow(dead_code)]

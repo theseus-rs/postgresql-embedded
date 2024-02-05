@@ -28,7 +28,7 @@ lazy_static! {
 /// Gets a release from GitHub for a given [`version`](Version) of PostgreSQL. If a release for the
 /// [`version`](Version) is not found, then a [`ReleaseNotFound`] error is returned.
 async fn get_release(version: &Version) -> Result<Release> {
-    let url = "https://api.github.com/repos/theseus-rs/postgresql_binaries/releases";
+    let url = "https://api.github.com/repos/theseus-rs/postgresql-binaries/releases";
     let client = reqwest::Client::new();
 
     if version.minor.is_some() && version.release.is_some() {

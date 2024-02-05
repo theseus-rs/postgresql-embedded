@@ -59,7 +59,7 @@
 //!
 //! ## Supported platforms
 //!
-//! postgresql_archive supports all platforms provided by [theseus-rs/postgresql-binaries](https://github.com/theseus-rs/postgresql_binaries):
+//! postgresql_archive supports all platforms provided by [theseus-rs/postgresql-binaries](https://github.com/theseus-rs/postgresql-binaries):
 //!
 //! OS | [Target](https://doc.rust-lang.org/nightly/rustc/platform-support.html)
 //! ---|---
@@ -104,7 +104,7 @@
 //!
 //! ## Notes
 //!
-//! Uses PostgreSQL binaries from [theseus-rs/postgresql-binaries](https://github.com/theseus-rs/postgresql_binaries).
+//! Uses PostgreSQL binaries from [theseus-rs/postgresql-binaries](https://github.com/theseus-rs/postgresql-binaries).
 
 #![forbid(unsafe_code)]
 #[macro_use]

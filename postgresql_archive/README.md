@@ -9,7 +9,7 @@
 ---
 
 Provides utilities to work with PostgreSQL installation archives from
-[theseus-rs/postgresql-binaries](https://github.com/theseus-rs/postgresql_binaries).
+[theseus-rs/postgresql-binaries](https://github.com/theseus-rs/postgresql-binaries).
 
 ## Examples
 
@@ -56,7 +56,7 @@ Name | Description | Default?
 
 ## Supported platforms
 
-`postgresql_archive` supports all platforms provided by [theseus-rs/postgresql-binaries](https://github.com/theseus-rs/postgresql_binaries).
+`postgresql_archive` supports all platforms provided by [theseus-rs/postgresql-binaries](https://github.com/theseus-rs/postgresql-binaries).
 
 Currently supported platforms are:
 
@@ -103,7 +103,7 @@ PostgreSQL is covered under [The PostgreSQL License](https://opensource.org/lice
 
 ## Notes
 
-Uses PostgreSQL binaries from [theseus-rs/postgresql-binaries](https://github.com/theseus-rs/postgresql_binaries).
+Uses PostgreSQL binaries from [theseus-rs/postgresql-binaries](https://github.com/theseus-rs/postgresql-binaries).
 
 ## Contribution
 

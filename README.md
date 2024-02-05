@@ -15,12 +15,6 @@ bundled with your application, or downloaded on demand.
 
 ## Getting Started
 
-### Cargo.toml
-```toml
-[dependencies]
-postgresql_embedded
-```
-
 ### Example
 ```rust
 use postgresql_embedded::PostgreSQL;
