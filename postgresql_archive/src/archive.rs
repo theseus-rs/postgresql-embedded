@@ -8,7 +8,7 @@ use bytes::Bytes;
 use flate2::bufread::GzDecoder;
 use regex::Regex;
 use reqwest::header;
-use std::fs::{create_dir_all, File, Permissions};
+use std::fs::{create_dir_all, File};
 use std::io::{copy, BufReader, Cursor};
 use std::path::Path;
 use std::str::FromStr;
@@ -183,6 +183,7 @@ pub async fn extract(bytes: &Bytes, out_dir: &Path) -> Result<()> {
         let mut file_entry = file?;
         let file_header = file_entry.header();
         let file_size = file_header.size()?;
+        #[cfg(unix)]
         let file_mode = file_header.mode()?;
 
         let file_header_path = file_header.path()?.to_path_buf();
@@ -207,7 +208,7 @@ pub async fn extract(bytes: &Bytes, out_dir: &Path) -> Result<()> {
             #[cfg(unix)]
             {
                 use std::os::unix::fs::PermissionsExt;
-                output_file.set_permissions(Permissions::from_mode(file_mode))?;
+                output_file.set_permissions(std::fs::Permissions::from_mode(file_mode))?;
             }
         }
     }
