@@ -35,23 +35,19 @@ async fn main() {
 
 ### Synchronous API
 ```rust
-#[cfg(feature = "blocking")]
 use postgresql_embedded::blocking::PostgreSQL;
 
 fn main() {
-    #[cfg(feature = "blocking")]
-    {
-        let mut postgresql = PostgreSQL::default();
-        postgresql.setup().unwrap();
-        postgresql.start().unwrap();
+    let mut postgresql = PostgreSQL::default();
+    postgresql.setup().unwrap();
+    postgresql.start().unwrap();
 
-        let database_name = "test";
-        postgresql.create_database(database_name).unwrap();
-        postgresql.database_exists(database_name).unwrap();
-        postgresql.drop_database(database_name).unwrap();
+    let database_name = "test";
+    postgresql.create_database(database_name).unwrap();
+    postgresql.database_exists(database_name).unwrap();
+    postgresql.drop_database(database_name).unwrap();
 
-        postgresql.stop().unwrap();
-    }
+    postgresql.stop().unwrap();
 }
 ```
 

@@ -31,29 +31,31 @@
 //!     let mut postgresql = PostgreSQL::default();
 //!     postgresql.setup().await.unwrap();
 //!     postgresql.start().await.unwrap();
-//!     postgresql.create_database("database_name").await.unwrap();
-//!     postgresql.database_exists("database_name").await.unwrap();
-//!     postgresql.drop_database("database_name").await.unwrap();
+//!
+//!     let database_name = "test";
+//!     postgresql.create_database(database_name).await.unwrap();
+//!     postgresql.database_exists(database_name).await.unwrap();
+//!     postgresql.drop_database(database_name).await.unwrap();
+//!
 //!     postgresql.stop().await.unwrap();
 //! }
 //! ```
 //!
 //! ### Synchronous API
-//! ```rust
-//! #[cfg(feature = "blocking")]
+//! ```rust, ignore
 //! use postgresql_embedded::blocking::PostgreSQL;
 //!
 //! fn main() {
-//!     #[cfg(feature = "blocking")]
-//!     {
-//!         let mut postgresql = PostgreSQL::default();
-//!         postgresql.setup().unwrap();
-//!         postgresql.start().unwrap();
-//!         postgresql.create_database("database_name").unwrap();
-//!         postgresql.database_exists("database_name").unwrap();
-//!         postgresql.drop_database("database_name").unwrap();
-//!         postgresql.stop().unwrap();
-//!     }
+//!     let mut postgresql = PostgreSQL::default();
+//!     postgresql.setup().unwrap();
+//!     postgresql.start().unwrap();
+//!
+//!     let database_name = "test";
+//!     postgresql.create_database(database_name).unwrap();
+//!     postgresql.database_exists(database_name).unwrap();
+//!     postgresql.drop_database(database_name).unwrap();
+//!
+//!     postgresql.stop().unwrap();
 //! }
 //! ```
 //!

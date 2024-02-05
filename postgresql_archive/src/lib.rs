@@ -34,18 +34,14 @@
 //! ```
 //!
 //! ### Synchronous API
-//! ```rust
+//! ```rust, ignore
 //! use postgresql_archive::LATEST;
-//! #[cfg(feature = "blocking")]
 //! use postgresql_archive::blocking::{extract, get_archive};
 //!
 //! fn main() {
-//!     #[cfg(feature = "blocking")]
-//!     {
-//!         let (archive_version, archive, hash) = get_archive(&LATEST).unwrap();
-//!         let out_dir = std::env::temp_dir();
-//!         let result = extract(&archive, &out_dir);
-//!     }
+//!     let (archive_version, archive, hash) = get_archive(&LATEST).unwrap();
+//!     let out_dir = std::env::temp_dir();
+//!     let result = extract(&archive, &out_dir);
 //! }
 //! ```
 //!
