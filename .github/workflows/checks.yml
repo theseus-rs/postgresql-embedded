@@ -38,48 +38,7 @@ jobs:
           cargo check --workspace --all-targets --features tokio
           cargo check --workspace --all-targets --all-features
 
-  deny:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-      - name: Install Rust
-        uses: dtolnay/rust-toolchain@master
-        with:
-          toolchain: stable
-      - name: Install cargo deny
-        run: cargo install cargo-deny
-      - name: Check licenses
-        run: cargo deny check --allow duplicate
-
-  docs:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-      - name: Install Rust
-        uses: dtolnay/rust-toolchain@master
-        with:
-          toolchain: stable
-      - name: Check documentation
-        env:
-          RUSTDOCFLAGS: -D warnings
-        run: cargo doc --workspace --no-deps --document-private-items --all-features
-
-  format:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-      - name: Install Rust
-        uses: dtolnay/rust-toolchain@master
-        with:
-          toolchain: stable
-          components: rustfmt
-      - name: Check formatting
-        run: cargo fmt --all --check
-
-  lint:
+  clippy:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -94,6 +53,47 @@ jobs:
           cargo clippy --workspace --features bundled
           cargo clippy --workspace --features tokio
           cargo clippy --workspace --all-features
+
+  deny:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: stable
+      - name: Install cargo deny
+        run: cargo install cargo-deny
+      - name: Check licenses
+        run: cargo deny check --allow duplicate
+
+  doc:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: stable
+      - name: Check documentation
+        env:
+          RUSTDOCFLAGS: -D warnings
+        run: cargo doc --workspace --no-deps --document-private-items --all-features
+
+  fmt:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: stable
+          components: rustfmt
+      - name: Check formatting
+        run: cargo fmt --all --check
 
   vet:
     runs-on: ubuntu-latest

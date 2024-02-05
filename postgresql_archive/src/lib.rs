@@ -38,11 +38,9 @@
 //! use postgresql_archive::LATEST;
 //! use postgresql_archive::blocking::{extract, get_archive};
 //!
-//! fn main() {
-//!     let (archive_version, archive, hash) = get_archive(&LATEST).unwrap();
-//!     let out_dir = std::env::temp_dir();
-//!     let result = extract(&archive, &out_dir);
-//! }
+//! let (archive_version, archive, hash) = get_archive(&LATEST).unwrap();
+//! let out_dir = std::env::temp_dir();
+//! let result = extract(&archive, &out_dir);
 //! ```
 //!
 //! ## Feature flags

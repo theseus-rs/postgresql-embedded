@@ -54,3 +54,9 @@ jobs:
         cargo test --package postgresql_embedded --features bundled
         cargo test --package postgresql_embedded --features tokio
         cargo test --package postgresql_embedded --all-features
+
+    - name: Upload coverage reports to Codecov
+      if: ${{ matrix.platform == 'linux-x64' }}
+      uses: codecov/codecov-action@v3
+      env:
+        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
