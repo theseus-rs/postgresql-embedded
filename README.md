@@ -2,7 +2,7 @@
  
 # PostgreSQL Embedded
 
-[![CI](https://github.com/theseus-rs/postgresql_embedded/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/theseus-rs/postgresql_embedded/actions?query=workflow%3Aci+branch%3Amain)
+[![ci](https://github.com/theseus-rs/postgresql-embedded/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/theseus-rs/postgresql-embedded/actions/workflows/ci.yml)
 [![Latest version](https://img.shields.io/crates/v/postgresql_embedded.svg)](https://crates.io/crates/postgresql_embedded)
 [![Documentation](https://docs.rs/postgresql_embedded/badge.svg)](https://docs.rs/postgresql_embedded)
 [![License](https://img.shields.io/crates/p/postgresql_embedded.svg)](https://github.com/theseus-rs/postgresql_embedded#license)
