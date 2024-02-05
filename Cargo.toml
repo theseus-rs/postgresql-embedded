@@ -1,0 +1,49 @@
+[workspace]
+default-members = ["postgresql_archive", "postgresql_embedded"]
+members = ["postgresql_archive", "postgresql_embedded"]
+resolver = "2"
+
+[workspace.package]
+categories = ["database"]
+edition = "2021"
+keywords = ["postgresql", "ffi", "database"]
+license = "(Apache-2.0 OR MIT) AND PostgreSQL"
+repository = "https://github.com/theseus-rs/postgresql_embedded"
+version = "0.1.0"
+
+[workspace.dependencies]
+anyhow = { version = "1.0" }
+bytes = { version = "1.5" }
+flate2 = { version = "1.0" }
+hex = { version = "0.4" }
+home = { version = "0.5" }
+lazy_static = { version = "1.4" }
+rand = { version = "0.8" }
+regex = { version = "1.10" }
+reqwest = { version = "0.11", default-features = false, features = ["json", "rustls-tls"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = { version = "1.0" }
+sha2 = { version = "0.10" }
+tar = { version = "0.4" }
+target-triple = { version = "0.1" }
+tempfile = { version = "3.9" }
+thiserror = { version = "1.0" }
+tokio = { version = "1.36", features = ["full"] }
+
+# Config for 'cargo dist'
+[workspace.metadata.dist]
+# The preferred cargo-dist version to use in CI (Cargo.toml SemVer syntax)
+cargo-dist-version = "0.8.2"
+# CI backends to support
+ci = ["github"]
+# The installers to generate for each app
+installers = []
+# Target platforms to build apps for (Rust target-triple syntax)
+targets = ["aarch64-apple-darwin", "aarch64-unknown-linux-gnu", "aarch64-unknown-linux-musl", "arm-unknown-linux-gnueabi", "arm-unknown-linux-gnueabihf", "arm-unknown-linux-musleabi", "arm-unknown-linux-musleabihf", "armv7-unknown-linux-gnueabihf", "armv7-unknown-linux-musleabihf", "x86_64-apple-darwin", "powerpc64le-unknown-linux-gnu", "powerpc64le-unknown-linux-musl", "s390x-unknown-linux-gnu", "s390x-unknown-linux-musl", "x86_64-unknown-linux-gnu", "x86_64-unknown-linux-musl", "x86_64-pc-windows-msvc", "i686-unknown-linux-gnu", "i686-unknown-linux-musl", "armv5te-unknown-linux-gnueabi", "i586-unknown-linux-gnu", "i586-unknown-linux-musl", "mips64-unknown-linux-gnuabi64"]
+# Publish jobs to run in CI
+pr-run-mode = "plan"
+
+# The profile that 'cargo dist' will build with
+[profile.dist]
+inherits = "release"
+lto = "thin"

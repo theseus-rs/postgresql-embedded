@@ -1,0 +1,38 @@
+[package]
+build = "build/build.rs"
+categories.workspace = true
+edition.workspace = true
+keywords.workspace = true
+license.workspace = true
+name = "postgresql_embedded"
+repository.workspace = true
+version.workspace = true
+
+[build-dependencies]
+anyhow = { workspace = true }
+hex = { workspace = true }
+postgresql_archive = { path = "../postgresql_archive" }
+sha2 = { workspace = true }
+tokio = { workspace = true }
+
+[dependencies]
+anyhow = { workspace = true }
+bytes = { workspace = true }
+hex = { workspace = true }
+home = { workspace = true }
+lazy_static = { workspace = true }
+postgresql_archive = { path = "../postgresql_archive" }
+rand = { workspace = true }
+sha2 = { workspace = true }
+tempfile = { workspace = true }
+thiserror = { workspace = true }
+tokio = { workspace = true, optional = true }
+
+[dev-dependencies]
+tokio = { workspace = true }
+
+[features]
+default = []
+blocking = ["tokio"]
+bundled = []
+tokio = ["dep:tokio"]
