@@ -54,6 +54,8 @@ jobs:
       - name: Enable caching
         uses: Swatinem/rust-cache@v2
       - name: Check lints
+        env:
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
         run: |
           cargo clippy --workspace --features blocking
           cargo clippy --workspace --features bundled

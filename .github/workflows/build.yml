@@ -51,6 +51,8 @@ jobs:
       uses: Swatinem/rust-cache@v2
 
     - name: Tests
+      env:
+        GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
       run: |
         cargo test --workspace --all-features
 
