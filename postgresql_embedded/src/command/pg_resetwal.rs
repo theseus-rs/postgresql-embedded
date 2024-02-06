@@ -212,33 +212,35 @@ mod tests {
 
     #[test]
     fn test_builder_new() {
-        let command = PgResetWalBuilder::new().build();
+        let command = PgResetWalBuilder::new().program_dir(".").build();
 
-        assert_eq!(r#""pg_resetwal""#, command.to_command_string());
+        assert_eq!(
+            PathBuf::from(".").join("pg_resetwal"),
+            PathBuf::from(command.to_command_string().replace("\"", ""))
+        );
     }
 
     #[test]
     fn test_builder() {
         let command = PgResetWalBuilder::new()
-            .program_dir("/usr/bin")
             .commit_timestamp_ids("1", "2")
-            .pgdata("test")
-            .epoch("test")
+            .pgdata("pgdata")
+            .epoch("epoch")
             .force()
-            .next_wal_file("test")
-            .multixact_ids("1", "2")
+            .next_wal_file("next_wal_file")
+            .multixact_ids("3", "4")
             .dry_run()
-            .next_oid("test")
-            .multixact_offset("test")
-            .oldest_transaction_id("test")
+            .next_oid("next_oid")
+            .multixact_offset("multixact_offset")
+            .oldest_transaction_id("oldest_transaction_id")
             .version()
-            .next_transaction_id("test")
-            .wal_segsize("test")
+            .next_transaction_id("next_transaction_id")
+            .wal_segsize("wal_segsize")
             .help()
             .build();
 
         assert_eq!(
-            r#""/usr/bin/pg_resetwal" "--commit-timestamp-ids" "1,2" "--pgdata" "test" "--epoch" "test" "--force" "--next-wal-file" "test" "--multixact-ids" "1,2" "--dry-run" "--next-oid" "test" "--multixact-offset" "test" "--oldest-transaction-id" "test" "--version" "--next-transaction-id" "test" "--wal-segsize" "test" "--help""#,
+            r#""pg_resetwal" "--commit-timestamp-ids" "1,2" "--pgdata" "pgdata" "--epoch" "epoch" "--force" "--next-wal-file" "next_wal_file" "--multixact-ids" "3,4" "--dry-run" "--next-oid" "next_oid" "--multixact-offset" "multixact_offset" "--oldest-transaction-id" "oldest_transaction_id" "--version" "--next-transaction-id" "next_transaction_id" "--wal-segsize" "wal_segsize" "--help""#,
             command.to_command_string()
         );
     }

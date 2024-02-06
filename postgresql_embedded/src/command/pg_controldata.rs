@@ -81,22 +81,24 @@ mod tests {
 
     #[test]
     fn test_builder_new() {
-        let command = PgControlDataBuilder::new().build();
+        let command = PgControlDataBuilder::new().program_dir(".").build();
 
-        assert_eq!(r#""pg_controldata""#, command.to_command_string());
+        assert_eq!(
+            PathBuf::from(".").join("pg_controldata"),
+            PathBuf::from(command.to_command_string().replace("\"", ""))
+        );
     }
 
     #[test]
     fn test_builder() {
         let command = PgControlDataBuilder::new()
-            .program_dir("/usr/bin")
-            .pgdata("/var/lib/postgresql/data")
+            .pgdata("pgdata")
             .version()
             .help()
             .build();
 
         assert_eq!(
-            r#""/usr/bin/pg_controldata" "--pgdata" "/var/lib/postgresql/data" "--version" "--help""#,
+            r#""pg_controldata" "--pgdata" "pgdata" "--version" "--help""#,
             command.to_command_string()
         );
     }

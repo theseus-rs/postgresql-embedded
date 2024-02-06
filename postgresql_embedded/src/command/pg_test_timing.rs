@@ -60,21 +60,18 @@ mod tests {
 
     #[test]
     fn test_builder_new() {
-        let command = PgTestTimingBuilder::new().build();
+        let command = PgTestTimingBuilder::new().program_dir(".").build();
 
-        assert_eq!(r#""pg_test_timing""#, command.to_command_string());
+        assert_eq!(
+            PathBuf::from(".").join("pg_test_timing"),
+            PathBuf::from(command.to_command_string().replace("\"", ""))
+        );
     }
 
     #[test]
     fn test_builder() {
-        let command = PgTestTimingBuilder::new()
-            .program_dir("/usr/bin")
-            .duration("10")
-            .build();
+        let command = PgTestTimingBuilder::new().duration("10").build();
 
-        assert_eq!(
-            r#""/usr/bin/pg_test_timing" "-d" "10""#,
-            command.to_command_string()
-        );
+        assert_eq!(r#""pg_test_timing" "-d" "10""#, command.to_command_string());
     }
 }

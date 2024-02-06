@@ -72,21 +72,23 @@ mod tests {
 
     #[test]
     fn test_builder_new() {
-        let command = PgTestFsyncBuilder::new().build();
+        let command = PgTestFsyncBuilder::new().program_dir(".").build();
 
-        assert_eq!(r#""pg_test_fsync""#, command.to_command_string());
+        assert_eq!(
+            PathBuf::from(".").join("pg_test_fsync"),
+            PathBuf::from(command.to_command_string().replace("\"", ""))
+        );
     }
 
     #[test]
     fn test_builder() {
         let command = PgTestFsyncBuilder::new()
-            .program_dir("/usr/bin")
-            .filename("test")
+            .filename("filename")
             .secs_per_test(10)
             .build();
 
         assert_eq!(
-            r#""/usr/bin/pg_test_fsync" "-f" "test" "-s" "10""#,
+            r#""pg_test_fsync" "-f" "filename" "-s" "10""#,
             command.to_command_string()
         );
     }

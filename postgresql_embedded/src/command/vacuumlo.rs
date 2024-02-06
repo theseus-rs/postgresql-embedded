@@ -162,15 +162,17 @@ mod tests {
 
     #[test]
     fn test_builder_new() {
-        let command = VacuumLoBuilder::new().build();
+        let command = VacuumLoBuilder::new().program_dir(".").build();
 
-        assert_eq!(r#""vacuumlo""#, command.to_command_string());
+        assert_eq!(
+            PathBuf::from(".").join("vacuumlo"),
+            PathBuf::from(command.to_command_string().replace("\"", ""))
+        );
     }
 
     #[test]
     fn test_builder() {
         let command = VacuumLoBuilder::new()
-            .program_dir("/usr/bin")
             .limit(100)
             .dry_run()
             .verbose()
@@ -184,7 +186,7 @@ mod tests {
             .build();
 
         assert_eq!(
-            r#""/usr/bin/vacuumlo" "--limit" "100" "--dry-run" "--verbose" "--version" "--help" "--host" "localhost" "--port" "5432" "--username" "postgres" "--no-password" "--password""#,
+            r#""vacuumlo" "--limit" "100" "--dry-run" "--verbose" "--version" "--help" "--host" "localhost" "--port" "5432" "--username" "postgres" "--no-password" "--password""#,
             command.to_command_string()
         );
     }

@@ -141,15 +141,17 @@ mod tests {
 
     #[test]
     fn test_builder_new() {
-        let command = PgIsReadyBuilder::new().build();
+        let command = PgIsReadyBuilder::new().program_dir(".").build();
 
-        assert_eq!(r#""pg_isready""#, command.to_command_string());
+        assert_eq!(
+            PathBuf::from(".").join("pg_isready"),
+            PathBuf::from(command.to_command_string().replace("\"", ""))
+        );
     }
 
     #[test]
     fn test_builder() {
         let command = PgIsReadyBuilder::new()
-            .program_dir("/usr/bin")
             .dbname("postgres")
             .quiet()
             .version()
@@ -161,7 +163,7 @@ mod tests {
             .build();
 
         assert_eq!(
-            r#""/usr/bin/pg_isready" "--dbname" "postgres" "--quiet" "--version" "--help" "--host" "localhost" "--port" "5432" "--timeout" "3" "--username" "postgres""#,
+            r#""pg_isready" "--dbname" "postgres" "--quiet" "--version" "--help" "--host" "localhost" "--port" "5432" "--timeout" "3" "--username" "postgres""#,
             command.to_command_string()
         );
     }

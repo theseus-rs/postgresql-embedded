@@ -538,18 +538,20 @@ mod tests {
 
     #[test]
     fn test_builder_new() {
-        let command = PgRestoreBuilder::new().build();
+        let command = PgRestoreBuilder::new().program_dir(".").build();
 
-        assert_eq!(r#""pg_restore""#, command.to_command_string());
+        assert_eq!(
+            PathBuf::from(".").join("pg_restore"),
+            PathBuf::from(command.to_command_string().replace("\"", ""))
+        );
     }
 
     #[test]
     fn test_builder() {
         let command = PgRestoreBuilder::new()
-            .program_dir("/usr/bin")
-            .dbname("test")
-            .file("test")
-            .format("test")
+            .dbname("dbname")
+            .file("file")
+            .format("format")
             .list()
             .verbose()
             .version()
@@ -558,17 +560,17 @@ mod tests {
             .clean()
             .create()
             .exit_on_error()
-            .index("test")
-            .jobs("test")
-            .use_list("test")
-            .schema("test")
-            .exclude_schema("test")
+            .index("index")
+            .jobs("jobs")
+            .use_list("use_list")
+            .schema("schema")
+            .exclude_schema("exclude_schema")
             .no_owner()
-            .function("test")
+            .function("function")
             .schema_only()
-            .superuser("test")
-            .table("test")
-            .trigger("test")
+            .superuser("superuser")
+            .table("table")
+            .trigger("trigger")
             .no_privileges()
             .single_transaction()
             .disable_triggers()
@@ -581,19 +583,19 @@ mod tests {
             .no_subscriptions()
             .no_table_access_method()
             .no_tablespaces()
-            .section("test")
+            .section("section")
             .strict_names()
             .use_set_session_authorization()
             .host("localhost")
             .port(5432)
-            .username("test")
+            .username("username")
             .no_password()
             .password()
-            .role("test")
+            .role("role")
             .build();
 
         assert_eq!(
-            r#""/usr/bin/pg_restore" "--dbname" "test" "--file" "test" "--format" "test" "--list" "--verbose" "--version" "--help" "--data-only" "--clean" "--create" "--exit-on-error" "--index" "test" "--jobs" "test" "--use-list" "test" "--schema" "test" "--exclude-schema" "test" "--no-owner" "--function" "test" "--schema-only" "--superuser" "test" "--table" "test" "--trigger" "test" "--no-privileges" "--single-transaction" "--disable-triggers" "--enable-row-security" "--if-exists" "--no-comments" "--no-data-for-failed-tables" "--no-publications" "--no-security-labels" "--no-subscriptions" "--no-table-access-method" "--no-tablespaces" "--section" "test" "--strict-names" "--use-set-session-authorization" "--host" "localhost" "--port" "5432" "--username" "test" "--no-password" "--password" "--role" "test""#,
+            r#""pg_restore" "--dbname" "dbname" "--file" "file" "--format" "format" "--list" "--verbose" "--version" "--help" "--data-only" "--clean" "--create" "--exit-on-error" "--index" "index" "--jobs" "jobs" "--use-list" "use_list" "--schema" "schema" "--exclude-schema" "exclude_schema" "--no-owner" "--function" "function" "--schema-only" "--superuser" "superuser" "--table" "table" "--trigger" "trigger" "--no-privileges" "--single-transaction" "--disable-triggers" "--enable-row-security" "--if-exists" "--no-comments" "--no-data-for-failed-tables" "--no-publications" "--no-security-labels" "--no-subscriptions" "--no-table-access-method" "--no-tablespaces" "--section" "section" "--strict-names" "--use-set-session-authorization" "--host" "localhost" "--port" "5432" "--username" "username" "--no-password" "--password" "--role" "role""#,
             command.to_command_string()
         );
     }

@@ -126,26 +126,28 @@ mod tests {
 
     #[test]
     fn test_builder_new() {
-        let command = PgArchiveCleanupBuilder::new().build();
+        let command = PgArchiveCleanupBuilder::new().program_dir(".").build();
 
-        assert_eq!(r#""pg_archivecleanup""#, command.to_command_string());
+        assert_eq!(
+            PathBuf::from(".").join("pg_archivecleanup"),
+            PathBuf::from(command.to_command_string().replace("\"", ""))
+        );
     }
 
     #[test]
     fn test_builder() {
         let command = PgArchiveCleanupBuilder::new()
-            .program_dir("/usr/bin")
             .debug()
             .dry_run()
             .version()
             .ext("partial")
             .help()
-            .archive_location("/var/lib/pgsql/16/data/pg_wal")
+            .archive_location("archive_location")
             .oldest_kept_wal_file("000000010000000000000001")
             .build();
 
         assert_eq!(
-            r#""/usr/bin/pg_archivecleanup" "-d" "-n" "--version" "-x" "partial" "--help" "/var/lib/pgsql/16/data/pg_wal" "000000010000000000000001""#,
+            r#""pg_archivecleanup" "-d" "-n" "--version" "-x" "partial" "--help" "archive_location" "000000010000000000000001""#,
             command.to_command_string()
         );
     }

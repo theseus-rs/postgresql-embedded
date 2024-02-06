@@ -161,29 +161,31 @@ mod tests {
 
     #[test]
     fn test_builder_new() {
-        let command = PgVerifyBackupBuilder::new().build();
+        let command = PgVerifyBackupBuilder::new().program_dir(".").build();
 
-        assert_eq!(r#""pg_verifybackup""#, command.to_command_string());
+        assert_eq!(
+            PathBuf::from(".").join("pg_verifybackup"),
+            PathBuf::from(command.to_command_string().replace("\"", ""))
+        );
     }
 
     #[test]
     fn test_builder() {
         let command = PgVerifyBackupBuilder::new()
-            .program_dir("/usr/bin")
             .exit_on_error()
-            .ignore("test")
-            .manifest_path("test")
+            .ignore("ignore")
+            .manifest_path("manifest-path")
             .no_parse_wal()
             .progress()
             .quiet()
             .skip_checksums()
-            .wal_directory("test")
+            .wal_directory("wal_directory")
             .version()
             .help()
             .build();
 
         assert_eq!(
-            r#""/usr/bin/pg_verifybackup" "--exit-on-error" "--ignore" "test" "--manifest-path" "test" "--no-parse-wal" "--progress" "--quiet" "--skip-checksums" "--wal-directory" "test" "--version" "--help""#,
+            r#""pg_verifybackup" "--exit-on-error" "--ignore" "ignore" "--manifest-path" "manifest-path" "--no-parse-wal" "--progress" "--quiet" "--skip-checksums" "--wal-directory" "wal_directory" "--version" "--help""#,
             command.to_command_string()
         );
     }

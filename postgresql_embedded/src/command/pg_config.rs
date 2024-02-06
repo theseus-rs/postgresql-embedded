@@ -325,37 +325,30 @@ mod tests {
 
     #[test]
     fn test_builder_new() {
-        let command = PgConfigBuilder::new().build();
+        let command = PgConfigBuilder::new().program_dir(".").build();
 
-        assert_eq!(r#""pg_config""#, command.to_command_string());
+        assert_eq!(
+            PathBuf::from(".").join("pg_config"),
+            PathBuf::from(command.to_command_string().replace("\"", ""))
+        );
     }
 
     #[test]
     fn test_builder() {
         let command = PgConfigBuilder::new()
-            .program_dir("/usr/bin")
-            .bindir("/usr/local/pgsql/bin")
-            .docdir("/usr/local/pgsql/doc")
-            .htmldir("/usr/local/pgsql/html")
-            .includedir("/usr/local/pgsql/include")
-            .pkgincludedir("/usr/local/pgsql/include")
-            .includedir_server("/usr/local/pgsql/include/server")
-            .libdir("/usr/local/pgsql/lib")
-            .pkglibdir("/usr/local/pgsql/lib")
-            .localedir("/usr/local/pgsql/share/locale")
-            .bindir("/usr/local/pgsql/bin")
-            .docdir("/usr/local/pgsql/doc")
-            .htmldir("/usr/local/pgsql/html")
-            .includedir("/usr/local/pgsql/include")
-            .pkgincludedir("/usr/local/pgsql/include")
-            .includedir_server("/usr/local/pgsql/include/server")
-            .libdir("/usr/local/pgsql/lib")
-            .pkglibdir("/usr/local/pgsql/lib")
-            .localedir("/usr/local/pgsql/share/locale")
-            .mandir("/usr/local/pgsql/man")
-            .sharedir("/usr/local/pgsql/share")
-            .sysconfdir("/usr/local/pgsql/sysconf")
-            .pgxs("/usr/local/pgsql/pgxs")
+            .bindir("bindir")
+            .docdir("docdir")
+            .htmldir("htmldir")
+            .includedir("includedir")
+            .pkgincludedir("pkgincludedir")
+            .includedir_server("includedir_server")
+            .libdir("libdir")
+            .pkglibdir("pkglibdir")
+            .localedir("localedir")
+            .mandir("mandir")
+            .sharedir("sharedir")
+            .sysconfdir("sysconfdir")
+            .pgxs("pgxs")
             .configure()
             .cc()
             .cppflags()
@@ -370,7 +363,7 @@ mod tests {
             .build();
 
         assert_eq!(
-            r#""/usr/bin/pg_config" "--bindir" "/usr/local/pgsql/bin" "--docdir" "/usr/local/pgsql/doc" "--htmldir" "/usr/local/pgsql/html" "--includedir" "/usr/local/pgsql/include" "--pkgincludedir" "/usr/local/pgsql/include" "--includedir-server" "/usr/local/pgsql/include/server" "--libdir" "/usr/local/pgsql/lib" "--pkglibdir" "/usr/local/pgsql/lib" "--localedir" "/usr/local/pgsql/share/locale" "--mandir" "/usr/local/pgsql/man" "--sharedir" "/usr/local/pgsql/share" "--sysconfdir" "/usr/local/pgsql/sysconf" "--pgxs" "/usr/local/pgsql/pgxs" "--configure" "--cc" "--cppflags" "--cflags" "--cflags_sl" "--ldflags" "--ldflags_ex" "--ldflags_sl" "--libs" "--version" "--help""#,
+            r#""pg_config" "--bindir" "bindir" "--docdir" "docdir" "--htmldir" "htmldir" "--includedir" "includedir" "--pkgincludedir" "pkgincludedir" "--includedir-server" "includedir_server" "--libdir" "libdir" "--pkglibdir" "pkglibdir" "--localedir" "localedir" "--mandir" "mandir" "--sharedir" "sharedir" "--sysconfdir" "sysconfdir" "--pgxs" "pgxs" "--configure" "--cc" "--cppflags" "--cflags" "--cflags_sl" "--ldflags" "--ldflags_ex" "--ldflags_sl" "--libs" "--version" "--help""#,
             command.to_command_string()
         );
     }

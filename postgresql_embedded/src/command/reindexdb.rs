@@ -277,15 +277,17 @@ mod tests {
 
     #[test]
     fn test_builder_new() {
-        let command = ReindexDbBuilder::new().build();
+        let command = ReindexDbBuilder::new().program_dir(".").build();
 
-        assert_eq!(r#""reindexdb""#, command.to_command_string());
+        assert_eq!(
+            PathBuf::from(".").join("reindexdb"),
+            PathBuf::from(command.to_command_string().replace("\"", ""))
+        );
     }
 
     #[test]
     fn test_builder() {
         let command = ReindexDbBuilder::new()
-            .program_dir("/usr/bin")
             .all()
             .concurrently()
             .dbname("dbname")
@@ -309,7 +311,7 @@ mod tests {
             .build();
 
         assert_eq!(
-            r#""/usr/bin/reindexdb" "--all" "--concurrently" "--dbname" "dbname" "--echo" "--index" "index" "--jobs" "1" "--quiet" "--system" "--schema" "schema" "--table" "table" "--tablespace" "tablespace" "--verbose" "--version" "--help" "--host" "localhost" "--port" "5432" "--username" "username" "--no-password" "--password" "--maintenance-db" "maintenance-db""#,
+            r#""reindexdb" "--all" "--concurrently" "--dbname" "dbname" "--echo" "--index" "index" "--jobs" "1" "--quiet" "--system" "--schema" "schema" "--table" "table" "--tablespace" "tablespace" "--verbose" "--version" "--help" "--host" "localhost" "--port" "5432" "--username" "username" "--no-password" "--password" "--maintenance-db" "maintenance-db""#,
             command.to_command_string()
         );
     }

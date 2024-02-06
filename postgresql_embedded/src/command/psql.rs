@@ -449,17 +449,19 @@ mod tests {
 
     #[test]
     fn test_builder_new() {
-        let command = PsqlBuilder::new().build();
+        let command = PsqlBuilder::new().program_dir(".").build();
 
-        assert_eq!(r#""psql""#, command.to_command_string());
+        assert_eq!(
+            PathBuf::from(".").join("psql"),
+            PathBuf::from(command.to_command_string().replace("\"", ""))
+        );
     }
 
     #[test]
     fn test_builder() {
         let command = PsqlBuilder::new()
-            .program_dir("/usr/bin")
             .command("SELECT * FROM test")
-            .dbname("test")
+            .dbname("dbname")
             .file("test.sql")
             .list()
             .variable(("ON_ERROR_STOP", "1"))
@@ -496,7 +498,7 @@ mod tests {
             .build();
 
         assert_eq!(
-            r#""/usr/bin/psql" "--command" "SELECT * FROM test" "--dbname" "test" "--file" "test.sql" "--list" "--variable" "ON_ERROR_STOP=1" "--version" "--no-psqlrc" "--single-transaction" "--help" "options" "--echo-all" "--echo-errors" "--echo-queries" "--echo-hidden" "--log-file" "psql.log" "--no-readline" "--output" "output.txt" "--quiet" "--single-step" "--single-line" "--no-align" "--csv" "--field-separator" "|" "--html" "--pset" "border=1" "--record-separator" "\n" "--tuples-only" "--table-attr" "width=100" "--expanded" "--field-separator-zero" "--record-separator-zero" "--host" "localhost" "--port" "5432" "--username" "postgres" "--no-password" "--password""#,
+            r#""psql" "--command" "SELECT * FROM test" "--dbname" "dbname" "--file" "test.sql" "--list" "--variable" "ON_ERROR_STOP=1" "--version" "--no-psqlrc" "--single-transaction" "--help" "options" "--echo-all" "--echo-errors" "--echo-queries" "--echo-hidden" "--log-file" "psql.log" "--no-readline" "--output" "output.txt" "--quiet" "--single-step" "--single-line" "--no-align" "--csv" "--field-separator" "|" "--html" "--pset" "border=1" "--record-separator" "\n" "--tuples-only" "--table-attr" "width=100" "--expanded" "--field-separator-zero" "--record-separator-zero" "--host" "localhost" "--port" "5432" "--username" "postgres" "--no-password" "--password""#,
             command.to_command_string()
         );
     }

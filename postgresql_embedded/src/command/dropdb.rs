@@ -194,15 +194,17 @@ mod tests {
 
     #[test]
     fn test_builder_new() {
-        let command = DropDbBuilder::new().build();
+        let command = DropDbBuilder::new().program_dir(".").build();
 
-        assert_eq!(r#""dropdb""#, command.to_command_string());
+        assert_eq!(
+            PathBuf::from(".").join("dropdb"),
+            PathBuf::from(command.to_command_string().replace("\"", ""))
+        );
     }
 
     #[test]
     fn test_builder() {
         let command = DropDbBuilder::new()
-            .program_dir("/usr/bin")
             .echo()
             .force()
             .interactive()
@@ -215,11 +217,11 @@ mod tests {
             .no_password()
             .password()
             .maintenance_db("postgres")
-            .dbname("test")
+            .dbname("dbname")
             .build();
 
         assert_eq!(
-            r#""/usr/bin/dropdb" "--echo" "--force" "--interactive" "--version" "--if-exists" "--help" "--host" "localhost" "--port" "5432" "--username" "postgres" "--no-password" "--password" "--maintenance-db" "postgres" "test""#,
+            r#""dropdb" "--echo" "--force" "--interactive" "--version" "--if-exists" "--help" "--host" "localhost" "--port" "5432" "--username" "postgres" "--no-password" "--password" "--maintenance-db" "postgres" "dbname""#,
             command.to_command_string()
         );
     }

@@ -455,19 +455,21 @@ mod tests {
 
     #[test]
     fn test_builder_new() {
-        let command = InitDbBuilder::new().build();
+        let command = InitDbBuilder::new().program_dir(".").build();
 
-        assert_eq!(r#""initdb""#, command.to_command_string());
+        assert_eq!(
+            PathBuf::from(".").join("initdb"),
+            PathBuf::from(command.to_command_string().replace("\"", ""))
+        );
     }
 
     #[test]
     fn test_builder() {
         let command = InitDbBuilder::new()
-            .program_dir("/usr/bin")
             .auth("md5")
             .auth_host("md5")
             .auth_local("md5")
-            .pgdata("/var/lib/postgresql/data")
+            .pgdata("pgdata")
             .encoding("UTF8")
             .allow_group_access()
             .icu_locale("en_US")
@@ -482,16 +484,16 @@ mod tests {
             .lc_time("en_US")
             .no_locale()
             .locale_provider("icu")
-            .pwfile("/etc/postgresql/.pwfile")
+            .pwfile(".pwfile")
             .text_search_config("english")
             .username("postgres")
             .pwprompt()
-            .waldir("/var/lib/postgresql/wal")
+            .waldir("waldir")
             .wal_segsize("1")
             .set("timezone=UTC")
             .debug()
             .discard_caches()
-            .directory("/var/lib/postgresql")
+            .directory("directory")
             .no_clean()
             .no_sync()
             .no_instructions()
@@ -502,7 +504,7 @@ mod tests {
             .build();
 
         assert_eq!(
-            r#""/usr/bin/initdb" "--auth" "md5" "--auth-host" "md5" "--auth-local" "md5" "--pgdata" "/var/lib/postgresql/data" "--encoding" "UTF8" "--allow-group-access" "--icu-locale" "en_US" "--icu-rules" "phonebook" "--data-checksums" "--locale" "en_US" "--lc-collate" "en_US" "--lc-ctype" "en_US" "--lc-messages" "en_US" "--lc-monetary" "en_US" "--lc-numeric" "en_US" "--lc-time" "en_US" "--no-locale" "--locale-provider" "icu" "--pwfile" "/etc/postgresql/.pwfile" "--text-search-config" "english" "--username" "postgres" "--pwprompt" "--waldir" "/var/lib/postgresql/wal" "--wal-segsize" "1" "--set" "timezone=UTC" "--debug" "--discard-caches" "--directory" "/var/lib/postgresql" "--no-clean" "--no-sync" "--no-instructions" "--show" "--sync-only" "--version" "--help""#,
+            r#""initdb" "--auth" "md5" "--auth-host" "md5" "--auth-local" "md5" "--pgdata" "pgdata" "--encoding" "UTF8" "--allow-group-access" "--icu-locale" "en_US" "--icu-rules" "phonebook" "--data-checksums" "--locale" "en_US" "--lc-collate" "en_US" "--lc-ctype" "en_US" "--lc-messages" "en_US" "--lc-monetary" "en_US" "--lc-numeric" "en_US" "--lc-time" "en_US" "--no-locale" "--locale-provider" "icu" "--pwfile" ".pwfile" "--text-search-config" "english" "--username" "postgres" "--pwprompt" "--waldir" "waldir" "--wal-segsize" "1" "--set" "timezone=UTC" "--debug" "--discard-caches" "--directory" "directory" "--no-clean" "--no-sync" "--no-instructions" "--show" "--sync-only" "--version" "--help""#,
             command.to_command_string()
         );
     }

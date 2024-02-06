@@ -428,22 +428,24 @@ mod tests {
 
     #[test]
     fn test_builder_new() {
-        let command = PgBaseBackupBuilder::new().build();
+        let command = PgBaseBackupBuilder::new().program_dir(".").build();
 
-        assert_eq!(r#""pg_basebackup""#, command.to_command_string());
+        assert_eq!(
+            PathBuf::from(".").join("pg_basebackup"),
+            PathBuf::from(command.to_command_string().replace("\"", ""))
+        );
     }
 
     #[test]
     fn test_builder() {
         let command = PgBaseBackupBuilder::new()
-            .program_dir("/usr/bin")
-            .pgdata("/var/lib/postgresql/13/main")
+            .pgdata("pgdata")
             .format("plain")
             .max_rate("100M")
             .write_recovery_conf()
             .target("localhost")
-            .tablespace_mapping("/var/lib/postgresql/13/main=/mnt/pgdata")
-            .waldir("/var/lib/postgresql/13/main/pg_wal")
+            .tablespace_mapping("tablespace_mapping")
+            .waldir("waldir")
             .wal_method("stream")
             .gzip()
             .compress("client")
@@ -473,7 +475,7 @@ mod tests {
             .build();
 
         assert_eq!(
-            r#""/usr/bin/pg_basebackup" "--pgdata" "/var/lib/postgresql/13/main" "--format" "plain" "--max-rate" "100M" "--write-recovery-conf" "--target" "localhost" "--tablespace-mapping" "/var/lib/postgresql/13/main=/mnt/pgdata" "--waldir" "/var/lib/postgresql/13/main/pg_wal" "--wal-method" "stream" "--gzip" "--compress" "client" "--checkpoint" "fast" "--create-slot" "--label" "my_backup" "--no-clean" "--no-sync" "--progress" "--slot" "my_slot" "--verbose" "--version" "--manifest-checksums" "sha256" "--manifest-force-encode" "--no-estimate-size" "--no-manifest" "--no-slot" "--no-verify-checksums" "--help" "--dbname" "postgres" "--host" "localhost" "--port" "5432" "--status-interval" "10" "--username" "postgres" "--no-password" "--password""#,
+            r#""pg_basebackup" "--pgdata" "pgdata" "--format" "plain" "--max-rate" "100M" "--write-recovery-conf" "--target" "localhost" "--tablespace-mapping" "tablespace_mapping" "--waldir" "waldir" "--wal-method" "stream" "--gzip" "--compress" "client" "--checkpoint" "fast" "--create-slot" "--label" "my_backup" "--no-clean" "--no-sync" "--progress" "--slot" "my_slot" "--verbose" "--version" "--manifest-checksums" "sha256" "--manifest-force-encode" "--no-estimate-size" "--no-manifest" "--no-slot" "--no-verify-checksums" "--help" "--dbname" "postgres" "--host" "localhost" "--port" "5432" "--status-interval" "10" "--username" "postgres" "--no-password" "--password""#,
             command.to_command_string()
         );
     }

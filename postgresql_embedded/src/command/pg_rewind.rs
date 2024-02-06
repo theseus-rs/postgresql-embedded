@@ -194,24 +194,26 @@ mod tests {
 
     #[test]
     fn test_builder_new() {
-        let command = PgRewindBuilder::new().build();
+        let command = PgRewindBuilder::new().program_dir(".").build();
 
-        assert_eq!(r#""pg_rewind""#, command.to_command_string());
+        assert_eq!(
+            PathBuf::from(".").join("pg_rewind"),
+            PathBuf::from(command.to_command_string().replace("\"", ""))
+        );
     }
 
     #[test]
     fn test_builder() {
         let command = PgRewindBuilder::new()
-            .program_dir("/usr/bin")
             .restore_target_wal()
-            .target_pgdata("test")
-            .source_pgdata("test")
-            .source_server("test")
+            .target_pgdata("target_pgdata")
+            .source_pgdata("source_pgdata")
+            .source_server("source_server")
             .dry_run()
             .no_sync()
             .progress()
             .write_recovery_conf()
-            .config_file("test")
+            .config_file("config_file")
             .debug()
             .no_ensure_shutdown()
             .version()
@@ -219,7 +221,7 @@ mod tests {
             .build();
 
         assert_eq!(
-            r#""/usr/bin/pg_rewind" "--restore-target-wal" "--target-pgdata" "test" "--source-pgdata" "test" "--source-server" "test" "--dry-run" "--no-sync" "--progress" "--write-recovery-conf" "--config-file" "test" "--debug" "--no-ensure-shutdown" "--version" "--help""#,
+            r#""pg_rewind" "--restore-target-wal" "--target-pgdata" "target_pgdata" "--source-pgdata" "source_pgdata" "--source-server" "source_server" "--dry-run" "--no-sync" "--progress" "--write-recovery-conf" "--config-file" "config_file" "--debug" "--no-ensure-shutdown" "--version" "--help""#,
             command.to_command_string()
         );
     }

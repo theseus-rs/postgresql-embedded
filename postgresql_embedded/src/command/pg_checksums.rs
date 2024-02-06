@@ -160,16 +160,18 @@ mod tests {
 
     #[test]
     fn test_builder_new() {
-        let command = PgChecksumsBuilder::new().build();
+        let command = PgChecksumsBuilder::new().program_dir(".").build();
 
-        assert_eq!(r#""pg_checksums""#, command.to_command_string());
+        assert_eq!(
+            PathBuf::from(".").join("pg_checksums"),
+            PathBuf::from(command.to_command_string().replace("\"", ""))
+        );
     }
 
     #[test]
     fn test_builder() {
         let command = PgChecksumsBuilder::new()
-            .program_dir("/usr/bin")
-            .pgdata("/path/to/pgdata")
+            .pgdata("pgdata")
             .check()
             .disable()
             .enable()
@@ -182,7 +184,7 @@ mod tests {
             .build();
 
         assert_eq!(
-            r#""/usr/bin/pg_checksums" "--pgdata" "/path/to/pgdata" "--check" "--disable" "--enable" "--filenode" "12345" "--no-sync" "--progress" "--verbose" "--version" "--help""#,
+            r#""pg_checksums" "--pgdata" "pgdata" "--check" "--disable" "--enable" "--filenode" "12345" "--no-sync" "--progress" "--verbose" "--version" "--help""#,
             command.to_command_string()
         );
     }

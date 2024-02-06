@@ -386,15 +386,17 @@ mod tests {
 
     #[test]
     fn test_builder_new() {
-        let command = CreateUserBuilder::new().build();
+        let command = CreateUserBuilder::new().program_dir(".").build();
 
-        assert_eq!(r#""createuser""#, command.to_command_string());
+        assert_eq!(
+            PathBuf::from(".").join("createuser"),
+            PathBuf::from(command.to_command_string().replace("\"", ""))
+        );
     }
 
     #[test]
     fn test_builder() {
         let command = CreateUserBuilder::new()
-            .program_dir("/usr/bin")
             .with_admin("admin")
             .connection_limit(10)
             .createdb()
@@ -428,7 +430,7 @@ mod tests {
             .build();
 
         assert_eq!(
-            r#""/usr/bin/createuser" "--with-admin" "admin" "--connection-limit" "10" "--createdb" "--no-createdb" "--echo" "--member-of" "member" "--inherit" "--no-inherit" "--login" "--no-login" "--with-member" "member" "--pwprompt" "--createrole" "--no-createrole" "--superuser" "--no-superuser" "--valid-until" "2021-12-31" "--version" "--interactive" "--bypassrls" "--no-bypassrls" "--replication" "--no-replication" "--help" "--host" "localhost" "--port" "5432" "--username" "username" "--no-password" "--password" "rolename""#,
+            r#""createuser" "--with-admin" "admin" "--connection-limit" "10" "--createdb" "--no-createdb" "--echo" "--member-of" "member" "--inherit" "--no-inherit" "--login" "--no-login" "--with-member" "member" "--pwprompt" "--createrole" "--no-createrole" "--superuser" "--no-superuser" "--valid-until" "2021-12-31" "--version" "--interactive" "--bypassrls" "--no-bypassrls" "--replication" "--no-replication" "--help" "--host" "localhost" "--port" "5432" "--username" "username" "--no-password" "--password" "rolename""#,
             command.to_command_string()
         );
     }

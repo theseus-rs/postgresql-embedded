@@ -146,15 +146,17 @@ mod tests {
 
     #[test]
     fn test_builder_new() {
-        let command = PgDumpAllBuilder::new().build();
+        let command = PgDumpAllBuilder::new().program_dir(".").build();
 
-        assert_eq!(r#""pg_dumpall""#, command.to_command_string());
+        assert_eq!(
+            PathBuf::from(".").join("pg_dumpall"),
+            PathBuf::from(command.to_command_string().replace("\"", ""))
+        );
     }
 
     #[test]
     fn test_builder() {
         let command = PgDumpAllBuilder::new()
-            .program_dir("/usr/bin")
             .file("dump.sql")
             .verbose()
             .version()
@@ -163,7 +165,7 @@ mod tests {
             .build();
 
         assert_eq!(
-            r#""/usr/bin/pg_dumpall" "--file" "dump.sql" "--verbose" "--version" "--lock-wait-timeout" "10" "--help""#,
+            r#""pg_dumpall" "--file" "dump.sql" "--verbose" "--version" "--lock-wait-timeout" "10" "--help""#,
             command.to_command_string()
         );
     }

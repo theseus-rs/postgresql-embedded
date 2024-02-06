@@ -208,17 +208,19 @@ mod tests {
 
     #[test]
     fn test_builder_new() {
-        let command = ClusterDbBuilder::new().build();
+        let command = ClusterDbBuilder::new().program_dir(".").build();
 
-        assert_eq!(r#""clusterdb""#, command.to_command_string());
+        assert_eq!(
+            PathBuf::from(".").join("clusterdb"),
+            PathBuf::from(command.to_command_string().replace("\"", ""))
+        );
     }
 
     #[test]
     fn test_builder() {
         let command = ClusterDbBuilder::new()
-            .program_dir("/usr/bin")
             .all()
-            .dbname("test")
+            .dbname("dbname")
             .echo()
             .quiet()
             .table("table")
@@ -234,7 +236,7 @@ mod tests {
             .build();
 
         assert_eq!(
-            r#""/usr/bin/clusterdb" "--all" "--dbname" "test" "--echo" "--quiet" "--table" "table" "--verbose" "--version" "--help" "--host" "localhost" "--port" "5432" "--username" "postgres" "--no-password" "--password" "--maintenance-db" "postgres""#,
+            r#""clusterdb" "--all" "--dbname" "dbname" "--echo" "--quiet" "--table" "table" "--verbose" "--version" "--help" "--host" "localhost" "--port" "5432" "--username" "postgres" "--no-password" "--password" "--maintenance-db" "postgres""#,
             command.to_command_string()
         );
     }

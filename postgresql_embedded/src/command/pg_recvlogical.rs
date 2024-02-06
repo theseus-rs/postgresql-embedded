@@ -313,42 +313,44 @@ mod tests {
 
     #[test]
     fn test_builder_new() {
-        let command = PgRecvLogicalBuilder::new().build();
+        let command = PgRecvLogicalBuilder::new().program_dir(".").build();
 
-        assert_eq!(r#""pg_recvlogical""#, command.to_command_string());
+        assert_eq!(
+            PathBuf::from(".").join("pg_recvlogical"),
+            PathBuf::from(command.to_command_string().replace("\"", ""))
+        );
     }
 
     #[test]
     fn test_builder() {
         let command = PgRecvLogicalBuilder::new()
-            .program_dir("/usr/bin")
             .create_slot()
             .drop_slot()
             .start()
-            .endpos("test")
-            .file("test")
-            .fsync_interval("test")
+            .endpos("endpos")
+            .file("file")
+            .fsync_interval("fsync_interval")
             .if_not_exists()
-            .startpos("test")
+            .startpos("startpos")
             .no_loop()
-            .option("test")
-            .plugin("test")
-            .status_interval("test")
-            .slot("test")
+            .option("option")
+            .plugin("plugin")
+            .status_interval("status_interval")
+            .slot("slot")
             .two_phase()
             .verbose()
             .version()
             .help()
-            .dbname("test")
+            .dbname("dbname")
             .host("localhost")
             .port(5432)
-            .username("test")
+            .username("username")
             .no_password()
             .password()
             .build();
 
         assert_eq!(
-            r#""/usr/bin/pg_recvlogical" "--create-slot" "--drop-slot" "--start" "--endpos" "test" "--file" "test" "--fsync-interval" "test" "--if-not-exists" "--startpos" "test" "--no-loop" "--option" "test" "--plugin" "test" "--status-interval" "test" "--slot" "test" "--two-phase" "--verbose" "--version" "--help" "--dbname" "test" "--host" "localhost" "--port" "5432" "--username" "test" "--no-password" "--password""#,
+            r#""pg_recvlogical" "--create-slot" "--drop-slot" "--start" "--endpos" "endpos" "--file" "file" "--fsync-interval" "fsync_interval" "--if-not-exists" "--startpos" "startpos" "--no-loop" "--option" "option" "--plugin" "plugin" "--status-interval" "status_interval" "--slot" "slot" "--two-phase" "--verbose" "--version" "--help" "--dbname" "dbname" "--host" "localhost" "--port" "5432" "--username" "username" "--no-password" "--password""#,
             command.to_command_string()
         );
     }

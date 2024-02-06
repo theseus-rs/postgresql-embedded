@@ -185,15 +185,17 @@ mod tests {
 
     #[test]
     fn test_builder_new() {
-        let command = EcpgBuilder::new().build();
+        let command = EcpgBuilder::new().program_dir(".").build();
 
-        assert_eq!(r#""ecpg""#, command.to_command_string());
+        assert_eq!(
+            PathBuf::from(".").join("ecpg"),
+            PathBuf::from(command.to_command_string().replace("\"", ""))
+        );
     }
 
     #[test]
     fn test_builder() {
         let command = EcpgBuilder::new()
-            .program_dir("/usr/bin")
             .c()
             .compatibility_mode("mode")
             .symbol("symbol")
@@ -209,7 +211,7 @@ mod tests {
             .build();
 
         assert_eq!(
-            r#""/usr/bin/ecpg" "-c" "-C" "mode" "-D" "symbol" "-h" "-i" "-I" "directory" "-o" "outfile" "-r" "behavior" "--regression" "-t" "--version" "--help""#,
+            r#""ecpg" "-c" "-C" "mode" "-D" "symbol" "-h" "-i" "-I" "directory" "-o" "outfile" "-r" "behavior" "--regression" "-t" "--version" "--help""#,
             command.to_command_string()
         );
     }

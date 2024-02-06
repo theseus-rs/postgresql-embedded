@@ -582,15 +582,17 @@ mod tests {
 
     #[test]
     fn test_builder_new() {
-        let command = PgBenchBuilder::new().build();
+        let command = PgBenchBuilder::new().program_dir(".").build();
 
-        assert_eq!(r#""pgbench""#, command.to_command_string());
+        assert_eq!(
+            PathBuf::from(".").join("pgbench"),
+            PathBuf::from(command.to_command_string().replace("\"", ""))
+        );
     }
 
     #[test]
     fn test_builder() {
         let command = PgBenchBuilder::new()
-            .program_dir("/usr/bin")
             .initialize()
             .init_steps("steps")
             .fill_factor(10)
@@ -640,7 +642,7 @@ mod tests {
             .build();
 
         assert_eq!(
-            r#""/usr/bin/pgbench" "--initialize" "--init-steps" "steps" "--fillfactor" "10" "--no-vacuum" "--quiet" "--scale" "10" "--foreign-keys" "--index-tablespace" "tablespace" "--partition-method" "method" "--partitions" "10" "--tablespace" "tablespace" "--unlogged-tables" "--builtin" "name" "--file" "filename" "--skip-some-updates" "--select-only" "--client" "10" "--connect" "--define" "var" "--jobs" "10" "--log" "--latency-limit" "10" "--protocol" "protocol" "--no-vacuum" "--progress" "10" "--report-per-command" "--rate" "10" "--scale" "10" "--transactions" "10" "--time" "10" "--vacuum-all" "--aggregate-interval" "10" "--failures-detailed" "--log-prefix" "prefix" "--max-tries" "10" "--progress-timestamp" "--random-seed" "seed" "--sampling-rate" "10" "--show-script" "name" "--verbose-errors" "--debug" "--host" "localhost" "--port" "5432" "--username" "username" "--version" "--help""#,
+            r#""pgbench" "--initialize" "--init-steps" "steps" "--fillfactor" "10" "--no-vacuum" "--quiet" "--scale" "10" "--foreign-keys" "--index-tablespace" "tablespace" "--partition-method" "method" "--partitions" "10" "--tablespace" "tablespace" "--unlogged-tables" "--builtin" "name" "--file" "filename" "--skip-some-updates" "--select-only" "--client" "10" "--connect" "--define" "var" "--jobs" "10" "--log" "--latency-limit" "10" "--protocol" "protocol" "--no-vacuum" "--progress" "10" "--report-per-command" "--rate" "10" "--scale" "10" "--transactions" "10" "--time" "10" "--vacuum-all" "--aggregate-interval" "10" "--failures-detailed" "--log-prefix" "prefix" "--max-tries" "10" "--progress-timestamp" "--random-seed" "seed" "--sampling-rate" "10" "--show-script" "name" "--verbose-errors" "--debug" "--host" "localhost" "--port" "5432" "--username" "username" "--version" "--help""#,
             command.to_command_string()
         );
     }

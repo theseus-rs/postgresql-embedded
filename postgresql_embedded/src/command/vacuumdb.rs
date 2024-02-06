@@ -425,36 +425,38 @@ mod tests {
 
     #[test]
     fn test_builder_new() {
-        let command = VacuumDbBuilder::new().build();
+        let command = VacuumDbBuilder::new().program_dir(".").build();
 
-        assert_eq!(r#""vacuumdb""#, command.to_command_string());
+        assert_eq!(
+            PathBuf::from(".").join("vacuumdb"),
+            PathBuf::from(command.to_command_string().replace("\"", ""))
+        );
     }
 
     #[test]
     fn test_builder() {
         let command = VacuumDbBuilder::new()
-            .program_dir("/usr/bin")
             .all()
-            .buffer_usage_limit("test")
-            .dbname("test")
+            .buffer_usage_limit("buffer_usage_limit")
+            .dbname("dbname")
             .disable_page_skipping()
             .echo()
             .full()
             .freeze()
             .force_index_cleanup()
             .jobs(1)
-            .min_mxid_age("test")
-            .min_xid_age("test")
+            .min_mxid_age("min_mxid_age")
+            .min_xid_age("min_xid_age")
             .no_index_cleanup()
             .no_process_main()
             .no_process_toast()
             .no_truncate()
-            .schema("test")
-            .exclude_schema("test")
+            .schema("schema")
+            .exclude_schema("exclude_schema")
             .parallel(1)
             .quiet()
             .skip_locked()
-            .table("test")
+            .table("table")
             .verbose()
             .version()
             .analyze()
@@ -463,14 +465,14 @@ mod tests {
             .help()
             .host("localhost")
             .port(5432)
-            .username("test")
+            .username("username")
             .no_password()
             .password()
-            .maintenance_db("test")
+            .maintenance_db("maintenance_db")
             .build();
 
         assert_eq!(
-            r#""/usr/bin/vacuumdb" "--all" "--buffer-usage-limit" "test" "--dbname" "test" "--disable-page-skipping" "--echo" "--full" "--freeze" "--force-index-cleanup" "--jobs" "1" "--min-mxid-age" "test" "--min-xid-age" "test" "--no-index-cleanup" "--no-process-main" "--no-process-toast" "--no-truncate" "--schema" "test" "--exclude-schema" "test" "--parallel" "1" "--quiet" "--skip-locked" "--table" "test" "--verbose" "--version" "--analyze" "--analyze-only" "--analyze-in-stages" "--help" "--host" "localhost" "--port" "5432" "--username" "test" "--no-password" "--password" "--maintenance-db" "test""#,
+            r#""vacuumdb" "--all" "--buffer-usage-limit" "buffer_usage_limit" "--dbname" "dbname" "--disable-page-skipping" "--echo" "--full" "--freeze" "--force-index-cleanup" "--jobs" "1" "--min-mxid-age" "min_mxid_age" "--min-xid-age" "min_xid_age" "--no-index-cleanup" "--no-process-main" "--no-process-toast" "--no-truncate" "--schema" "schema" "--exclude-schema" "exclude_schema" "--parallel" "1" "--quiet" "--skip-locked" "--table" "table" "--verbose" "--version" "--analyze" "--analyze-only" "--analyze-in-stages" "--help" "--host" "localhost" "--port" "5432" "--username" "username" "--no-password" "--password" "--maintenance-db" "maintenance_db""#,
             command.to_command_string()
         );
     }

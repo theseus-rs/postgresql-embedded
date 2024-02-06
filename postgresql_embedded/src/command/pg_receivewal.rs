@@ -277,16 +277,18 @@ mod tests {
 
     #[test]
     fn test_builder_new() {
-        let command = PgReceiveWalBuilder::new().build();
+        let command = PgReceiveWalBuilder::new().program_dir(".").build();
 
-        assert_eq!(r#""pg_receivewal""#, command.to_command_string());
+        assert_eq!(
+            PathBuf::from(".").join("pg_receivewal"),
+            PathBuf::from(command.to_command_string().replace("\"", ""))
+        );
     }
 
     #[test]
     fn test_builder() {
         let command = PgReceiveWalBuilder::new()
-            .program_dir("/usr/bin")
-            .directory("/path/to/directory")
+            .directory("directory")
             .endpos("endpos")
             .if_not_exists()
             .no_loop()
@@ -309,7 +311,7 @@ mod tests {
             .build();
 
         assert_eq!(
-            r#""/usr/bin/pg_receivewal" "--directory" "/path/to/directory" "--endpos" "endpos" "--if-not-exists" "--no-loop" "--no-sync" "--status-interval" "status_interval" "--slot" "slot" "--synchronous" "--verbose" "--version" "--compress" "compress" "--help" "--dbname" "dbname" "--host" "localhost" "--port" "5432" "--username" "username" "--no-password" "--password" "--create-slot" "--drop-slot""#,
+            r#""pg_receivewal" "--directory" "directory" "--endpos" "endpos" "--if-not-exists" "--no-loop" "--no-sync" "--status-interval" "status_interval" "--slot" "slot" "--synchronous" "--verbose" "--version" "--compress" "compress" "--help" "--dbname" "dbname" "--host" "localhost" "--port" "5432" "--username" "username" "--no-password" "--password" "--create-slot" "--drop-slot""#,
             command.to_command_string()
         );
     }

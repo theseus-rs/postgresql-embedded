@@ -285,17 +285,19 @@ mod tests {
 
     #[test]
     fn test_builder_new() {
-        let command = PgCtlBuilder::new().build();
+        let command = PgCtlBuilder::new().program_dir(".").build();
 
-        assert_eq!(r#""pg_ctl""#, command.to_command_string());
+        assert_eq!(
+            PathBuf::from(".").join("pg_ctl"),
+            PathBuf::from(command.to_command_string().replace("\"", ""))
+        );
     }
 
     #[test]
     fn test_builder() {
         let command = PgCtlBuilder::new()
-            .program_dir("/usr/bin")
             .mode(Mode::Start)
-            .pgdata("/var/lib/postgresql/data")
+            .pgdata("pgdata")
             .silent()
             .timeout(60)
             .version()
@@ -303,16 +305,16 @@ mod tests {
             .no_wait()
             .help()
             .core_files()
-            .log("/var/log/postgresql.log")
+            .log("log")
             .options("-c log_connections=on")
-            .path_to_postgres("/usr/lib/postgresql/12/bin/postgres")
+            .path_to_postgres("path_to_postgres")
             .shutdown_mode(ShutdownMode::Smart)
             .signal("HUP")
             .pid("12345")
             .build();
 
         assert_eq!(
-            r#""/usr/bin/pg_ctl" "start" "--pgdata" "/var/lib/postgresql/data" "--silent" "--timeout" "60" "--version" "--wait" "--no-wait" "--help" "--core-files" "--log" "/var/log/postgresql.log" "--option" "-c log_connections=on" "-p" "/usr/lib/postgresql/12/bin/postgres" "--mode" "smart" "HUP" "12345""#,
+            r#""pg_ctl" "start" "--pgdata" "pgdata" "--silent" "--timeout" "60" "--version" "--wait" "--no-wait" "--help" "--core-files" "--log" "log" "--option" "-c log_connections=on" "-p" "path_to_postgres" "--mode" "smart" "HUP" "12345""#,
             command.to_command_string()
         );
     }

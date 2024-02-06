@@ -403,25 +403,27 @@ mod tests {
 
     #[test]
     fn test_builder_new() {
-        let command = PostgresBuilder::new().build();
+        let command = PostgresBuilder::new().program_dir(".").build();
 
-        assert_eq!(r#""postgres""#, command.to_command_string());
+        assert_eq!(
+            PathBuf::from(".").join("postgres"),
+            PathBuf::from(command.to_command_string().replace("\"", ""))
+        );
     }
 
     #[test]
     fn test_builder() {
         let command = PostgresBuilder::new()
-            .program_dir("/usr/bin")
             .n_buffers(100)
             .runtime_param("name", "value")
             .print_runtime_param("name")
             .debugging_level(3)
-            .data_dir("/path/to/data")
+            .data_dir("data_dir")
             .european_date_format()
             .fsync_off()
             .hostname("localhost")
             .tcp_ip_connections()
-            .socket_location("/path/to/socket")
+            .socket_location("socket_location")
             .max_connections(100)
             .port(5432)
             .show_stats()
@@ -436,17 +438,17 @@ mod tests {
             .send_sigabrt()
             .wait_seconds(10)
             .single_user_mode()
-            .dbname("test")
+            .dbname("dbname")
             .override_debugging_level(3)
             .echo_statement()
             .no_newline_delimiter()
-            .output_file("/path/to/output")
+            .output_file("output_file")
             .bootstrapping_mode()
             .check_mode()
             .build();
 
         assert_eq!(
-            r#""/usr/bin/postgres" "-B" "100" "-c" "name=value" "-C" "name" "-d" "3" "-D" "/path/to/data" "-e" "-F" "-h" "localhost" "-i" "-k" "/path/to/socket" "-N" "100" "-p" "5432" "-s" "-S" "100" "--version" "--describe-config" "--help" "-f" "type" "-O" "-P" "-t" "timings" "-T" "-W" "10" "--single" "test" "-d" "3" "-E" "-j" "-r" "/path/to/output" "--boot" "--check""#,
+            r#""postgres" "-B" "100" "-c" "name=value" "-C" "name" "-d" "3" "-D" "data_dir" "-e" "-F" "-h" "localhost" "-i" "-k" "socket_location" "-N" "100" "-p" "5432" "-s" "-S" "100" "--version" "--describe-config" "--help" "-f" "type" "-O" "-P" "-t" "timings" "-T" "-W" "10" "--single" "dbname" "-d" "3" "-E" "-j" "-r" "output_file" "--boot" "--check""#,
             command.to_command_string()
         );
     }

@@ -451,15 +451,17 @@ mod tests {
 
     #[test]
     fn test_builder_new() {
-        let command = PgAmCheckBuilder::new().build();
+        let command = PgAmCheckBuilder::new().program_dir(".").build();
 
-        assert_eq!(r#""pg_amcheck""#, command.to_command_string());
+        assert_eq!(
+            PathBuf::from(".").join("pg_amcheck"),
+            PathBuf::from(command.to_command_string().replace("\"", ""))
+        );
     }
 
     #[test]
     fn test_builder() {
         let command = PgAmCheckBuilder::new()
-            .program_dir("/usr/bin")
             .all()
             .database("database")
             .exclude_database("exclude_database")
@@ -498,7 +500,7 @@ mod tests {
             .build();
 
         assert_eq!(
-            r#""/usr/bin/pg_amcheck" "--all" "--database" "database" "--exclude-database" "exclude_database" "--index" "index" "--exclude-index" "exclude_index" "--relation" "relation" "--exclude-relation" "exclude_relation" "--schema" "schema" "--exclude-schema" "exclude_schema" "--table" "table" "--exclude-table" "exclude_table" "--no-dependent-indexes" "--no-dependent-toast" "--no-strict-names" "--exclude-toast-pointers" "--on-error-stop" "--skip" "skip" "--startblock" "start_block" "--endblock" "end_block" "--heapallindexed" "--parent-check" "--rootdescend" "--host" "localhost" "--port" "5432" "--username" "username" "--no-password" "--password" "--maintenance-db" "maintenance_db" "--echo" "--jobs" "jobs" "--progress" "--verbose" "--version" "--install-missing" "--help""#,
+            r#""pg_amcheck" "--all" "--database" "database" "--exclude-database" "exclude_database" "--index" "index" "--exclude-index" "exclude_index" "--relation" "relation" "--exclude-relation" "exclude_relation" "--schema" "schema" "--exclude-schema" "exclude_schema" "--table" "table" "--exclude-table" "exclude_table" "--no-dependent-indexes" "--no-dependent-toast" "--no-strict-names" "--exclude-toast-pointers" "--on-error-stop" "--skip" "skip" "--startblock" "start_block" "--endblock" "end_block" "--heapallindexed" "--parent-check" "--rootdescend" "--host" "localhost" "--port" "5432" "--username" "username" "--no-password" "--password" "--maintenance-db" "maintenance_db" "--echo" "--jobs" "jobs" "--progress" "--verbose" "--version" "--install-missing" "--help""#,
             command.to_command_string()
         );
     }

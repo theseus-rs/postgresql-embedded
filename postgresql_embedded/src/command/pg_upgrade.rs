@@ -279,20 +279,22 @@ mod tests {
 
     #[test]
     fn test_builder_new() {
-        let command = PgUpgradeBuilder::new().build();
+        let command = PgUpgradeBuilder::new().program_dir(".").build();
 
-        assert_eq!(r#""pg_upgrade""#, command.to_command_string());
+        assert_eq!(
+            PathBuf::from(".").join("pg_upgrade"),
+            PathBuf::from(command.to_command_string().replace("\"", ""))
+        );
     }
 
     #[test]
     fn test_builder() {
         let command = PgUpgradeBuilder::new()
-            .program_dir("/usr/bin")
-            .old_bindir("/old")
-            .new_bindir("/new")
+            .old_bindir("old")
+            .new_bindir("new")
             .check()
-            .old_datadir("/old/data")
-            .new_datadir("/new/data")
+            .old_datadir("old_data")
+            .new_datadir("new_data")
             .jobs("10")
             .link()
             .no_sync()
@@ -301,7 +303,7 @@ mod tests {
             .old_port(5432)
             .new_port(5433)
             .retain()
-            .socketdir("/socket")
+            .socketdir("socket")
             .username("user")
             .verbose()
             .version()
@@ -311,7 +313,7 @@ mod tests {
             .build();
 
         assert_eq!(
-            r#""/usr/bin/pg_upgrade" "--old-bindir" "/old" "--new-bindir" "/new" "--check" "--old-datadir" "/old/data" "--new-datadir" "/new/data" "--jobs" "10" "--link" "--no-sync" "--old-options" "old" "--new-options" "new" "--old-port" "5432" "--new-port" "5433" "--retain" "--socketdir" "/socket" "--username" "user" "--verbose" "--version" "--clone" "--copy" "--help""#,
+            r#""pg_upgrade" "--old-bindir" "old" "--new-bindir" "new" "--check" "--old-datadir" "old_data" "--new-datadir" "new_data" "--jobs" "10" "--link" "--no-sync" "--old-options" "old" "--new-options" "new" "--old-port" "5432" "--new-port" "5433" "--retain" "--socketdir" "socket" "--username" "user" "--verbose" "--version" "--clone" "--copy" "--help""#,
             command.to_command_string()
         );
     }

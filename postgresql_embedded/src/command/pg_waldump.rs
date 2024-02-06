@@ -258,37 +258,39 @@ mod tests {
 
     #[test]
     fn test_builder_new() {
-        let command = PgWalDumpBuilder::new().build();
+        let command = PgWalDumpBuilder::new().program_dir(".").build();
 
-        assert_eq!(r#""pg_waldump""#, command.to_command_string());
+        assert_eq!(
+            PathBuf::from(".").join("pg_waldump"),
+            PathBuf::from(command.to_command_string().replace("\"", ""))
+        );
     }
 
     #[test]
     fn test_builder() {
         let command = PgWalDumpBuilder::new()
-            .program_dir("/usr/bin")
             .backup_details()
-            .block("test")
-            .end("test")
+            .block("block")
+            .end("end")
             .follow()
-            .fork("test")
-            .limit("test")
-            .path("test")
+            .fork("fork")
+            .limit("limit")
+            .path("path")
             .quiet()
-            .rmgr("test")
-            .relation("test")
-            .start("test")
-            .timeline("test")
+            .rmgr("rmgr")
+            .relation("relation")
+            .start("start")
+            .timeline("timeline")
             .version()
             .fullpage()
-            .xid("test")
-            .stats("test")
-            .save_fullpage("test")
+            .xid("xid")
+            .stats("stats")
+            .save_fullpage("save_fullpage")
             .help()
             .build();
 
         assert_eq!(
-            r#""/usr/bin/pg_waldump" "--bkp-details" "--block" "test" "--end" "test" "--follow" "--fork" "test" "--limit" "test" "--path" "test" "--quiet" "--rmgr" "test" "--relation" "test" "--start" "test" "--timeline" "test" "--version" "--fullpage" "--xid" "test" "--stats" "test" "--save-fullpage" "test" "--help""#,
+            r#""pg_waldump" "--bkp-details" "--block" "block" "--end" "end" "--follow" "--fork" "fork" "--limit" "limit" "--path" "path" "--quiet" "--rmgr" "rmgr" "--relation" "relation" "--start" "start" "--timeline" "timeline" "--version" "--fullpage" "--xid" "xid" "--stats" "stats" "--save-fullpage" "save_fullpage" "--help""#,
             command.to_command_string()
         );
     }

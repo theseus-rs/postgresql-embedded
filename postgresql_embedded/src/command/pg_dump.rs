@@ -152,15 +152,17 @@ mod tests {
 
     #[test]
     fn test_builder_new() {
-        let command = PgDumpBuilder::new().build();
+        let command = PgDumpBuilder::new().program_dir(".").build();
 
-        assert_eq!(r#""pg_dump""#, command.to_command_string());
+        assert_eq!(
+            PathBuf::from(".").join("pg_dump"),
+            PathBuf::from(command.to_command_string().replace("\"", ""))
+        );
     }
 
     #[test]
     fn test_builder() {
         let command = PgDumpBuilder::new()
-            .program_dir("/usr/bin")
             .file("file")
             .format("format")
             .jobs("jobs")
@@ -172,7 +174,7 @@ mod tests {
             .help()
             .build();
         assert_eq!(
-            r#""/usr/bin/pg_dump" "--file" "file" "--format" "format" "--jobs" "jobs" "--verbose" "--version" "--compress" "compress" "--lock-wait-timeout" "10" "--no-sync" "--help""#,
+            r#""pg_dump" "--file" "file" "--format" "format" "--jobs" "jobs" "--verbose" "--version" "--compress" "compress" "--lock-wait-timeout" "10" "--no-sync" "--help""#,
             command.to_command_string()
         );
     }

@@ -129,13 +129,6 @@ async fn test_persistent_database_reuse() -> Result<()> {
 
 #[tokio::test]
 async fn postgres_concurrency() -> anyhow::Result<()> {
-    // Remove the installation directory to ensure that the test starts from a clean state.
-    // This is necessary because the test runs concurrently with other tests and this needs
-    // test archive installation concurrent / idempotency.
-    let postgresql = PostgreSQL::default();
-    let settings = postgresql.settings();
-    let _ = remove_dir_all(&settings.installation_dir);
-
     let handle1 = tokio::spawn(lifecycle());
     let handle2 = tokio::spawn(lifecycle());
     let handle3 = tokio::spawn(lifecycle());

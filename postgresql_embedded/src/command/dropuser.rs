@@ -161,15 +161,17 @@ mod tests {
 
     #[test]
     fn test_builder_new() {
-        let command = DropUserBuilder::new().build();
+        let command = DropUserBuilder::new().program_dir(".").build();
 
-        assert_eq!(r#""dropuser""#, command.to_command_string());
+        assert_eq!(
+            PathBuf::from(".").join("dropuser"),
+            PathBuf::from(command.to_command_string().replace("\"", ""))
+        );
     }
 
     #[test]
     fn test_builder() {
         let command = DropUserBuilder::new()
-            .program_dir("/usr/bin")
             .echo()
             .interactive()
             .version()
@@ -183,7 +185,7 @@ mod tests {
             .build();
 
         assert_eq!(
-            r#""/usr/bin/dropuser" "--echo" "--interactive" "--version" "--if-exists" "--help" "--host" "localhost" "--port" "5432" "--username" "postgres" "--no-password" "--password""#,
+            r#""dropuser" "--echo" "--interactive" "--version" "--if-exists" "--help" "--host" "localhost" "--port" "5432" "--username" "postgres" "--no-password" "--password""#,
             command.to_command_string()
         );
     }

@@ -209,15 +209,17 @@ mod tests {
 
     #[test]
     fn test_builder_new() {
-        let command = Oid2NameBuilder::new().build();
+        let command = Oid2NameBuilder::new().program_dir(".").build();
 
-        assert_eq!(r#""oid2name""#, command.to_command_string());
+        assert_eq!(
+            PathBuf::from(".").join("oid2name"),
+            PathBuf::from(command.to_command_string().replace("\"", ""))
+        );
     }
 
     #[test]
     fn test_builder() {
         let command = Oid2NameBuilder::new()
-            .program_dir("/usr/bin")
             .filenode("filenode")
             .indexes()
             .oid("oid")
@@ -235,7 +237,7 @@ mod tests {
             .build();
 
         assert_eq!(
-            r#""/usr/bin/oid2name" "--filenode" "filenode" "--indexes" "--oid" "oid" "--quiet" "--tablespaces" "--system-objects" "--table" "table" "--version" "--extended" "--help" "--dbname" "dbname" "--host" "localhost" "--port" "5432" "--username" "username""#,
+            r#""oid2name" "--filenode" "filenode" "--indexes" "--oid" "oid" "--quiet" "--tablespaces" "--system-objects" "--table" "table" "--version" "--extended" "--help" "--dbname" "dbname" "--host" "localhost" "--port" "5432" "--username" "username""#,
             command.to_command_string()
         );
     }

@@ -305,15 +305,17 @@ mod tests {
 
     #[test]
     fn test_builder_new() {
-        let command = CreateDbBuilder::new().build();
+        let command = CreateDbBuilder::new().program_dir(".").build();
 
-        assert_eq!(r#""createdb""#, command.to_command_string());
+        assert_eq!(
+            PathBuf::from(".").join("createdb"),
+            PathBuf::from(command.to_command_string().replace("\"", ""))
+        );
     }
 
     #[test]
     fn test_builder() {
         let command = CreateDbBuilder::new()
-            .program_dir("/usr/bin")
             .tablespace("pg_default")
             .echo()
             .encoding("UTF8")
@@ -339,7 +341,7 @@ mod tests {
             .build();
 
         assert_eq!(
-            r#""/usr/bin/createdb" "--tablespace" "pg_default" "--echo" "--encoding" "UTF8" "--locale" "en_US.UTF-8" "--lc-collate" "en_US.UTF-8" "--lc-ctype" "en_US.UTF-8" "--icu-locale" "en_US" "--icu-rules" "standard" "--locale-provider" "icu" "--owner" "postgres" "--strategy" "wal_log" "--template" "template0" "--version" "--help" "--host" "localhost" "--port" "5432" "--username" "postgres" "--no-password" "--password" "--maintenance-db" "postgres" "testdb" "Test Database""#,
+            r#""createdb" "--tablespace" "pg_default" "--echo" "--encoding" "UTF8" "--locale" "en_US.UTF-8" "--lc-collate" "en_US.UTF-8" "--lc-ctype" "en_US.UTF-8" "--icu-locale" "en_US" "--icu-rules" "standard" "--locale-provider" "icu" "--owner" "postgres" "--strategy" "wal_log" "--template" "template0" "--version" "--help" "--host" "localhost" "--port" "5432" "--username" "postgres" "--no-password" "--password" "--maintenance-db" "postgres" "testdb" "Test Database""#,
             command.to_command_string()
         );
     }
