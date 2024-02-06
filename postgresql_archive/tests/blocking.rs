@@ -6,6 +6,8 @@ use postgresql_archive::LATEST;
 use sha2::{Digest, Sha256};
 #[cfg(feature = "blocking")]
 use std::fs::{create_dir_all, remove_dir_all};
+#[cfg(feature = "blocking")]
+use test_log::test;
 
 #[cfg(feature = "blocking")]
 #[test]

@@ -3,6 +3,8 @@ name: Build & Test
 env:
   CARGO_TERM_COLOR: always
   RUSTFLAGS: "-D warnings"
+  RUST_LOG: "info"
+  RUST_LOG_SPAN_EVENTS: full
 
 on:
   workflow_call:

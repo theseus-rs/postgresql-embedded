@@ -88,6 +88,10 @@ criteria = "safe-to-deploy"
 version = "0.8.33"
 criteria = "safe-to-deploy"
 
+[[exemptions.env_logger]]
+version = "0.10.2"
+criteria = "safe-to-run"
+
 [[exemptions.equivalent]]
 version = "1.0.1"
 criteria = "safe-to-deploy"
@@ -428,6 +432,14 @@ criteria = "safe-to-deploy"
 version = "3.10.0"
 criteria = "safe-to-deploy"
 
+[[exemptions.test-log]]
+version = "0.2.14"
+criteria = "safe-to-run"
+
+[[exemptions.test-log-macros]]
+version = "0.2.14"
+criteria = "safe-to-run"
+
 [[exemptions.thiserror]]
 version = "1.0.56"
 criteria = "safe-to-deploy"
@@ -466,6 +478,10 @@ criteria = "safe-to-deploy"
 
 [[exemptions.tracing]]
 version = "0.1.40"
+criteria = "safe-to-deploy"
+
+[[exemptions.tracing-attributes]]
+version = "0.1.27"
 criteria = "safe-to-deploy"
 
 [[exemptions.tracing-core]]

@@ -159,6 +159,7 @@ impl CommandBuilder for VacuumLoBuilder {
 mod tests {
     use super::*;
     use crate::command::traits::CommandToString;
+    use test_log::test;
 
     #[test]
     fn test_builder_new() {

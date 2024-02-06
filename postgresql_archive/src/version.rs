@@ -127,6 +127,7 @@ impl FromStr for Version {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use test_log::test;
 
     //
     // Impl tests

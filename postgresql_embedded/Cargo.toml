@@ -27,8 +27,10 @@ sha2 = { workspace = true }
 tempfile = { workspace = true }
 thiserror = { workspace = true }
 tokio = { workspace = true, optional = true }
+tracing = { workspace = true }
 
 [dev-dependencies]
+test-log = { workspace = true }
 tokio = { workspace = true }
 
 [features]

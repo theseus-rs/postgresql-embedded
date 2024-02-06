@@ -2,6 +2,7 @@ use anyhow::bail;
 use postgresql_archive::LATEST;
 use postgresql_embedded::{PostgreSQL, Result, Settings, Status};
 use std::fs::{remove_dir_all, remove_file};
+use test_log::test;
 
 async fn lifecycle() -> Result<()> {
     let mut postgresql = PostgreSQL::default();
@@ -30,12 +31,12 @@ async fn lifecycle() -> Result<()> {
     Ok(())
 }
 
-#[tokio::test]
+#[test(tokio::test)]
 async fn test_lifecycle() -> Result<()> {
     lifecycle().await
 }
 
-#[tokio::test]
+#[test(tokio::test)]
 async fn test_temporary_database() -> Result<()> {
     let settings = Settings::default();
     let data_dir = settings.data_dir.clone();
@@ -57,7 +58,7 @@ async fn test_temporary_database() -> Result<()> {
     Ok(())
 }
 
-#[tokio::test]
+#[test(tokio::test)]
 async fn test_persistent_database() -> Result<()> {
     let mut settings = Settings::default();
     let data_dir = settings.data_dir.clone();
@@ -83,7 +84,7 @@ async fn test_persistent_database() -> Result<()> {
     Ok(())
 }
 
-#[tokio::test]
+#[test(tokio::test)]
 async fn test_persistent_database_reuse() -> Result<()> {
     let version = LATEST;
     let database_name = "test";
@@ -127,7 +128,7 @@ async fn test_persistent_database_reuse() -> Result<()> {
     Ok(())
 }
 
-#[tokio::test]
+#[test(tokio::test)]
 async fn postgres_concurrency() -> anyhow::Result<()> {
     let handle1 = tokio::spawn(lifecycle());
     let handle2 = tokio::spawn(lifecycle());

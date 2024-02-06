@@ -2,6 +2,8 @@
 use postgresql_embedded::blocking::PostgreSQL;
 #[cfg(feature = "blocking")]
 use postgresql_embedded::{Result, Status};
+#[cfg(feature = "blocking")]
+use test_log::test;
 
 #[cfg(feature = "blocking")]
 #[test]

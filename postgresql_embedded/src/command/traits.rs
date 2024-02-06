@@ -116,6 +116,7 @@ impl CommandExecutor for tokio::process::Command {
 #[cfg(test)]
 mod test {
     use super::*;
+    use test_log::test;
 
     struct TestCommandBuilder {
         program_dir: Option<PathBuf>,
@@ -181,7 +182,7 @@ mod test {
     }
 
     #[cfg(feature = "tokio")]
-    #[tokio::test]
+    #[test(tokio::test)]
     async fn test_standard_command_execute() -> Result<()> {
         #[cfg(not(target_os = "windows"))]
         let mut command = std::process::Command::new("sh");
@@ -200,7 +201,7 @@ mod test {
     }
 
     #[cfg(feature = "tokio")]
-    #[tokio::test]
+    #[test(tokio::test)]
     async fn test_tokio_command_execute() -> Result<()> {
         #[cfg(not(target_os = "windows"))]
         let mut command = tokio::process::Command::new("sh");

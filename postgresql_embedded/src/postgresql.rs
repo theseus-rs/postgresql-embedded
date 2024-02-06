@@ -20,6 +20,7 @@ use std::net::TcpListener;
 use std::ops::Deref;
 #[cfg(feature = "bundled")]
 use std::str::FromStr;
+use tracing::{debug, info};
 
 use crate::command::psql::PsqlBuilder;
 use crate::EmbeddedError::{CreateDatabaseError, DatabaseExistsError, DropDatabaseError};
@@ -27,8 +28,10 @@ use crate::EmbeddedError::{CreateDatabaseError, DatabaseExistsError, DropDatabas
 #[cfg(feature = "bundled")]
 lazy_static::lazy_static! {
     pub(crate) static ref ARCHIVE_VERSION: Version = {
-        let version = include_str!(concat!(std::env!("OUT_DIR"), "/postgresql.version"));
-        Version::from_str(version).unwrap()
+        let version_string = include_str!(concat!(std::env!("OUT_DIR"), "/postgresql.version"));
+        let version = Version::from_str(version_string).unwrap();
+        info!("Bundled installation archive version {version}");
+        version
     };
 }
 
@@ -160,11 +163,14 @@ impl PostgreSQL {
     async fn install(&mut self) -> Result<()> {
         let mut archive_bytes: Option<Bytes> = None;
 
+        debug!("Starting installation process for version {}", self.version);
+
         #[cfg(feature = "bundled")]
         // If the requested version is the same as the version of the bundled archive, use the bundled
         // archive. This avoids downloading the archive in environments where internet access is
         // restricted or undesirable.
         if ARCHIVE_VERSION.deref() == &self.version {
+            debug!("Using bundled installation archive");
             archive_bytes = Some(Bytes::copy_from_slice(ARCHIVE));
         }
 
@@ -180,6 +186,7 @@ impl PostgreSQL {
                 .join(self.version.to_string());
 
             if self.settings.installation_dir.exists() {
+                debug!("Installation directory already exists");
                 self.update_status();
                 return Ok(());
             }
@@ -216,6 +223,12 @@ impl PostgreSQL {
             }
         }
 
+        info!(
+            "Installed PostgreSQL version {} to {}",
+            self.version,
+            self.settings.installation_dir.to_string_lossy()
+        );
+
         Ok(())
     }
 
@@ -227,6 +240,10 @@ impl PostgreSQL {
             file.write_all(self.settings.password.as_bytes())?;
         }
 
+        debug!(
+            "Initializing database {}",
+            self.settings.data_dir.to_string_lossy()
+        );
         let initdb = InitDbBuilder::new()
             .program_dir(self.settings.binary_dir())
             .pgdata(&self.settings.data_dir)
@@ -239,6 +256,10 @@ impl PostgreSQL {
         match self.execute_command(initdb).await {
             Ok((_stdout, _stderr)) => {
                 self.status = Status::Stopped;
+                info!(
+                    "Initialized database {}",
+                    self.settings.data_dir.to_string_lossy()
+                );
                 Ok(())
             }
             Err(error) => {
@@ -256,6 +277,11 @@ impl PostgreSQL {
             self.settings.port = listener.local_addr()?.port();
         }
 
+        debug!(
+            "Starting database {} on port {}",
+            self.settings.data_dir.to_string_lossy(),
+            self.settings.port
+        );
         let start_log = self.settings.data_dir.join("start.log");
         let options = format!("-F -p {}", self.settings.port);
         let pg_ctl = PgCtlBuilder::new()
@@ -270,6 +296,11 @@ impl PostgreSQL {
         match self.execute_command(pg_ctl).await {
             Ok((_stdout, _stderr)) => {
                 self.status = Status::Started;
+                info!(
+                    "Started database {} on port {}",
+                    self.settings.data_dir.to_string_lossy(),
+                    self.settings.port
+                );
                 Ok(())
             }
             Err(error) => {
@@ -281,6 +312,10 @@ impl PostgreSQL {
 
     /// Stop the database gracefully (smart mode) and wait for the shutdown to complete.
     pub async fn stop(&mut self) -> Result<()> {
+        debug!(
+            "Stopping database {}",
+            self.settings.data_dir.to_string_lossy()
+        );
         let pg_ctl = PgCtlBuilder::new()
             .program_dir(self.settings.binary_dir())
             .mode(Stop)
@@ -292,6 +327,10 @@ impl PostgreSQL {
         match self.execute_command(pg_ctl).await {
             Ok((_stdout, _stderr)) => {
                 self.status = Status::Stopped;
+                info!(
+                    "Stopped database {}",
+                    self.settings.data_dir.to_string_lossy()
+                );
                 Ok(())
             }
             Err(error) => {
@@ -303,6 +342,12 @@ impl PostgreSQL {
 
     /// Create a new database with the given name.
     pub async fn create_database<S: AsRef<str>>(&mut self, database_name: S) -> Result<()> {
+        debug!(
+            "Creating database {} for {}:{}",
+            database_name.as_ref(),
+            self.settings.host,
+            self.settings.port
+        );
         let psql = PsqlBuilder::new()
             .program_dir(self.settings.binary_dir())
             .command(format!("CREATE DATABASE \"{}\"", database_name.as_ref()))
@@ -314,13 +359,27 @@ impl PostgreSQL {
             .tuples_only();
 
         match self.execute_command(psql).await {
-            Ok((_stdout, _stderr)) => Ok(()),
+            Ok((_stdout, _stderr)) => {
+                info!(
+                    "Created database {} for {}:{}",
+                    database_name.as_ref(),
+                    self.settings.host,
+                    self.settings.port
+                );
+                Ok(())
+            }
             Err(error) => Err(CreateDatabaseError(error.into())),
         }
     }
 
     /// Check if a database with the given name exists.
     pub async fn database_exists<S: AsRef<str>>(&mut self, database_name: S) -> Result<bool> {
+        debug!(
+            "Checking if database {} exists for {}:{}",
+            database_name.as_ref(),
+            self.settings.host,
+            self.settings.port
+        );
         let psql = PsqlBuilder::new()
             .program_dir(self.settings.binary_dir())
             .command(format!(
@@ -345,6 +404,12 @@ impl PostgreSQL {
 
     /// Drop a database with the given name.
     pub async fn drop_database<S: AsRef<str>>(&mut self, database_name: S) -> Result<()> {
+        debug!(
+            "Dropping database {} for {}:{}",
+            database_name.as_ref(),
+            self.settings.host,
+            self.settings.port
+        );
         let psql = PsqlBuilder::new()
             .program_dir(self.settings.binary_dir())
             .command(format!(
@@ -359,7 +424,15 @@ impl PostgreSQL {
             .tuples_only();
 
         match self.execute_command(psql).await {
-            Ok((_stdout, _stderr)) => Ok(()),
+            Ok((_stdout, _stderr)) => {
+                info!(
+                    "Dropped database {} for {}:{}",
+                    database_name.as_ref(),
+                    self.settings.host,
+                    self.settings.port
+                );
+                Ok(())
+            }
             Err(error) => Err(DropDatabaseError(error.into())),
         }
     }
@@ -428,6 +501,8 @@ impl Drop for PostgreSQL {
 
 #[cfg(test)]
 mod tests {
+    use test_log::test;
+
     #[test]
     #[cfg(feature = "bundled")]
     fn test_archive_version() {

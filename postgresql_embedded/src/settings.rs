@@ -80,7 +80,7 @@ impl Settings {
     }
 
     /// Return the PostgreSQL URL for the given database name.
-    fn url<S: AsRef<str>>(&self, database_name: S) -> String {
+    pub fn url<S: AsRef<str>>(&self, database_name: S) -> String {
         format!(
             "postgresql://{}:{}@{}:{}/{}",
             self.username,
@@ -102,6 +102,7 @@ impl Default for Settings {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use test_log::test;
 
     #[test]
     fn test_settings_new() -> crate::error::Result<()> {

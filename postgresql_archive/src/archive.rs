@@ -6,6 +6,8 @@ use crate::github::{Asset, Release};
 use crate::version::Version;
 use bytes::Bytes;
 use flate2::bufread::GzDecoder;
+use human_bytes::human_bytes;
+use num_format::{Locale, ToFormattedString};
 use regex::Regex;
 use reqwest::header::HeaderMap;
 use reqwest::{header, RequestBuilder};
@@ -14,13 +16,17 @@ use std::io::{copy, BufReader, Cursor};
 use std::path::Path;
 use std::str::FromStr;
 use tar::Archive;
+use tracing::{debug, info};
 
 const GITHUB_API_VERSION_HEADER: &str = "X-GitHub-Api-Version";
 const GITHUB_API_VERSION: &str = "2022-11-28";
 
 lazy_static! {
     static ref GITHUB_TOKEN: Option<String> = match std::env::var("GITHUB_TOKEN") {
-        Ok(token) => Some(token),
+        Ok(token) => {
+            info!("GITHUB_TOKEN environment variable found");
+            Some(token)
+        }
         Err(_) => None,
     };
 }
@@ -64,6 +70,8 @@ async fn get_release(version: &Version) -> Result<Release> {
     let url = "https://api.github.com/repos/theseus-rs/postgresql-binaries/releases";
     let client = reqwest::Client::new();
 
+    debug!("Attempting to locate release for version {version}");
+
     if version.minor.is_some() && version.release.is_some() {
         let request = client
             .get(format!("{url}/tags/{version}"))
@@ -71,6 +79,7 @@ async fn get_release(version: &Version) -> Result<Release> {
         let response = request.send().await?.error_for_status()?;
         let release = response.json::<Release>().await?;
 
+        info!("Release found for version {version}");
         return Ok(release);
     }
 
@@ -109,7 +118,11 @@ async fn get_release(version: &Version) -> Result<Release> {
     }
 
     match result {
-        Some(release) => Ok(release),
+        Some(release) => {
+            let release_version = Version::from_str(&release.tag_name)?;
+            info!("Release {release_version} found for version {version}");
+            Ok(release)
+        }
         None => Err(ReleaseNotFound(version.to_string())),
     }
 }
@@ -170,9 +183,14 @@ pub async fn get_archive_for_target<S: AsRef<str>>(
     target: S,
 ) -> Result<(Version, Bytes, String)> {
     let (asset_version, asset, asset_hash) = get_asset(version, target).await?;
+
+    debug!(
+        "Downloading archive hash {}",
+        asset_hash.browser_download_url
+    );
     let client = reqwest::Client::new();
     let request = client
-        .get(asset_hash.browser_download_url)
+        .get(&asset_hash.browser_download_url)
         .add_github_headers()?;
     let response = request.send().await?.error_for_status()?;
     let text = response.text().await?;
@@ -181,11 +199,23 @@ pub async fn get_archive_for_target<S: AsRef<str>>(
         Some(hash) => hash.as_str().to_string(),
         None => return Err(AssetHashNotFound(asset.name)),
     };
+    info!(
+        "Archive hash {} downloaded: {}",
+        asset_hash.browser_download_url,
+        human_bytes(text.len() as f64)
+    );
 
-    let asset_url = asset.browser_download_url;
-    let request = client.get(asset_url).add_github_headers()?;
+    debug!("Downloading archive {}", asset.browser_download_url);
+    let request = client
+        .get(&asset.browser_download_url)
+        .add_github_headers()?;
     let response = request.send().await?.error_for_status()?;
     let archive: Bytes = response.bytes().await?;
+    info!(
+        "Archive {} downloaded: {}",
+        asset.browser_download_url,
+        human_bytes(archive.len() as f64)
+    );
 
     Ok((asset_version, archive, hash))
 }
@@ -195,6 +225,10 @@ pub async fn extract(bytes: &Bytes, out_dir: &Path) -> Result<()> {
     let input = BufReader::new(Cursor::new(bytes));
     let decoder = GzDecoder::new(input);
     let mut archive = Archive::new(decoder);
+    let mut files = 0;
+    let mut extracted_bytes = 0;
+
+    debug!("Extracting archive to {}", out_dir.to_string_lossy());
 
     for file in archive.entries()? {
         let mut file_entry = file?;
@@ -222,6 +256,9 @@ pub async fn extract(bytes: &Bytes, out_dir: &Path) -> Result<()> {
             let mut output_file = File::create(&file_name)?;
             copy(&mut file_entry, &mut output_file)?;
 
+            files += 1;
+            extracted_bytes += file_size;
+
             #[cfg(unix)]
             {
                 use std::os::unix::fs::PermissionsExt;
@@ -230,31 +267,38 @@ pub async fn extract(bytes: &Bytes, out_dir: &Path) -> Result<()> {
         }
     }
 
+    info!(
+        "Extracting {} files totalling {}",
+        files.to_formatted_string(&Locale::en),
+        human_bytes(extracted_bytes as f64)
+    );
+
     Ok(())
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use test_log::test;
 
     /// Use a known, fully defined version to speed up test execution
     const VERSION: Version = Version::new(16, Some(1), Some(0));
     const INVALID_VERSION: Version = Version::new(1, Some(0), Some(0));
 
-    #[tokio::test]
+    #[test(tokio::test)]
     async fn test_get_release() -> Result<()> {
         let _ = get_release(&VERSION).await?;
         Ok(())
     }
 
-    #[tokio::test]
+    #[test(tokio::test)]
     async fn test_get_release_version_not_found() -> Result<()> {
         let release = get_release(&INVALID_VERSION).await;
         assert!(release.is_err());
         Ok(())
     }
 
-    #[tokio::test]
+    #[test(tokio::test)]
     async fn test_get_asset() -> Result<()> {
         let target_triple = "x86_64-unknown-linux-musl".to_string();
         let (asset_version, asset, asset_hash) = get_asset(&VERSION, &target_triple).await?;
@@ -266,7 +310,7 @@ mod tests {
         Ok(())
     }
 
-    #[tokio::test]
+    #[test(tokio::test)]
     async fn test_get_asset_version_not_found() -> Result<()> {
         let target_triple = "x86_64-unknown-linux-musl".to_string();
         let result = get_asset(&INVALID_VERSION, &target_triple).await;
@@ -274,7 +318,7 @@ mod tests {
         Ok(())
     }
 
-    #[tokio::test]
+    #[test(tokio::test)]
     async fn test_get_asset_target_not_found() -> Result<()> {
         let target_triple = "wasm64-unknown-unknown".to_string();
         let result = get_asset(&VERSION, &target_triple).await;

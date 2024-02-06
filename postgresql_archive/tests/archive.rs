@@ -3,8 +3,9 @@ use postgresql_archive::{extract, Version, LATEST, V12, V13, V14, V15, V16};
 use postgresql_archive::{get_archive, get_archive_for_target, get_version};
 use sha2::{Digest, Sha256};
 use std::fs::{create_dir_all, remove_dir_all};
+use test_log::test;
 
-#[tokio::test]
+#[test(tokio::test)]
 #[allow(deprecated)]
 async fn test_get_archive_for_version_constants() -> anyhow::Result<()> {
     let versions = vec![V12, V13, V14, V15, V16];
@@ -22,7 +23,7 @@ async fn test_get_archive_for_version_constants() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[tokio::test]
+#[test(tokio::test)]
 async fn test_get_version_not_found() -> postgresql_archive::Result<()> {
     let invalid_version = Version::new(1, Some(0), Some(0));
     let result = get_version(&invalid_version).await;
@@ -30,7 +31,7 @@ async fn test_get_version_not_found() -> postgresql_archive::Result<()> {
     Ok(())
 }
 
-#[tokio::test]
+#[test(tokio::test)]
 async fn test_get_version() -> anyhow::Result<()> {
     let version = &LATEST;
 
@@ -46,7 +47,7 @@ async fn test_get_version() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[tokio::test]
+#[test(tokio::test)]
 async fn test_get_archive_and_extract() -> anyhow::Result<()> {
     let version = &LATEST;
     let (archive_version, archive, hash) = get_archive(version).await?;
@@ -66,7 +67,7 @@ async fn test_get_archive_and_extract() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[tokio::test]
+#[test(tokio::test)]
 async fn test_get_archive_version_not_found() -> postgresql_archive::Result<()> {
     let invalid_version = Version::new(1, Some(0), Some(0));
     let result = get_archive(&invalid_version).await;
@@ -74,7 +75,7 @@ async fn test_get_archive_version_not_found() -> postgresql_archive::Result<()> 
     Ok(())
 }
 
-#[tokio::test]
+#[test(tokio::test)]
 async fn test_get_archive_for_target_version_not_found() -> postgresql_archive::Result<()> {
     let invalid_version = Version::new(1, Some(0), Some(0));
     let result = get_archive_for_target(&invalid_version, target_triple::TARGET).await;
@@ -82,14 +83,14 @@ async fn test_get_archive_for_target_version_not_found() -> postgresql_archive::
     Ok(())
 }
 
-#[tokio::test]
+#[test(tokio::test)]
 async fn test_get_archive_for_target_target_not_found() -> postgresql_archive::Result<()> {
     let result = get_archive_for_target(&LATEST, "wasm64-unknown-unknown").await;
     assert!(result.is_err());
     Ok(())
 }
 
-#[tokio::test]
+#[test(tokio::test)]
 async fn test_get_archive_for_target() -> anyhow::Result<()> {
     let version = &LATEST;
     let (archive_version, archive, hash) =
