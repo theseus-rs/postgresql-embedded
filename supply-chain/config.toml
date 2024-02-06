@@ -20,6 +20,10 @@ criteria = "safe-to-deploy"
 version = "1.0.79"
 criteria = "safe-to-deploy"
 
+[[exemptions.arrayvec]]
+version = "0.7.4"
+criteria = "safe-to-deploy"
+
 [[exemptions.autocfg]]
 version = "1.1.0"
 criteria = "safe-to-deploy"
@@ -188,6 +192,10 @@ criteria = "safe-to-deploy"
 version = "1.0.3"
 criteria = "safe-to-deploy"
 
+[[exemptions.human_bytes]]
+version = "0.4.3"
+criteria = "safe-to-deploy"
+
 [[exemptions.hyper]]
 version = "0.14.28"
 criteria = "safe-to-deploy"
@@ -250,6 +258,10 @@ criteria = "safe-to-deploy"
 
 [[exemptions.mio]]
 version = "0.8.10"
+criteria = "safe-to-deploy"
+
+[[exemptions.num-format]]
+version = "0.4.4"
 criteria = "safe-to-deploy"
 
 [[exemptions.num_cpus]]
