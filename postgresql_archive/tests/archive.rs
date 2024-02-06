@@ -5,22 +5,41 @@ use sha2::{Digest, Sha256};
 use std::fs::{create_dir_all, remove_dir_all};
 use test_log::test;
 
+async fn test_get_archive_for_version_constant(version: Version) -> anyhow::Result<()> {
+    let (_, archive, hash) = get_archive(&version).await?;
+
+    let mut hasher = Sha256::new();
+    hasher.update(&archive);
+    let archive_hash = hex::encode(&hasher.finalize());
+
+    assert_eq!(archive_hash, hash);
+    Ok(())
+}
+
+#[test(tokio::test)]
+async fn test_get_archive_for_version_constant_v16() -> anyhow::Result<()> {
+    test_get_archive_for_version_constant(V16).await
+}
+
+#[test(tokio::test)]
+async fn test_get_archive_for_version_constant_v15() -> anyhow::Result<()> {
+    test_get_archive_for_version_constant(V15).await
+}
+
+#[test(tokio::test)]
+async fn test_get_archive_for_version_constant_v14() -> anyhow::Result<()> {
+    test_get_archive_for_version_constant(V14).await
+}
+
+#[test(tokio::test)]
+async fn test_get_archive_for_version_constant_v13() -> anyhow::Result<()> {
+    test_get_archive_for_version_constant(V13).await
+}
+
 #[test(tokio::test)]
 #[allow(deprecated)]
-async fn test_get_archive_for_version_constants() -> anyhow::Result<()> {
-    let versions = vec![V12, V13, V14, V15, V16];
-
-    for version in versions {
-        let (_, archive, hash) = get_archive(&version).await?;
-
-        let mut hasher = Sha256::new();
-        hasher.update(&archive);
-        let archive_hash = hex::encode(&hasher.finalize());
-
-        assert_eq!(archive_hash, hash);
-    }
-
-    Ok(())
+async fn test_get_archive_for_version_constant_v12() -> anyhow::Result<()> {
+    test_get_archive_for_version_constant(V12).await
 }
 
 #[test(tokio::test)]
