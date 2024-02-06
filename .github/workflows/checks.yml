@@ -33,6 +33,8 @@ jobs:
         uses: dtolnay/rust-toolchain@master
         with:
           toolchain: stable
+      - name: Enable caching
+        uses: Swatinem/rust-cache@v2
       - name: Check the project
         run: |
           cargo check --workspace --all-targets --features blocking
@@ -83,6 +85,8 @@ jobs:
         uses: dtolnay/rust-toolchain@master
         with:
           toolchain: stable
+      - name: Enable caching
+        uses: Swatinem/rust-cache@v2
       - name: Check documentation
         env:
           RUSTDOCFLAGS: -D warnings
@@ -98,6 +102,8 @@ jobs:
         with:
           toolchain: stable
           components: rustfmt
+      - name: Enable caching
+        uses: Swatinem/rust-cache@v2
       - name: Check formatting
         run: cargo fmt --all --check
 
