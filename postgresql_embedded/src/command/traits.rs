@@ -139,17 +139,14 @@ mod test {
     #[test]
     fn test_standard_command_builder() {
         let builder = TestCommandBuilder {
-            program_dir: Some("tmp".to_string().into()),
+            program_dir: None,
             args: vec!["--help".to_string().into()],
         };
         let command = builder.build();
 
         assert_eq!(
-            format!(
-                "{} --help",
-                PathBuf::from("tmp").join("test").to_string_lossy()
-            ),
-            command.to_command_string().replace("\"", "")
+            format!(r#""{}" "--help""#, PathBuf::from("test").to_string_lossy()),
+            command.to_command_string()
         );
     }
 
@@ -157,48 +154,47 @@ mod test {
     #[test]
     fn test_tokio_command_builder() {
         let builder = TestCommandBuilder {
-            program_dir: Some("tmp".to_string().into()),
+            program_dir: None,
             args: vec!["--help".to_string().into()],
         };
         let command = builder.build_tokio();
 
         assert_eq!(
-            format!(
-                "{} --help",
-                PathBuf::from("tmp").join("test").to_string_lossy()
-            ),
-            command.to_command_string().replace("\"", "")
+            format!(r#""{}" "--help""#, PathBuf::from("test").to_string_lossy()),
+            command.to_command_string()
         );
     }
 
     #[test]
     fn test_standard_to_command_string() {
-        let mut command = std::process::Command::new("foo".to_string());
-        command.current_dir("tmp".to_string());
+        let mut command = std::process::Command::new("test".to_string());
         command.arg("-l".to_string());
-        assert_eq!(r#"cd "tmp" && "foo" "-l""#, command.to_command_string(),);
+        assert_eq!(r#""test" "-l""#, command.to_command_string(),);
     }
 
     #[cfg(feature = "tokio")]
     #[test]
     fn test_tokio_to_command_string() {
-        let mut command = tokio::process::Command::new("foo".to_string());
-        command.current_dir("tmp".to_string());
+        let mut command = tokio::process::Command::new("test".to_string());
         command.arg("-l".to_string());
-        assert_eq!(r#"cd "tmp" && "foo" "-l""#, command.to_command_string(),);
+        assert_eq!(r#""test" "-l""#, command.to_command_string(),);
     }
 
     #[cfg(feature = "tokio")]
     #[tokio::test]
     async fn test_standard_command_execute() -> Result<()> {
         #[cfg(not(target_os = "windows"))]
-        let mut command = tokio::process::Command::new("ls");
+        let mut command = std::process::Command::new("sh");
+        #[cfg(not(target_os = "windows"))]
+        command.args(&["-c", "echo foo"]);
 
         #[cfg(target_os = "windows")]
-        let mut command = tokio::process::Command::new("dir");
+        let mut command = std::process::Command::new("cmd");
+        #[cfg(target_os = "windows")]
+        command.args(&["/C", "echo foo"]);
 
         let (stdout, stderr) = command.execute(None).await?;
-        assert!(!stdout.is_empty());
+        assert!(stdout.starts_with("foo"));
         assert!(stderr.is_empty());
         Ok(())
     }
@@ -207,13 +203,17 @@ mod test {
     #[tokio::test]
     async fn test_tokio_command_execute() -> Result<()> {
         #[cfg(not(target_os = "windows"))]
-        let mut command = tokio::process::Command::new("ls");
+        let mut command = tokio::process::Command::new("sh");
+        #[cfg(not(target_os = "windows"))]
+        command.args(&["-c", "echo foo"]);
 
         #[cfg(target_os = "windows")]
-        let mut command = tokio::process::Command::new("dir");
+        let mut command = tokio::process::Command::new("cmd");
+        #[cfg(target_os = "windows")]
+        command.args(&["/C", "echo foo"]);
 
         let (stdout, stderr) = command.execute(None).await?;
-        assert!(!stdout.is_empty());
+        assert!(stdout.starts_with("foo"));
         assert!(stderr.is_empty());
         Ok(())
     }
