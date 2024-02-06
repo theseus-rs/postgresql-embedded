@@ -7,7 +7,8 @@ use crate::version::Version;
 use bytes::Bytes;
 use flate2::bufread::GzDecoder;
 use regex::Regex;
-use reqwest::header;
+use reqwest::header::HeaderMap;
+use reqwest::{header, RequestBuilder};
 use std::fs::{create_dir_all, File};
 use std::io::{copy, BufReader, Cursor};
 use std::path::Path;
@@ -18,11 +19,43 @@ const GITHUB_API_VERSION_HEADER: &str = "X-GitHub-Api-Version";
 const GITHUB_API_VERSION: &str = "2022-11-28";
 
 lazy_static! {
+    static ref GITHUB_TOKEN: Option<String> = match std::env::var("GITHUB_TOKEN") {
+        Ok(token) => Some(token),
+        Err(_) => None,
+    };
+}
+
+lazy_static! {
     static ref USER_AGENT: String = format!(
         "{PACKAGE}/{VERSION}",
         PACKAGE = env!("CARGO_PKG_NAME"),
         VERSION = env!("CARGO_PKG_VERSION")
     );
+}
+
+/// Adds GitHub headers to the request builder.
+trait GitHubHeaders {
+    /// Adds GitHub headers to the request builder. If a GitHub token is set, then it is added as a
+    /// bearer token. This is used to authenticate with the GitHub API to increase the rate limit.
+    fn add_github_headers(self) -> anyhow::Result<RequestBuilder>;
+}
+
+/// Implementation that adds GitHub headers to a request builder.
+impl GitHubHeaders for RequestBuilder {
+    /// Adds GitHub headers to the request builder. If a GitHub token is set, then it is added as a
+    /// bearer token. This is used to authenticate with the GitHub API to increase the rate limit.
+    fn add_github_headers(self) -> anyhow::Result<RequestBuilder> {
+        let mut headers = HeaderMap::new();
+
+        headers.append(GITHUB_API_VERSION_HEADER, GITHUB_API_VERSION.parse()?);
+        headers.append(header::USER_AGENT, USER_AGENT.parse()?);
+
+        if let Some(token) = &*GITHUB_TOKEN {
+            headers.append(header::AUTHORIZATION, format!("Bearer {token}").parse()?);
+        }
+
+        Ok(self.headers(headers))
+    }
 }
 
 /// Gets a release from GitHub for a given [`version`](Version) of PostgreSQL. If a release for the
@@ -32,13 +65,10 @@ async fn get_release(version: &Version) -> Result<Release> {
     let client = reqwest::Client::new();
 
     if version.minor.is_some() && version.release.is_some() {
-        let response = client
+        let request = client
             .get(format!("{url}/tags/{version}"))
-            .header(GITHUB_API_VERSION_HEADER, GITHUB_API_VERSION)
-            .header(header::USER_AGENT, USER_AGENT.as_str())
-            .send()
-            .await?
-            .error_for_status()?;
+            .add_github_headers()?;
+        let response = request.send().await?.error_for_status()?;
         let release = response.json::<Release>().await?;
 
         return Ok(release);
@@ -48,15 +78,11 @@ async fn get_release(version: &Version) -> Result<Release> {
     let mut page = 1;
 
     loop {
-        let response = client
+        let request = client
             .get(url)
-            .header(GITHUB_API_VERSION_HEADER, GITHUB_API_VERSION)
-            .header(header::USER_AGENT, USER_AGENT.as_str())
-            .query(&[("page", page.to_string().as_str()), ("per_page", "100")])
-            .send()
-            .await?
-            .error_for_status()?;
-
+            .add_github_headers()?
+            .query(&[("page", page.to_string().as_str()), ("per_page", "100")]);
+        let response = request.send().await?.error_for_status()?;
         let response_releases = response.json::<Vec<Release>>().await?;
         if response_releases.is_empty() {
             break;
@@ -145,14 +171,10 @@ pub async fn get_archive_for_target<S: AsRef<str>>(
 ) -> Result<(Version, Bytes, String)> {
     let (asset_version, asset, asset_hash) = get_asset(version, target).await?;
     let client = reqwest::Client::new();
-
-    let response = client
+    let request = client
         .get(asset_hash.browser_download_url)
-        .header(GITHUB_API_VERSION_HEADER, GITHUB_API_VERSION)
-        .header(header::USER_AGENT, USER_AGENT.as_str())
-        .send()
-        .await?
-        .error_for_status()?;
+        .add_github_headers()?;
+    let response = request.send().await?.error_for_status()?;
     let text = response.text().await?;
     let re = Regex::new(r"[0-9a-f]{64}")?;
     let hash = match re.find(&text) {
@@ -161,13 +183,8 @@ pub async fn get_archive_for_target<S: AsRef<str>>(
     };
 
     let asset_url = asset.browser_download_url;
-    let response = client
-        .get(asset_url)
-        .header(GITHUB_API_VERSION_HEADER, GITHUB_API_VERSION)
-        .header(header::USER_AGENT, USER_AGENT.as_str())
-        .send()
-        .await?
-        .error_for_status()?;
+    let request = client.get(asset_url).add_github_headers()?;
+    let response = request.send().await?.error_for_status()?;
     let archive: Bytes = response.bytes().await?;
 
     Ok((asset_version, archive, hash))

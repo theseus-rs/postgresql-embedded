@@ -63,3 +63,10 @@ impl From<std::path::StripPrefixError> for ArchiveError {
         ArchiveError::ParseError(error.into())
     }
 }
+
+/// Converts a [`anyhow::Error`] into an [`Unexpected`](ArchiveError::Unexpected)
+impl From<anyhow::Error> for ArchiveError {
+    fn from(error: anyhow::Error) -> Self {
+        ArchiveError::Unexpected(error.to_string())
+    }
+}
