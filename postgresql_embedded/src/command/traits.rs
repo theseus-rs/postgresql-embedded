@@ -118,7 +118,6 @@ mod test {
     use super::*;
 
     struct TestCommandBuilder {
-        program: OsString,
         program_dir: Option<PathBuf>,
         args: Vec<OsString>,
     }
@@ -140,43 +139,53 @@ mod test {
     #[test]
     fn test_standard_command_builder() {
         let builder = TestCommandBuilder {
-            program: "ls".to_string().into(),
-            program_dir: Some("/tmp".to_string().into()),
+            program_dir: Some("tmp".to_string().into()),
             args: vec!["--help".to_string().into()],
         };
         let command = builder.build();
 
-        assert_eq!(r#""/tmp/test" "--help""#, command.to_command_string());
+        assert_eq!(
+            format!(
+                "{} --help",
+                PathBuf::from("tmp").join("test").to_string_lossy()
+            ),
+            command.to_command_string().replace("\"", "")
+        );
     }
 
     #[cfg(feature = "tokio")]
     #[test]
     fn test_tokio_command_builder() {
         let builder = TestCommandBuilder {
-            program: "ls".to_string().into(),
-            program_dir: Some("/tmp".to_string().into()),
+            program_dir: Some("tmp".to_string().into()),
             args: vec!["--help".to_string().into()],
         };
         let command = builder.build_tokio();
 
-        assert_eq!(r#""/tmp/test" "--help""#, command.to_command_string());
+        assert_eq!(
+            format!(
+                "{} --help",
+                PathBuf::from("tmp").join("test").to_string_lossy()
+            ),
+            command.to_command_string().replace("\"", "")
+        );
     }
 
     #[test]
     fn test_standard_to_command_string() {
         let mut command = std::process::Command::new("foo".to_string());
-        command.current_dir("/tmp".to_string());
+        command.current_dir("tmp".to_string());
         command.arg("-l".to_string());
-        assert_eq!(r#"cd "/tmp" && "foo" "-l""#, command.to_command_string(),);
+        assert_eq!(r#"cd "tmp" && "foo" "-l""#, command.to_command_string(),);
     }
 
     #[cfg(feature = "tokio")]
     #[test]
     fn test_tokio_to_command_string() {
         let mut command = tokio::process::Command::new("foo".to_string());
-        command.current_dir("/tmp".to_string());
+        command.current_dir("tmp".to_string());
         command.arg("-l".to_string());
-        assert_eq!(r#"cd "/tmp" && "foo" "-l""#, command.to_command_string(),);
+        assert_eq!(r#"cd "tmp" && "foo" "-l""#, command.to_command_string(),);
     }
 
     #[cfg(feature = "tokio")]
