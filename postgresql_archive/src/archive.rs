@@ -230,15 +230,16 @@ pub async fn extract(bytes: &Bytes, out_dir: &Path) -> Result<()> {
 
     debug!("Extracting archive to {}", out_dir.to_string_lossy());
 
-    for file in archive.entries()? {
-        let mut file_entry = file?;
-        let file_header = file_entry.header();
-        let file_size = file_header.size()?;
+    for archive_entry in archive.entries()? {
+        let mut entry = archive_entry?;
+        let entry_header = entry.header();
+        let entry_type = entry_header.entry_type();
+        let entry_size = entry_header.size()?;
         #[cfg(unix)]
-        let file_mode = file_header.mode()?;
+        let file_mode = entry_header.mode()?;
 
-        let file_header_path = file_header.path()?.to_path_buf();
-        let prefix = match file_header_path.components().next() {
+        let entry_header_path = entry_header.path()?.to_path_buf();
+        let prefix = match entry_header_path.components().next() {
             Some(component) => component.as_os_str().to_str().unwrap_or_default(),
             None => {
                 return Err(Unexpected(
@@ -246,23 +247,29 @@ pub async fn extract(bytes: &Bytes, out_dir: &Path) -> Result<()> {
                 ))
             }
         };
-        let stripped_file_header_path = file_header_path.strip_prefix(prefix)?.to_path_buf();
-        let mut file_name = out_dir.to_path_buf();
-        file_name.push(stripped_file_header_path);
+        let stripped_entry_header_path = entry_header_path.strip_prefix(prefix)?.to_path_buf();
+        let mut entry_name = out_dir.to_path_buf();
+        entry_name.push(stripped_entry_header_path);
 
-        if file_size == 0 || file_name.is_dir() {
-            create_dir_all(&file_name)?;
-        } else {
-            let mut output_file = File::create(&file_name)?;
-            copy(&mut file_entry, &mut output_file)?;
+        if entry_type.is_dir() {
+            create_dir_all(&entry_name)?;
+        } else if entry_type.is_file() {
+            let mut output_file = File::create(&entry_name)?;
+            copy(&mut entry, &mut output_file)?;
 
             files += 1;
-            extracted_bytes += file_size;
+            extracted_bytes += entry_size;
 
             #[cfg(unix)]
             {
                 use std::os::unix::fs::PermissionsExt;
                 output_file.set_permissions(std::fs::Permissions::from_mode(file_mode))?;
+            }
+        } else if entry_type.is_symlink() {
+            #[cfg(unix)]
+            if let Some(symlink_target) = entry.link_name()? {
+                let symlink_path = entry_name;
+                std::os::unix::fs::symlink(symlink_target.as_ref(), symlink_path)?;
             }
         }
     }
