@@ -251,7 +251,7 @@ pub async fn extract(bytes: &Bytes, out_dir: &Path) -> Result<()> {
         let mut entry_name = out_dir.to_path_buf();
         entry_name.push(stripped_entry_header_path);
 
-        if entry_type.is_dir() {
+        if entry_type.is_dir() || entry_name.is_dir() {
             create_dir_all(&entry_name)?;
         } else if entry_type.is_file() {
             let mut output_file = File::create(&entry_name)?;
