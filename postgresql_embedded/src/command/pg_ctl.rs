@@ -232,7 +232,7 @@ impl CommandBuilder for PgCtlBuilder {
         }
 
         if let Some(options) = &self.options {
-            args.push("--option".into());
+            args.push("-o".into());
             args.push(options.into());
         }
 

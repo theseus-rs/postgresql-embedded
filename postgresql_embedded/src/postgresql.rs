@@ -96,6 +96,14 @@ impl PostgreSQL {
         postgresql
     }
 
+    pub fn default_version() -> Version {
+        if cfg!(feature = "bundled") {
+            *ARCHIVE_VERSION
+        } else {
+            postgresql_archive::LATEST
+        }
+    }
+
     /// Determine the status of the PostgreSQL server based on the settings
     fn update_status(&mut self) {
         let is_installed = self.is_installed();
@@ -244,13 +252,20 @@ impl PostgreSQL {
             "Initializing database {}",
             self.settings.data_dir.to_string_lossy()
         );
+
+        let encoding = if cfg!(target_os = "windows") {
+            "SQL_ASCII"
+        } else {
+            "UTF8"
+        };
+
         let initdb = InitDbBuilder::new()
             .program_dir(self.settings.binary_dir())
             .pgdata(&self.settings.data_dir)
             .auth("password")
             .pwfile(&self.settings.password_file)
             .username(&self.settings.username)
-            .encoding("UTF8");
+            .encoding(encoding);
 
         self.status = Status::Initializing;
         match self.execute_command(initdb).await {
@@ -465,14 +480,8 @@ impl PostgreSQL {
 /// Default PostgreSQL server
 impl Default for PostgreSQL {
     fn default() -> Self {
-        #[cfg(not(feature = "bundled"))]
-        let version = postgresql_archive::LATEST;
-
-        #[cfg(feature = "bundled")]
-        let version = *ARCHIVE_VERSION;
-
+        let version = PostgreSQL::default_version();
         let settings = Settings::default();
-
         Self::new(version, settings)
     }
 }

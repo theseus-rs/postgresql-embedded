@@ -3,6 +3,7 @@ use std::ffi::{OsStr, OsString};
 use std::path::PathBuf;
 use std::process::Stdio;
 use std::time::Duration;
+use tracing::debug;
 
 /// Trait to build a command
 pub trait CommandBuilder {
@@ -79,14 +80,28 @@ pub trait CommandExecutor {
 /// Implement the [`CommandExecutor`] trait for [`Command`](std::process::Command)
 impl CommandExecutor for std::process::Command {
     async fn execute(&mut self, _timeout: Option<Duration>) -> Result<(String, String)> {
+        debug!("Executing command: {}", self.to_command_string());
         self.stdout(Stdio::piped());
         self.stderr(Stdio::piped());
 
         let output = self.output()?;
         let stdout = String::from_utf8_lossy(&output.stdout).into_owned();
         let stderr = String::from_utf8_lossy(&output.stderr).into_owned();
+        debug!(
+            "Result: {}\nstdout: {}\nstderr: {}",
+            output
+                .status
+                .code()
+                .map_or("None".to_string(), |c| c.to_string()),
+            stdout,
+            stderr
+        );
 
-        Ok((stdout, stderr))
+        if output.status.success() {
+            Ok((stdout, stderr))
+        } else {
+            Err(crate::EmbeddedError::CommandError { stdout, stderr })
+        }
     }
 }
 
@@ -94,6 +109,7 @@ impl CommandExecutor for std::process::Command {
 /// Implement the [`CommandExecutor`] trait for [`Command`](tokio::process::Command)
 impl CommandExecutor for tokio::process::Command {
     async fn execute(&mut self, timeout: Option<Duration>) -> Result<(String, String)> {
+        debug!("Executing command: {}", self.to_command_string());
         self.stdout(Stdio::piped());
         self.stderr(Stdio::piped());
 
@@ -104,6 +120,15 @@ impl CommandExecutor for tokio::process::Command {
 
         let stdout = String::from_utf8_lossy(&output.stdout).into_owned();
         let stderr = String::from_utf8_lossy(&output.stderr).into_owned();
+        debug!(
+            "Result: {}\nstdout: {}\nstderr: {}",
+            output
+                .status
+                .code()
+                .map_or("None".to_string(), |c| c.to_string()),
+            stdout,
+            stderr
+        );
 
         if output.status.success() {
             Ok((stdout, stderr))
@@ -181,7 +206,6 @@ mod test {
         assert_eq!(r#""test" "-l""#, command.to_command_string(),);
     }
 
-    #[cfg(feature = "tokio")]
     #[test(tokio::test)]
     async fn test_standard_command_execute() -> Result<()> {
         #[cfg(not(target_os = "windows"))]
