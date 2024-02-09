@@ -315,7 +315,7 @@ mod tests {
             .build();
 
         assert_eq!(
-            r#""pg_ctl" "start" "--pgdata" "pgdata" "--silent" "--timeout" "60" "--version" "--wait" "--no-wait" "--help" "--core-files" "--log" "log" "--option" "-c log_connections=on" "-p" "path_to_postgres" "--mode" "smart" "HUP" "12345""#,
+            r#""pg_ctl" "start" "--pgdata" "pgdata" "--silent" "--timeout" "60" "--version" "--wait" "--no-wait" "--help" "--core-files" "--log" "log" "-o" "-c log_connections=on" "-p" "path_to_postgres" "--mode" "smart" "HUP" "12345""#,
             command.to_command_string()
         );
     }
