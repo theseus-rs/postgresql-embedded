@@ -4,6 +4,7 @@ members = ["postgresql_archive", "postgresql_embedded"]
 resolver = "2"
 
 [workspace.package]
+authors = ["Brian Heineman <brian.heineman@gmail.com>"]
 categories = ["database"]
 edition = "2021"
 keywords = ["postgresql", "ffi", "database"]
@@ -46,6 +47,10 @@ installers = []
 targets = ["aarch64-apple-darwin", "aarch64-unknown-linux-gnu", "aarch64-unknown-linux-musl", "arm-unknown-linux-gnueabi", "arm-unknown-linux-gnueabihf", "arm-unknown-linux-musleabi", "arm-unknown-linux-musleabihf", "armv7-unknown-linux-gnueabihf", "armv7-unknown-linux-musleabihf", "x86_64-apple-darwin", "powerpc64le-unknown-linux-gnu", "powerpc64le-unknown-linux-musl", "s390x-unknown-linux-gnu", "s390x-unknown-linux-musl", "x86_64-unknown-linux-gnu", "x86_64-unknown-linux-musl", "x86_64-pc-windows-msvc", "i686-unknown-linux-gnu", "i686-unknown-linux-musl", "armv5te-unknown-linux-gnueabi", "i586-unknown-linux-gnu", "i586-unknown-linux-musl", "mips64-unknown-linux-gnuabi64"]
 # Publish jobs to run in CI
 pr-run-mode = "plan"
+
+[workspace.metadata.release]
+shared-version = true
+tag-name = "v{{version}}"
 
 # The profile that 'cargo dist' will build with
 [profile.dist]

@@ -1,4 +1,5 @@
 [package]
+authors.workspace = true
 build = "build/build.rs"
 categories.workspace = true
 edition.workspace = true
