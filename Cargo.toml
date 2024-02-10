@@ -10,7 +10,7 @@ edition = "2021"
 keywords = ["postgresql", "ffi", "database"]
 license = "(Apache-2.0 OR MIT) AND PostgreSQL"
 repository = "https://github.com/theseus-rs/postgresql-embedded"
-version = "0.2.0"
+version = "0.2.1"
 
 [workspace.dependencies]
 anyhow = { version = "1.0" }
