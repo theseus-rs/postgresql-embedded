@@ -2,7 +2,7 @@
 
 [![ci](https://github.com/theseus-rs/postgresql-embedded/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/theseus-rs/postgresql-embedded/actions/workflows/ci.yml)
 [![Latest version](https://img.shields.io/crates/v/postgresql_archive.svg)](https://crates.io/crates/postgresql_embedded)
-[![Documentation](https://docs.rs/postgresql_archive/badge.svg)](https://docs.rs/postgresql_embedded)
+[![Documentation](https://docs.rs/postgresql_archive/badge.svg)](https://docs.rs/postgresql_archive)
 [![License](https://img.shields.io/crates/l/postgresql_archive?)](https://github.com/theseus-rs/postgresql-embedded/tree/main/postgresql_archive#license)
 [![Semantic Versioning](https://img.shields.io/badge/%E2%9A%99%EF%B8%8F_SemVer-2.0.0-blue)](https://semver.org/spec/v2.0.0.html)
 
@@ -43,9 +43,9 @@ uses.
 
 The following features are available:
 
-| Name | Description | Default? |
-|---|---|---|
-| `blocking` | Enables the blocking API | No |
+| Name         | Description              | Default? |
+|--------------|--------------------------|----------|
+| `blocking`   | Enables the blocking API | No       |
 
 ## Supported platforms
 
@@ -53,31 +53,31 @@ The following features are available:
 
 Currently supported platforms are:
 
-| OS | [Target](https://doc.rust-lang.org/nightly/rustc/platform-support.html) |
-|---|---|
-| Linux | aarch64-unknown-linux-gnu |
-| Linux | aarch64-unknown-linux-musl |
-| Linux | arm-unknown-linux-gnueabi |
-| Linux | arm-unknown-linux-gnueabihf |
-| Linux | arm-unknown-linux-musleabi |
-| Linux | arm-unknown-linux-musleabihf |
-| Linux | armv5te-unknown-linux-gnueabi |
-| Linux | armv7-unknown-linux-gnueabihf |
-| Linux | armv7-unknown-linux-musleabihf |
-| Linux | i586-unknown-linux-gnu |
-| Linux | i586-unknown-linux-musl |
-| Linux | i686-unknown-linux-gnu |
-| Linux | i686-unknown-linux-musl |
-| Linux | mips64-unknown-linux-gnuabi64 |
-| Linux | powerpc64le-unknown-linux-gnu |
-| Linux | powerpc64le-unknown-linux-musl |
-| Linux | s390x-unknown-linux-gnu |
-| Linux | s390x-unknown-linux-musl |
-| Linux | x86_64-unknown-linux-gnu |
-| Linux | x86_64-unknown-linux-musl |
-| MacOS | aarch64-apple-darwin |
-| MacOS | x86_64-apple-darwin |
-| Windows | x86_64-pc-windows-msvc |
+| OS      | [Target](https://doc.rust-lang.org/nightly/rustc/platform-support.html) |
+|---------|-------------------------------------------------------------------------|
+| Linux   | aarch64-unknown-linux-gnu                                               |
+| Linux   | aarch64-unknown-linux-musl                                              |
+| Linux   | arm-unknown-linux-gnueabi                                               |
+| Linux   | arm-unknown-linux-gnueabihf                                             |
+| Linux   | arm-unknown-linux-musleabi                                              |
+| Linux   | arm-unknown-linux-musleabihf                                            |
+| Linux   | armv5te-unknown-linux-gnueabi                                           |
+| Linux   | armv7-unknown-linux-gnueabihf                                           |
+| Linux   | armv7-unknown-linux-musleabihf                                          |
+| Linux   | i586-unknown-linux-gnu                                                  |
+| Linux   | i586-unknown-linux-musl                                                 |
+| Linux   | i686-unknown-linux-gnu                                                  |
+| Linux   | i686-unknown-linux-musl                                                 |
+| Linux   | mips64-unknown-linux-gnuabi64                                           |
+| Linux   | powerpc64le-unknown-linux-gnu                                           |
+| Linux   | powerpc64le-unknown-linux-musl                                          |
+| Linux   | s390x-unknown-linux-gnu                                                 |
+| Linux   | s390x-unknown-linux-musl                                                |
+| Linux   | x86_64-unknown-linux-gnu                                                |
+| Linux   | x86_64-unknown-linux-musl                                               |
+| MacOS   | aarch64-apple-darwin                                                    |
+| MacOS   | x86_64-apple-darwin                                                     |
+| Windows | x86_64-pc-windows-msvc                                                  |
 
 ## Safety
 
