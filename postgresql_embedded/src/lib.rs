@@ -22,7 +22,7 @@
 //!
 //! ### Asynchronous API
 //!
-//! ```rust, ignore
+//! ```no_run
 //! use postgresql_embedded::PostgreSQL;
 //!
 //! #[tokio::main]
@@ -41,7 +41,7 @@
 //! ```
 //!
 //! ### Synchronous API
-//! ```rust, ignore
+//! ```no_run
 //! use postgresql_embedded::blocking::PostgreSQL;
 //!
 //! let mut postgresql = PostgreSQL::default();
@@ -80,11 +80,11 @@
 //!
 //! The following features are available:
 //!
-//! Name | Description | Default?
-//! ---|---|---
-//! `bundled` | Bundles the PostgreSQL archive into the resulting binary | Yes
-//! `blocking` | Enables the blocking API; requires `tokio` | No
-//! `tokio` | Enables using tokio for async | No
+//! | Name       | Description                                               | Default? |
+//! |------------|-----------------------------------------------------------|----------|
+//! | `bundled`  | Bundles the PostgreSQL archive into the resulting binary  | Yes      |
+//! | `blocking` | Enables the blocking API; requires `tokio`                | No       |
+//! | `tokio`    | Enables using tokio for async                             | No       |
 //!
 //! ## Safety
 //!
@@ -112,7 +112,7 @@
 pub mod blocking;
 mod command;
 mod error;
-pub mod postgresql;
+mod postgresql;
 mod settings;
 
 pub use error::{EmbeddedError, Result};
