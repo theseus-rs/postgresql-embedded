@@ -14,7 +14,6 @@ A library for downloading and extracting PostgreSQL archives from
 ## Examples
 
 ### Asynchronous API
-**Note**: The following example requires the `tokio` runtime.
 
 ```rust
 use postgresql_archive::{extract, get_archive, LATEST};
