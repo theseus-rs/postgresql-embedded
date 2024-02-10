@@ -2,6 +2,7 @@
 authors.workspace = true
 build = "build/build.rs"
 categories.workspace = true
+description = "Embed PostgreSQL in Rust applications"
 edition.workspace = true
 keywords.workspace = true
 license.workspace = true

@@ -1,6 +1,7 @@
 [package]
 authors.workspace = true
 categories.workspace = true
+description = "A library for downloading and extracting PostgreSQL archives"
 edition.workspace = true
 keywords.workspace = true
 license.workspace = true

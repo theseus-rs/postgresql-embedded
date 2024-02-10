@@ -8,7 +8,7 @@
 
 ---
 
-Provides utilities to work with PostgreSQL installation archives from
+A library for downloading and extracting PostgreSQL archives from
 [theseus-rs/postgresql-binaries](https://github.com/theseus-rs/postgresql-binaries).
 
 ## Examples
