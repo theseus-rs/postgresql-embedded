@@ -16,7 +16,7 @@ use std::io::{copy, BufReader, Cursor};
 use std::path::Path;
 use std::str::FromStr;
 use tar::Archive;
-use tracing::{debug, info};
+use tracing::{debug, info, warn};
 
 const GITHUB_API_VERSION_HEADER: &str = "X-GitHub-Api-Version";
 const GITHUB_API_VERSION: &str = "2022-11-28";
@@ -98,7 +98,14 @@ async fn get_release(version: &Version) -> Result<Release> {
         }
 
         for release in response_releases {
-            let release_version = Version::from_str(&release.tag_name)?;
+            let release_version = match Version::from_str(&release.tag_name) {
+                Ok(release_version) => release_version,
+                Err(_) => {
+                    warn!("Failed to parse release version {}", release.tag_name);
+                    continue;
+                }
+            };
+
             if version.matches(&release_version) {
                 match &result {
                     Some(result_release) => {
