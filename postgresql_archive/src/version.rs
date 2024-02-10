@@ -3,6 +3,7 @@
 
 use crate::error::ArchiveError::InvalidVersion;
 use crate::error::{ArchiveError, Result};
+use serde::{Deserialize, Serialize};
 use std::fmt;
 use std::str::FromStr;
 
@@ -124,6 +125,25 @@ impl FromStr for Version {
     }
 }
 
+impl<'de> Deserialize<'de> for Version {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        let version = String::deserialize(deserializer)?;
+        Version::from_str(&version).map_err(serde::de::Error::custom)
+    }
+}
+
+impl Serialize for Version {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        self.to_string().serialize(serializer)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -134,7 +154,7 @@ mod tests {
     //
 
     #[test]
-    fn matches_all() {
+    fn test_matches_all() {
         assert!(&Version::new(1, None, None).matches(&Version::new(1, None, None)));
         assert!(!&Version::new(1, None, None).matches(&Version::new(2, None, None)));
 
@@ -156,7 +176,7 @@ mod tests {
     //
 
     #[test]
-    fn version_display() -> Result<()> {
+    fn test_version_display() -> Result<()> {
         let version_str = "1.2.3";
         let version = Version::from_str(version_str)?;
         assert_eq!(version_str, version.to_string());
@@ -164,7 +184,7 @@ mod tests {
     }
 
     #[test]
-    fn version_display_major() -> Result<()> {
+    fn test_version_display_major() -> Result<()> {
         let version_str = "1";
         let version = Version::from_str(version_str)?;
         assert_eq!(version_str, version.to_string());
@@ -172,7 +192,7 @@ mod tests {
     }
 
     #[test]
-    fn version_display_major_minor() -> Result<()> {
+    fn test_version_display_major_minor() -> Result<()> {
         let version_str = "1.2";
         let version = Version::from_str(version_str)?;
         assert_eq!(version_str, version.to_string());
@@ -184,7 +204,7 @@ mod tests {
     //
 
     #[test]
-    fn version_from_str() -> Result<()> {
+    fn test_version_from_str() -> Result<()> {
         let version = Version::from_str("1.2.3")?;
         assert_eq!(version.major, 1u64);
         assert_eq!(version.minor, Some(2));
@@ -193,7 +213,7 @@ mod tests {
     }
 
     #[test]
-    fn version_from_str_major() -> Result<()> {
+    fn test_version_from_str_major() -> Result<()> {
         let version = Version::from_str("1")?;
         assert_eq!(version.major, 1);
         assert_eq!(version.minor, None);
@@ -202,7 +222,7 @@ mod tests {
     }
 
     #[test]
-    fn version_from_str_major_minor() -> Result<()> {
+    fn test_version_from_str_major_minor() -> Result<()> {
         let version = Version::from_str("1.2")?;
         assert_eq!(version.major, 1);
         assert_eq!(version.minor, Some(2));
@@ -211,27 +231,57 @@ mod tests {
     }
 
     #[test]
-    fn version_from_str_error_missing_major() {
+    fn test_version_from_str_error_missing_major() {
         assert!(Version::from_str("").is_err());
     }
 
     #[test]
-    fn version_from_str_error_invalid_major() {
+    fn test_version_from_str_error_invalid_major() {
         assert!(Version::from_str("a").is_err());
     }
 
     #[test]
-    fn version_from_str_error_invalid_minor() {
+    fn test_version_from_str_error_invalid_minor() {
         assert!(Version::from_str("1.a").is_err());
     }
 
     #[test]
-    fn version_from_str_error_invalid_release() {
+    fn test_version_from_str_error_invalid_release() {
         assert!(Version::from_str("1.2.a").is_err());
     }
 
     #[test]
-    fn version_from_str_error_too_many_parts() {
+    fn test_version_from_str_error_too_many_parts() {
         assert!(Version::from_str("1.2.3.4").is_err());
+    }
+
+    //
+    // Deserialize tests
+    //
+
+    #[test]
+    fn test_version_deserialize() -> anyhow::Result<()> {
+        let version = serde_json::from_str::<Version>("\"1.2.3\"")?;
+        assert_eq!(version.major, 1u64);
+        assert_eq!(version.minor, Some(2));
+        assert_eq!(version.release, Some(3));
+        Ok(())
+    }
+
+    #[test]
+    fn test_version_deserialize_parse_error() {
+        assert!(serde_json::from_str::<Version>("\"foo\"").is_err())
+    }
+
+    //
+    // Serialize tests
+    //
+
+    #[test]
+    fn test_version_serialize() -> anyhow::Result<()> {
+        let version = Version::new(1, Some(2), Some(3));
+        let version_str = serde_json::to_string(&version)?;
+        assert_eq!(version_str, "\"1.2.3\"");
+        Ok(())
     }
 }
