@@ -1,6 +1,5 @@
 //! # postgresql_archive
 //!
-//! [![ci](https://github.com/theseus-rs/postgresql-embedded/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/theseus-rs/postgresql-embedded/actions/workflows/ci.yml)
 //! [![Latest version](https://img.shields.io/crates/v/postgresql_archive.svg)](https://crates.io/crates/postgresql_archive)
 //! [![Documentation](https://docs.rs/postgresql_archive/badge.svg)](https://docs.rs/postgresql_archive)
 //! [![Code Coverage](https://codecov.io/gh/theseus-rs/postgresql-embedded/branch/main/graph/badge.svg)](https://codecov.io/gh/theseus-rs/postgresql-embedded)
