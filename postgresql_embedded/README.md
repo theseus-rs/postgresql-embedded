@@ -73,11 +73,11 @@ uses.
 
 The following features are available:
 
-| Name       | Description | Default? |
-|------------|---|---|
-| `bundled`  | Bundles the PostgreSQL archive into the resulting binary | Yes |
-| `blocking` | Enables the blocking API; requires `tokio` | No |
-| `tokio`    | Enables using tokio for async | No |
+| Name       | Description                                               | Default? |
+|------------|-----------------------------------------------------------|----------|
+| `bundled`  | Bundles the PostgreSQL archive into the resulting binary  | Yes      |
+| `blocking` | Enables the blocking API; requires `tokio`                | No       |
+| `tokio`    | Enables using tokio for async                             | No       |
 
 ## Safety
 

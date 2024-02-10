@@ -64,8 +64,8 @@ impl GitHubHeaders for RequestBuilder {
     }
 }
 
-/// Gets a release from GitHub for a given [`version`](Version) of PostgreSQL. If a release for the
-/// [`version`](Version) is not found, then a [`ReleaseNotFound`] error is returned.
+/// Gets a release from GitHub for a given [version](Version) of PostgreSQL. If a release for the
+/// [version](Version) is not found, then a [ReleaseNotFound] error is returned.
 async fn get_release(version: &Version) -> Result<Release> {
     let url = "https://api.github.com/repos/theseus-rs/postgresql-binaries/releases";
     let client = reqwest::Client::new();
@@ -127,16 +127,18 @@ async fn get_release(version: &Version) -> Result<Release> {
     }
 }
 
-/// Gets the version of PostgreSQL for the specified [`version`](Version).  If the version minor or release is not
-/// specified, then the latest version is returned. If a release for the [`version`](Version) is not found, then a
-/// [`ReleaseNotFound`] error is returned.
+/// Gets the version of PostgreSQL for the specified [version](Version).  If the version minor or release is not
+/// specified, then the latest version is returned. If a release for the [version](Version) is not found, then a
+/// [ReleaseNotFound] error is returned.
 pub async fn get_version(version: &Version) -> Result<Version> {
     let release = get_release(version).await?;
     Version::from_str(&release.tag_name)
 }
 
-/// Gets the assets for a given [`version`](Version) of PostgreSQL and `target` (e.g. `x86_64-unknown-linux-gnu`).
-/// If the [`version`](Version) or `target` is not found, then an [error](crate::error::ArchiveError) is returned.
+/// Gets the assets for a given [version](Version) of PostgreSQL and
+/// [target](https://doc.rust-lang.org/nightly/rustc/platform-support.html).
+/// If the [version](Version) or [target](https://doc.rust-lang.org/nightly/rustc/platform-support.html)
+/// is not found, then an [error](crate::error::ArchiveError) is returned.
 ///
 /// Two assets are returned. The first [asset](Asset) is the archive, and the second [asset](Asset) is the archive hash.
 async fn get_asset<S: AsRef<str>>(version: &Version, target: S) -> Result<(Version, Asset, Asset)> {
@@ -166,16 +168,19 @@ async fn get_asset<S: AsRef<str>>(version: &Version, target: S) -> Result<(Versi
     }
 }
 
-/// Gets the archive for a given [`version`](Version) of PostgreSQL for the current target.
-/// If the [`version`](Version) is not found for this target, then an [error](crate::error::ArchiveError) is returned.
+/// Gets the archive for a given [version](Version) of PostgreSQL for the current target.
+/// If the [version](Version) is not found for this target, then an
+/// [error](crate::error::ArchiveError) is returned.
 ///
 /// Returns the archive bytes and the archive hash.
 pub async fn get_archive(version: &Version) -> Result<(Version, Bytes, String)> {
     get_archive_for_target(version, target_triple::TARGET).await
 }
 
-/// Gets the archive for a given [`version`](Version) of PostgreSQL and `target` (e.g. `x86_64-unknown-linux-gnu`).
-/// If the [`version`](Version) or `target` is not found, then an [error](crate::error::ArchiveError) is returned.
+/// Gets the archive for a given [version](Version) of PostgreSQL and
+/// [target](https://doc.rust-lang.org/nightly/rustc/platform-support.html).
+/// If the [version](Version) or [target](https://doc.rust-lang.org/nightly/rustc/platform-support.html)
+/// is not found, then an [error](crate::error::ArchiveError) is returned.
 ///
 /// Returns the archive bytes and the archive hash.
 pub async fn get_archive_for_target<S: AsRef<str>>(
@@ -220,7 +225,7 @@ pub async fn get_archive_for_target<S: AsRef<str>>(
     Ok((asset_version, archive, hash))
 }
 
-/// Extracts the compressed tar `bytes` to the `out_dir`.
+/// Extracts the compressed tar [bytes](Bytes) to the [out_dir](Path).
 pub async fn extract(bytes: &Bytes, out_dir: &Path) -> Result<()> {
     let input = BufReader::new(Cursor::new(bytes));
     let decoder = GzDecoder::new(input);
