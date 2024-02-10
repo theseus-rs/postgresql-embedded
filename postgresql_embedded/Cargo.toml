@@ -7,7 +7,7 @@ edition.workspace = true
 keywords.workspace = true
 license.workspace = true
 name = "postgresql_embedded"
-repository.workspace = true
+repository = "https://github.com/theseus-rs/postgresql-embedded/tree/main/postgresql_embedded"
 version.workspace = true
 
 [build-dependencies]
