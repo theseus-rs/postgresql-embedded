@@ -21,7 +21,6 @@
 //! ## Examples
 //!
 //! ### Asynchronous API
-//! **Note**: The following example requires the `tokio` runtime.
 //!
 //! ```rust, ignore
 //! use postgresql_embedded::PostgreSQL;
@@ -59,7 +58,17 @@
 //!
 //! ## Information
 //!
-//! The downloaded postgresql binaries are cached in the following directories:
+//! During the build process, when the `bundled` feature is enabled, the PostgreSQL binaries are
+//! downloaded and included in the resulting binary. The version of the PostgreSQL binaries is
+//! determined by the `POSTGRESQL_VERSION` environment variable. If the `POSTGRESQL_VERSION`
+//! environment variable is not set, then `postgresql_archive::LATEST` will be used to determine the
+//! version of the PostgreSQL binaries to download.
+//!
+//! When downloading the PostgreSQL binaries, either during build, or at runtime, the `GITHUB_TOKEN`
+//! environment variable can be set to a GitHub personal access token to increase the rate limit for
+//! downloading the PostgreSQL binaries. The `GITHUB_TOKEN` environment variable is not required.
+//!
+//! At runtime, the PostgreSQL binaries are cached by default in the following directories:
 //!
 //! - Unix: `$HOME/.theseus/postgresql`
 //! - Windows: `%USERPROFILE%\.theseus\postgresql`

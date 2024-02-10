@@ -3,10 +3,8 @@
 [![ci](https://github.com/theseus-rs/postgresql-embedded/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/theseus-rs/postgresql-embedded/actions/workflows/ci.yml)
 [![Latest version](https://img.shields.io/crates/v/postgresql_embedded.svg)](https://crates.io/crates/postgresql_embedded)
 [![Documentation](https://docs.rs/postgresql_embedded/badge.svg)](https://docs.rs/postgresql_embedded)
-[![License](https://img.shields.io/crates/p/postgresql_embedded.svg)](https://github.com/theseus-rs/postgresql_embedded#license)
+[![License](https://img.shields.io/crates/l/postgresql_embedded)](https://github.com/theseus-rs/postgresql-embedded/tree/main/postgresql_embedded#license)
 [![Semantic Versioning](https://img.shields.io/badge/%E2%9A%99%EF%B8%8F_SemVer-2.0.0-blue)](https://semver.org/spec/v2.0.0.html)
-
----
 
 Install and run a PostgreSQL database locally on Linux, MacOS or Windows.  PostgreSQL can be
 bundled with your application, or downloaded on demand.
@@ -53,7 +51,17 @@ fn main() {
 
 ## Information
 
-The downloaded postgresql binaries are cached in the following directories:
+During the build process, when the `bundled` feature is enabled, the PostgreSQL binaries are
+downloaded and included in the resulting binary. The version of the PostgreSQL binaries is
+determined by the `POSTGRESQL_VERSION` environment variable. If the `POSTGRESQL_VERSION`
+environment variable is not set, then `postgresql_archive::LATEST` will be used to determine the
+version of the PostgreSQL binaries to download.
+
+When downloading the PostgreSQL binaries, either during build, or at runtime, the `GITHUB_TOKEN`
+environment variable can be set to a GitHub personal access token to increase the rate limit for
+downloading the PostgreSQL binaries. The `GITHUB_TOKEN` environment variable is not required.
+
+At runtime, the PostgreSQL binaries are cached by default in the following directories:
 
 - Unix: `$HOME/.theseus/postgresql`
 - Windows: `%USERPROFILE%\.theseus\postgresql`
@@ -65,15 +73,15 @@ uses.
 
 The following features are available:
 
-Name | Description | Default?
----|---|---
-`bundled` | Bundles the PostgreSQL archive into the resulting binary | Yes
-`blocking` | Enables the blocking API; requires `tokio` | No
-`tokio` | Enables using tokio for async | No
+| Name       | Description | Default? |
+|------------|---|---|
+| `bundled`  | Bundles the PostgreSQL archive into the resulting binary | Yes |
+| `blocking` | Enables the blocking API; requires `tokio` | No |
+| `tokio`    | Enables using tokio for async | No |
 
 ## Safety
 
-These crates use `#![forbid(unsafe_code)]` to ensure everything is implemented in 100% safe Rust.
+This crate uses `#![forbid(unsafe_code)]` to ensure everything is implemented in 100% safe Rust.
 
 ## License
 

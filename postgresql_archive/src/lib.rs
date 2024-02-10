@@ -20,7 +20,6 @@
 //! ## Examples
 //!
 //! ### Asynchronous API
-//! **Note**: The following example requires the `tokio` runtime.
 //!
 //! ```rust, ignore
 //! use postgresql_archive::{extract, get_archive, LATEST};
@@ -29,7 +28,7 @@
 //! async fn main() {
 //!     let (archive_version, archive, hash) = get_archive(&LATEST).await.unwrap();
 //!     let out_dir = std::env::temp_dir();
-//!     let result = extract(&archive, &out_dir).await;
+//!     let result = extract(&archive, &out_dir).await.unwrap();
 //! }
 //! ```
 //!
@@ -40,7 +39,7 @@
 //!
 //! let (archive_version, archive, hash) = get_archive(&LATEST).unwrap();
 //! let out_dir = std::env::temp_dir();
-//! let result = extract(&archive, &out_dir);
+//! let result = extract(&archive, &out_dir).unwrap();
 //! ```
 //!
 //! ## Feature flags

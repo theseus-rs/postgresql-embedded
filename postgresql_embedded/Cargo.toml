@@ -7,13 +7,13 @@ edition.workspace = true
 keywords.workspace = true
 license.workspace = true
 name = "postgresql_embedded"
-repository.workspace = true
+repository = "https://github.com/theseus-rs/postgresql-embedded/tree/main/postgresql_embedded"
 version.workspace = true
 
 [build-dependencies]
 anyhow = { workspace = true }
 hex = { workspace = true }
-postgresql_archive = { path = "../postgresql_archive", version = "0.1.1" }
+postgresql_archive = { path = "../postgresql_archive", version = "0.1.2" }
 sha2 = { workspace = true }
 tokio = { workspace = true }
 
@@ -23,7 +23,7 @@ bytes = { workspace = true }
 hex = { workspace = true }
 home = { workspace = true }
 lazy_static = { workspace = true }
-postgresql_archive = { path = "../postgresql_archive", version = "0.1.1" }
+postgresql_archive = { path = "../postgresql_archive", version = "0.1.2" }
 rand = { workspace = true }
 sha2 = { workspace = true }
 tempfile = { workspace = true }

@@ -73,12 +73,15 @@ impl CommandToString for tokio::process::Command {
     }
 }
 
+/// Interface for executing a command
 pub trait CommandExecutor {
+    /// Execute the command and return the stdout and stderr
     async fn execute(&mut self, timeout: Option<Duration>) -> Result<(String, String)>;
 }
 
 /// Implement the [`CommandExecutor`] trait for [`Command`](std::process::Command)
 impl CommandExecutor for std::process::Command {
+    /// Execute the command and return the stdout and stderr
     async fn execute(&mut self, _timeout: Option<Duration>) -> Result<(String, String)> {
         debug!("Executing command: {}", self.to_command_string());
         self.stdout(Stdio::piped());
@@ -108,6 +111,7 @@ impl CommandExecutor for std::process::Command {
 #[cfg(feature = "tokio")]
 /// Implement the [`CommandExecutor`] trait for [`Command`](tokio::process::Command)
 impl CommandExecutor for tokio::process::Command {
+    /// Execute the command and return the stdout and stderr
     async fn execute(&mut self, timeout: Option<Duration>) -> Result<(String, String)> {
         debug!("Executing command: {}", self.to_command_string());
         self.stdout(Stdio::piped());

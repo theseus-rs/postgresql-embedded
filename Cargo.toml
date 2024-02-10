@@ -9,8 +9,8 @@ categories = ["database"]
 edition = "2021"
 keywords = ["postgresql", "ffi", "database"]
 license = "(Apache-2.0 OR MIT) AND PostgreSQL"
-repository = "https://github.com/theseus-rs/postgresql_embedded"
-version = "0.1.1"
+repository = "https://github.com/theseus-rs/postgresql-embedded"
+version = "0.1.2"
 
 [workspace.dependencies]
 anyhow = { version = "1.0" }
@@ -39,8 +39,3 @@ tracing = { version = "0.1", features = ["log"] }
 shared-version = true
 dependent-version = "upgrade"
 tag-name = "v{{version}}"
-
-# The profile that 'cargo dist' will build with
-[profile.dist]
-inherits = "release"
-lto = "thin"
