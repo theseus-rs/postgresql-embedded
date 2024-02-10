@@ -60,6 +60,7 @@ jobs:
         RUSTFLAGS: -Cinstrument-coverage
         RUSTDOCFLAGS: -Cinstrument-coverage
       run: |
+        cargo test --workspace
         cargo test --workspace --all-features
 
     - name: Produce coverage info

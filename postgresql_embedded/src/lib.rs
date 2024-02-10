@@ -1,9 +1,10 @@
 //! # postgresql_embedded
 //!
-//! [![Crates.io](https://img.shields.io/crates/v/postgresql_embedded)](http://crates.io/crates/postgresql_embedded)
-//! [![Docs.rs](https://docs.rs/postgresql_embedded/badge.svg)](https://docs.rs/postgresql_embedded)
-//! [![Crates.io](https://img.shields.io/crates/d/postgresql_embedded)](http://crates.io/crates/postgresql_embedded)
-//! [![Crates.io](https://img.shields.io/crates/l/postgresql_embedded)](https://github.com/theseus-rs/postgresql_embedded/blob/main/postgresql_embedded/LICENSE)
+//! [![ci](https://github.com/theseus-rs/postgresql-embedded/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/theseus-rs/postgresql-embedded/actions/workflows/ci.yml)
+//! [![Latest version](https://img.shields.io/crates/v/postgresql_embedded.svg)](https://crates.io/crates/postgresql_embedded)
+//! [![Documentation](https://docs.rs/postgresql_embedded/badge.svg)](https://docs.rs/postgresql_embedded)
+//! [![Code Coverage](https://codecov.io/gh/theseus-rs/postgresql-embedded/branch/main/graph/badge.svg)](https://codecov.io/gh/theseus-rs/postgresql-embedded)
+//! [![License](https://img.shields.io/crates/l/postgresql_embedded)](https://github.com/theseus-rs/postgresql-embedded/tree/main/postgresql_embedded#license)
 //! [![Semantic Versioning](https://img.shields.io/badge/%E2%9A%99%EF%B8%8F_SemVer-2.0.0-blue)](https://semver.org/spec/v2.0.0.html)
 //!
 //! Install and run a PostgreSQL database locally on Linux, MacOS or Windows.  PostgreSQL can be
