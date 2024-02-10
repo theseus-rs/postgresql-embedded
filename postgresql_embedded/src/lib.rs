@@ -42,6 +42,7 @@
 //!
 //! ### Synchronous API
 //! ```no_run
+//! #[cfg(feature = "blocking")] {
 //! use postgresql_embedded::blocking::PostgreSQL;
 //!
 //! let mut postgresql = PostgreSQL::default();
@@ -54,6 +55,7 @@
 //! postgresql.drop_database(database_name).unwrap();
 //!
 //! postgresql.stop().unwrap();
+//! }
 //! ```
 //!
 //! ## Information
