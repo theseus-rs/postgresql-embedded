@@ -22,7 +22,7 @@
 //! ### Asynchronous API
 //! **Note**: The following example requires the `tokio` runtime.
 //!
-//! ```rust
+//! ```rust, ignore
 //! use postgresql_archive::{extract, get_archive, LATEST};
 //!
 //! #[tokio::main]

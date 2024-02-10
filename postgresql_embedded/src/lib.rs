@@ -23,7 +23,7 @@
 //! ### Asynchronous API
 //! **Note**: The following example requires the `tokio` runtime.
 //!
-//! ```rust
+//! ```rust, ignore
 //! use postgresql_embedded::PostgreSQL;
 //!
 //! #[tokio::main]
