@@ -1,4 +1,4 @@
-<p align="center"><img width="256" height="256" src="images/logo.png"></p>
+<p align="center"><img width="250" height="250" src="images/logo.png"></p>
  
 # PostgreSQL Embedded
 
@@ -7,8 +7,6 @@
 [![Documentation](https://docs.rs/postgresql_embedded/badge.svg)](https://docs.rs/postgresql_embedded)
 [![License](https://img.shields.io/crates/l/postgresql_embedded)](https://github.com/theseus-rs/postgresql-embedded#license)
 [![Semantic Versioning](https://img.shields.io/badge/%E2%9A%99%EF%B8%8F_SemVer-2.0.0-blue)](https://semver.org/spec/v2.0.0.html)
-
----
 
 Install and run a PostgreSQL database locally on Linux, MacOS or Windows.  PostgreSQL can be
 bundled with your application, or downloaded on demand.

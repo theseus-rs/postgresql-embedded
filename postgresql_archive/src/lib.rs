@@ -28,7 +28,7 @@
 //! async fn main() {
 //!     let (archive_version, archive, hash) = get_archive(&LATEST).await.unwrap();
 //!     let out_dir = std::env::temp_dir();
-//!     let result = extract(&archive, &out_dir).await;
+//!     let result = extract(&archive, &out_dir).await.unwrap();
 //! }
 //! ```
 //!
@@ -39,7 +39,7 @@
 //!
 //! let (archive_version, archive, hash) = get_archive(&LATEST).unwrap();
 //! let out_dir = std::env::temp_dir();
-//! let result = extract(&archive, &out_dir);
+//! let result = extract(&archive, &out_dir).unwrap();
 //! ```
 //!
 //! ## Feature flags
