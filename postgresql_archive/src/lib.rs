@@ -114,6 +114,6 @@ mod github;
 mod version;
 
 pub use archive::{extract, get_archive, get_archive_for_target, get_version};
-pub use error::{ArchiveError, Result};
+pub use error::{Error, Result};
 #[allow(deprecated)]
 pub use version::{Version, LATEST, V12, V13, V14, V15, V16};

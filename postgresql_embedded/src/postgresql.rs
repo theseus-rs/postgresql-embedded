@@ -3,7 +3,7 @@ use crate::command::pg_ctl::Mode::{Start, Stop};
 use crate::command::pg_ctl::PgCtlBuilder;
 use crate::command::pg_ctl::ShutdownMode::Fast;
 use crate::command::traits::{CommandBuilder, CommandExecutor};
-use crate::error::EmbeddedError::{
+use crate::error::Error::{
     ArchiveHashMismatch, ArchiveNotFound, DatabaseInitializationError, DatabaseStartError,
     DatabaseStopError,
 };
@@ -23,7 +23,7 @@ use std::str::FromStr;
 use tracing::{debug, info};
 
 use crate::command::psql::PsqlBuilder;
-use crate::EmbeddedError::{CreateDatabaseError, DatabaseExistsError, DropDatabaseError};
+use crate::Error::{CreateDatabaseError, DatabaseExistsError, DropDatabaseError};
 
 #[cfg(feature = "bundled")]
 lazy_static::lazy_static! {

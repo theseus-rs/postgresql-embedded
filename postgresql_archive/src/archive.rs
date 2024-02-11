@@ -1,6 +1,6 @@
 //! Manage PostgreSQL archive
 #![allow(dead_code)]
-use crate::error::ArchiveError::{AssetHashNotFound, AssetNotFound, ReleaseNotFound, Unexpected};
+use crate::error::Error::{AssetHashNotFound, AssetNotFound, ReleaseNotFound, Unexpected};
 use crate::error::Result;
 use crate::github::{Asset, Release};
 use crate::version::Version;
@@ -145,7 +145,7 @@ pub async fn get_version(version: &Version) -> Result<Version> {
 /// Gets the assets for a given [version](Version) of PostgreSQL and
 /// [target](https://doc.rust-lang.org/nightly/rustc/platform-support.html).
 /// If the [version](Version) or [target](https://doc.rust-lang.org/nightly/rustc/platform-support.html)
-/// is not found, then an [error](crate::error::ArchiveError) is returned.
+/// is not found, then an [error](crate::error::Error) is returned.
 ///
 /// Two assets are returned. The first [asset](Asset) is the archive, and the second [asset](Asset) is the archive hash.
 async fn get_asset<S: AsRef<str>>(version: &Version, target: S) -> Result<(Version, Asset, Asset)> {
@@ -177,7 +177,7 @@ async fn get_asset<S: AsRef<str>>(version: &Version, target: S) -> Result<(Versi
 
 /// Gets the archive for a given [version](Version) of PostgreSQL for the current target.
 /// If the [version](Version) is not found for this target, then an
-/// [error](crate::error::ArchiveError) is returned.
+/// [error](crate::error::Error) is returned.
 ///
 /// Returns the archive bytes and the archive hash.
 pub async fn get_archive(version: &Version) -> Result<(Version, Bytes, String)> {
@@ -187,7 +187,7 @@ pub async fn get_archive(version: &Version) -> Result<(Version, Bytes, String)> 
 /// Gets the archive for a given [version](Version) of PostgreSQL and
 /// [target](https://doc.rust-lang.org/nightly/rustc/platform-support.html).
 /// If the [version](Version) or [target](https://doc.rust-lang.org/nightly/rustc/platform-support.html)
-/// is not found, then an [error](crate::error::ArchiveError) is returned.
+/// is not found, then an [error](crate::error::Error) is returned.
 ///
 /// Returns the archive bytes and the archive hash.
 pub async fn get_archive_for_target<S: AsRef<str>>(

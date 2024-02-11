@@ -115,6 +115,6 @@ mod error;
 mod postgresql;
 mod settings;
 
-pub use error::{EmbeddedError, Result};
+pub use error::{Error, Result};
 pub use postgresql::{PostgreSQL, Status};
 pub use settings::Settings;
