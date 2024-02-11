@@ -8,7 +8,7 @@ pub type Result<T, E = Error> = core::result::Result<T, E>;
 pub enum Error {
     /// Error when PostgreSQL archive operations fail
     #[error(transparent)]
-    ArchiveError(anyhow::Error),
+    ArchiveError(postgresql_archive::Error),
     /// Error when the hash of the archive does not match the expected hash
     #[error("Archive hash [{archive_hash}] does not match expected hash [{hash}]")]
     ArchiveHashMismatch { archive_hash: String, hash: String },
@@ -47,7 +47,7 @@ pub enum Error {
 /// Convert PostgreSQL [archive errors](postgresql_archive::Error) to an [embedded errors](Error::ArchiveError)
 impl From<postgresql_archive::Error> for Error {
     fn from(error: postgresql_archive::Error) -> Self {
-        Error::ArchiveError(error.into())
+        Error::ArchiveError(error)
     }
 }
 
