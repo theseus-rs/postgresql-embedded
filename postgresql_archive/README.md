@@ -1,8 +1,9 @@
 # PostgreSQL Archive
 
 [![ci](https://github.com/theseus-rs/postgresql-embedded/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/theseus-rs/postgresql-embedded/actions/workflows/ci.yml)
-[![Latest version](https://img.shields.io/crates/v/postgresql_archive.svg)](https://crates.io/crates/postgresql_embedded)
+[![Latest version](https://img.shields.io/crates/v/postgresql_archive.svg)](https://crates.io/crates/postgresql_archive)
 [![Documentation](https://docs.rs/postgresql_archive/badge.svg)](https://docs.rs/postgresql_archive)
+[![Code Coverage](https://codecov.io/gh/theseus-rs/postgresql-embedded/branch/main/graph/badge.svg)](https://codecov.io/gh/theseus-rs/postgresql-embedded)
 [![License](https://img.shields.io/crates/l/postgresql_archive?)](https://github.com/theseus-rs/postgresql-embedded/tree/main/postgresql_archive#license)
 [![Semantic Versioning](https://img.shields.io/badge/%E2%9A%99%EF%B8%8F_SemVer-2.0.0-blue)](https://semver.org/spec/v2.0.0.html)
 
