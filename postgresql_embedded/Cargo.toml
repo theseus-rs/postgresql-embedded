@@ -2,7 +2,7 @@
 authors.workspace = true
 build = "build/build.rs"
 categories.workspace = true
-description = "Embed PostgreSQL in Rust applications"
+description = "Install and run a PostgreSQL database locally on Linux, MacOS or Windows. PostgreSQL can be bundled with your application, or downloaded on demand."
 edition.workspace = true
 keywords.workspace = true
 license.workspace = true
