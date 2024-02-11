@@ -80,8 +80,6 @@ impl From<tokio::time::error::Elapsed> for EmbeddedError {
 #[cfg(test)]
 mod test {
     use super::*;
-    use std::time::Duration;
-    use tokio::time::timeout;
 
     #[test]
     fn test_from_archive_error() {
@@ -114,8 +112,8 @@ mod test {
     #[cfg(feature = "tokio")]
     #[tokio::test]
     async fn test_from_elapsed_error() {
-        let result = timeout(Duration::from_nanos(1), async {
-            tokio::time::sleep(Duration::from_millis(1)).await;
+        let result = tokio::time::timeout(std::time::Duration::from_nanos(1), async {
+            tokio::time::sleep(std::time::Duration::from_millis(1)).await;
         })
         .await;
         assert!(result.is_err());
