@@ -70,3 +70,64 @@ impl From<anyhow::Error> for ArchiveError {
         ArchiveError::Unexpected(error.to_string())
     }
 }
+
+/// These are relatively low value tests; they are here to reduce the coverage gap and
+/// ensure that the error conversions are working as expected.
+#[cfg(test)]
+mod test {
+    use super::*;
+    use std::path::PathBuf;
+    use std::str::FromStr;
+
+    #[test]
+    fn test_from_regex_error() {
+        let regex_error = regex::Error::Syntax("test".to_string());
+        let error = ArchiveError::from(regex_error);
+        assert_eq!(error.to_string(), "test");
+    }
+
+    #[tokio::test]
+    async fn test_from_reqwest_error() {
+        let result = reqwest::get("https://a.com").await;
+        assert!(result.is_err());
+        if let Err(error) = result {
+            let error = ArchiveError::from(error);
+            assert!(error.to_string().contains("https://a.com"));
+        }
+    }
+
+    #[test]
+    fn test_from_io_error() {
+        let io_error = std::io::Error::new(std::io::ErrorKind::NotFound, "test");
+        let error = ArchiveError::from(io_error);
+        assert_eq!(error.to_string(), "test");
+    }
+
+    #[test]
+    fn test_from_parse_int_error() {
+        let result = u64::from_str("test");
+        assert!(result.is_err());
+        if let Err(error) = result {
+            let error = ArchiveError::from(error);
+            assert_eq!(error.to_string(), "invalid digit found in string");
+        }
+    }
+
+    #[test]
+    fn test_from_strip_prefix_error() {
+        let path = PathBuf::from("test");
+        let result = path.strip_prefix("foo");
+        assert!(result.is_err());
+        if let Err(error) = result {
+            let error = ArchiveError::from(error);
+            assert_eq!(error.to_string(), "prefix not found");
+        }
+    }
+
+    #[test]
+    fn test_from_anyhow_error() {
+        let anyhow_error = anyhow::Error::msg("test");
+        let error = ArchiveError::from(anyhow_error);
+        assert_eq!(error.to_string(), "test");
+    }
+}

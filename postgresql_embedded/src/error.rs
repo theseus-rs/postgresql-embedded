@@ -74,3 +74,54 @@ impl From<tokio::time::error::Elapsed> for EmbeddedError {
         EmbeddedError::TimeoutError(error.into())
     }
 }
+
+/// These are relatively low value tests; they are here to reduce the coverage gap and
+/// ensure that the error conversions are working as expected.
+#[cfg(test)]
+mod test {
+    use super::*;
+    use std::time::Duration;
+    use tokio::time::timeout;
+
+    #[test]
+    fn test_from_archive_error() {
+        let archive_error = ArchiveError::ReleaseNotFound("test".to_string());
+        let error = EmbeddedError::from(archive_error);
+        assert_eq!(error.to_string(), "release not found for version [test]");
+    }
+
+    #[test]
+    fn test_from_io_error() {
+        let io_error = std::io::Error::new(std::io::ErrorKind::Other, "test");
+        let error = EmbeddedError::from(io_error);
+        assert_eq!(error.to_string(), "test");
+    }
+
+    #[test]
+    fn test_from_utf8_error() {
+        let invalid_utf8: Vec<u8> = vec![0, 159, 146, 150];
+        let result = String::from_utf8(invalid_utf8);
+        assert!(result.is_err());
+        if let Err(error) = result {
+            let error = EmbeddedError::from(error);
+            assert_eq!(
+                error.to_string(),
+                "invalid utf-8 sequence of 1 bytes from index 1"
+            );
+        }
+    }
+
+    #[cfg(feature = "tokio")]
+    #[tokio::test]
+    async fn test_from_elapsed_error() {
+        let result = timeout(Duration::from_nanos(1), async {
+            tokio::time::sleep(Duration::from_millis(1)).await;
+        })
+        .await;
+        assert!(result.is_err());
+        if let Err(elapsed_error) = result {
+            let error = EmbeddedError::from(elapsed_error);
+            assert_eq!(error.to_string(), "deadline has elapsed");
+        }
+    }
+}
