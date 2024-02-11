@@ -47,7 +47,7 @@ pub enum Error {
 /// Convert PostgreSQL [archive errors](postgresql_archive::Error) to an [embedded errors](Error::ArchiveError)
 impl From<postgresql_archive::Error> for Error {
     fn from(error: postgresql_archive::Error) -> Self {
-        Error::ArchiveError(error.into())
+        Error::ArchiveError(error)
     }
 }
 
