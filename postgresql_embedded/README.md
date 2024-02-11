@@ -15,38 +15,39 @@ bundled with your application, or downloaded on demand.
 ### Asynchronous API
 
 ```rust
-use postgresql_embedded::PostgreSQL;
+use postgresql_embedded::{PostgreSQL, Result};
 
 #[tokio::main]
-async fn main() {
+async fn main() -> Result<()> {
     let mut postgresql = PostgreSQL::default();
-    postgresql.setup().await.unwrap();
-    postgresql.start().await.unwrap();
+    postgresql.setup().await?;
+    postgresql.start().await?;
 
     let database_name = "test";
-    postgresql.create_database(database_name).await.unwrap();
-    postgresql.database_exists(database_name).await.unwrap();
-    postgresql.drop_database(database_name).await.unwrap();
+    postgresql.create_database(database_name).await?;
+    postgresql.database_exists(database_name).await?;
+    postgresql.drop_database(database_name).await?;
 
-    postgresql.stop().await.unwrap();
+    postgresql.stop().await;
 }
 ```
 
 ### Synchronous API
 ```rust
+use postgresql_embedded::Result;
 use postgresql_embedded::blocking::PostgreSQL;
 
-fn main() {
+fn main() -> Result<()> {
     let mut postgresql = PostgreSQL::default();
-    postgresql.setup().unwrap();
-    postgresql.start().unwrap();
+    postgresql.setup()?;
+    postgresql.start()?;
 
     let database_name = "test";
-    postgresql.create_database(database_name).unwrap();
-    postgresql.database_exists(database_name).unwrap();
-    postgresql.drop_database(database_name).unwrap();
+    postgresql.create_database(database_name)?;
+    postgresql.database_exists(database_name)?;
+    postgresql.drop_database(database_name)?;
 
-    postgresql.stop().unwrap();
+    postgresql.stop()
 }
 ```
 

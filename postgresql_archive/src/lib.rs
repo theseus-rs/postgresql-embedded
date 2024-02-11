@@ -22,13 +22,13 @@
 //! ### Asynchronous API
 //!
 //! ```no_run
-//! use postgresql_archive::{extract, get_archive, LATEST};
+//! use postgresql_archive::{extract, get_archive, Result, LATEST};
 //!
 //! #[tokio::main]
-//! async fn main() {
-//!     let (archive_version, archive, hash) = get_archive(&LATEST).await.unwrap();
+//! async fn main() -> Result<()> {
+//!     let (archive_version, archive, hash) = get_archive(&LATEST).await?;
 //!     let out_dir = std::env::temp_dir();
-//!     let result = extract(&archive, &out_dir).await.unwrap();
+//!     extract(&archive, &out_dir).await
 //! }
 //! ```
 //!

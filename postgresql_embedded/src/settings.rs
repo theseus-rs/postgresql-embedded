@@ -7,7 +7,7 @@ use std::path::PathBuf;
 use std::time::Duration;
 
 /// Database settings
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq, PartialOrd)]
 pub struct Settings {
     /// PostgreSQL installation directory
     pub installation_dir: PathBuf,

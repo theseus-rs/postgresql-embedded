@@ -82,3 +82,17 @@ impl PostgreSQL {
             .block_on(async move { self.inner.drop_database(database_name).await })
     }
 }
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn test_postgresql() {
+        let version = Version::new(16, Some(2), Some(0));
+        let postgresql = PostgreSQL::new(version, Settings::default());
+        let initial_statuses = [Status::NotInstalled, Status::Installed, Status::Stopped];
+        assert!(initial_statuses.contains(&postgresql.status()));
+        assert_eq!(postgresql.version(), &version);
+    }
+}
