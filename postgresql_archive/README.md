@@ -15,25 +15,25 @@ A library for downloading and extracting PostgreSQL archives from
 ### Asynchronous API
 
 ```rust
-use postgresql_archive::{extract, get_archive, LATEST};
+use postgresql_archive::{extract, get_archive, Result, LATEST};
 
 #[tokio::main]
-async fn main() {
-    let (archive_version, archive, hash) = get_archive(&LATEST).await.unwrap();
+async fn main() -> Result<()> {
+    let (archive_version, archive, hash) = get_archive(&LATEST).await?;
     let out_dir = std::env::temp_dir();
-    let result = extract(&archive, &out_dir).await.unwrap();
+    extract(&archive, &out_dir).await;
 }
 ```
 
 ### Synchronous API
 ```rust
-use postgresql_archive::LATEST;
+use postgresql_archive::{Result, LATEST};
 use postgresql_archive::blocking::{extract, get_archive};
 
-fn main() {
-    let (archive_version, archive, hash) = get_archive(&LATEST).unwrap();
+fn main() -> Result<()> {
+    let (archive_version, archive, hash) = get_archive(&LATEST);
     let out_dir = std::env::temp_dir();
-    let result = extract(&archive, &out_dir).unwrap();
+    extract(&archive, &out_dir)
 }
 ```
 
