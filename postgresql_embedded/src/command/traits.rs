@@ -103,7 +103,7 @@ impl CommandExecutor for std::process::Command {
         if output.status.success() {
             Ok((stdout, stderr))
         } else {
-            Err(crate::EmbeddedError::CommandError { stdout, stderr })
+            Err(crate::Error::CommandError { stdout, stderr })
         }
     }
 }
@@ -137,7 +137,7 @@ impl CommandExecutor for tokio::process::Command {
         if output.status.success() {
             Ok((stdout, stderr))
         } else {
-            Err(crate::EmbeddedError::CommandError { stdout, stderr })
+            Err(crate::Error::CommandError { stdout, stderr })
         }
     }
 }

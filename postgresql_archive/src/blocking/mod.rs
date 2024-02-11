@@ -9,7 +9,7 @@ lazy_static! {
 
 /// Gets the version of PostgreSQL for the specified [version](Version).  If the version minor or release is not
 /// specified, then the latest version is returned. If a release for the [version](Version) is not found, then a
-/// [ReleaseNotFound](crate::ArchiveError::ReleaseNotFound) error is returned.
+/// [ReleaseNotFound](crate::Error::ReleaseNotFound) error is returned.
 pub fn get_version(version: &Version) -> crate::Result<Version> {
     RUNTIME
         .handle()
@@ -18,7 +18,7 @@ pub fn get_version(version: &Version) -> crate::Result<Version> {
 
 /// Gets the archive for a given [version](Version) of PostgreSQL for the current target.
 /// If the [version](Version) is not found for this target, then an
-/// [error](crate::ArchiveError) is returned.
+/// [error](crate::Error) is returned.
 ///
 /// Returns the archive bytes and the archive hash.
 pub fn get_archive(version: &Version) -> crate::Result<(Version, Bytes, String)> {
@@ -30,7 +30,7 @@ pub fn get_archive(version: &Version) -> crate::Result<(Version, Bytes, String)>
 /// Gets the archive for a given [version](Version) of PostgreSQL and
 /// [target](https://doc.rust-lang.org/nightly/rustc/platform-support.html).
 /// If the [version](Version) or [target](https://doc.rust-lang.org/nightly/rustc/platform-support.html)
-/// is not found, then an [error](crate::error::ArchiveError) is returned.
+/// is not found, then an [error](crate::error::Error) is returned.
 ///
 /// Returns the archive bytes and the archive hash.
 pub fn get_archive_for_target<S: AsRef<str>>(

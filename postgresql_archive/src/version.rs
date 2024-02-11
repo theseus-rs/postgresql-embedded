@@ -1,8 +1,8 @@
 //! PostgreSQL version
 #![allow(dead_code)]
 
-use crate::error::ArchiveError::InvalidVersion;
-use crate::error::{ArchiveError, Result};
+use crate::error::Error::InvalidVersion;
+use crate::error::{Error, Result};
 use serde::{Deserialize, Serialize};
 use std::fmt;
 use std::str::FromStr;
@@ -98,7 +98,7 @@ impl fmt::Display for Version {
 }
 
 impl FromStr for Version {
-    type Err = ArchiveError;
+    type Err = Error;
 
     fn from_str(version: &str) -> Result<Self, Self::Err> {
         let parts: Vec<&str> = version.split('.').collect();

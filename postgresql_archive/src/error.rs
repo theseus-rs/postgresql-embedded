@@ -1,11 +1,9 @@
-use thiserror::Error;
-
 /// PostgreSQL archive result type
-pub type Result<T, E = ArchiveError> = core::result::Result<T, E>;
+pub type Result<T, E = Error> = core::result::Result<T, E>;
 
 /// PostgreSQL archive errors
-#[derive(Debug, Error)]
-pub enum ArchiveError {
+#[derive(Debug, thiserror::Error)]
+pub enum Error {
     /// Asset not found
     #[error("asset [{0}] not found")]
     AssetNotFound(String),
@@ -29,45 +27,45 @@ pub enum ArchiveError {
     Unexpected(String),
 }
 
-/// Converts a [`regex::Error`] into an [`ParseError`](ArchiveError::ParseError)
-impl From<regex::Error> for ArchiveError {
+/// Converts a [`regex::Error`] into an [`ParseError`](Error::ParseError)
+impl From<regex::Error> for Error {
     fn from(error: regex::Error) -> Self {
-        ArchiveError::ParseError(error.into())
+        Error::ParseError(error.into())
     }
 }
 
-/// Converts a [`reqwest::Error`] into an [`IoError`](ArchiveError::IoError)
-impl From<reqwest::Error> for ArchiveError {
+/// Converts a [`reqwest::Error`] into an [`IoError`](Error::IoError)
+impl From<reqwest::Error> for Error {
     fn from(error: reqwest::Error) -> Self {
-        ArchiveError::IoError(error.into())
+        Error::IoError(error.into())
     }
 }
 
-/// Converts a [`std::io::Error`] into an [`IoError`](ArchiveError::IoError)
-impl From<std::io::Error> for ArchiveError {
+/// Converts a [`std::io::Error`] into an [`IoError`](Error::IoError)
+impl From<std::io::Error> for Error {
     fn from(error: std::io::Error) -> Self {
-        ArchiveError::IoError(error.into())
+        Error::IoError(error.into())
     }
 }
 
-/// Converts a [`std::num::ParseIntError`] into an [`ParseError`](ArchiveError::ParseError)
-impl From<std::num::ParseIntError> for ArchiveError {
+/// Converts a [`std::num::ParseIntError`] into an [`ParseError`](Error::ParseError)
+impl From<std::num::ParseIntError> for Error {
     fn from(error: std::num::ParseIntError) -> Self {
-        ArchiveError::ParseError(error.into())
+        Error::ParseError(error.into())
     }
 }
 
-/// Converts a [`std::path::StripPrefixError`] into an [`ParseError`](ArchiveError::ParseError)
-impl From<std::path::StripPrefixError> for ArchiveError {
+/// Converts a [`std::path::StripPrefixError`] into an [`ParseError`](Error::ParseError)
+impl From<std::path::StripPrefixError> for Error {
     fn from(error: std::path::StripPrefixError) -> Self {
-        ArchiveError::ParseError(error.into())
+        Error::ParseError(error.into())
     }
 }
 
-/// Converts a [`anyhow::Error`] into an [`Unexpected`](ArchiveError::Unexpected)
-impl From<anyhow::Error> for ArchiveError {
+/// Converts a [`anyhow::Error`] into an [`Unexpected`](Error::Unexpected)
+impl From<anyhow::Error> for Error {
     fn from(error: anyhow::Error) -> Self {
-        ArchiveError::Unexpected(error.to_string())
+        Error::Unexpected(error.to_string())
     }
 }
 
@@ -82,7 +80,7 @@ mod test {
     #[test]
     fn test_from_regex_error() {
         let regex_error = regex::Error::Syntax("test".to_string());
-        let error = ArchiveError::from(regex_error);
+        let error = Error::from(regex_error);
         assert_eq!(error.to_string(), "test");
     }
 
@@ -91,7 +89,7 @@ mod test {
         let result = reqwest::get("https://a.com").await;
         assert!(result.is_err());
         if let Err(error) = result {
-            let error = ArchiveError::from(error);
+            let error = Error::from(error);
             assert!(error.to_string().contains("https://a.com"));
         }
     }
@@ -99,7 +97,7 @@ mod test {
     #[test]
     fn test_from_io_error() {
         let io_error = std::io::Error::new(std::io::ErrorKind::NotFound, "test");
-        let error = ArchiveError::from(io_error);
+        let error = Error::from(io_error);
         assert_eq!(error.to_string(), "test");
     }
 
@@ -108,7 +106,7 @@ mod test {
         let result = u64::from_str("test");
         assert!(result.is_err());
         if let Err(error) = result {
-            let error = ArchiveError::from(error);
+            let error = Error::from(error);
             assert_eq!(error.to_string(), "invalid digit found in string");
         }
     }
@@ -119,7 +117,7 @@ mod test {
         let result = path.strip_prefix("foo");
         assert!(result.is_err());
         if let Err(error) = result {
-            let error = ArchiveError::from(error);
+            let error = Error::from(error);
             assert_eq!(error.to_string(), "prefix not found");
         }
     }
@@ -127,7 +125,7 @@ mod test {
     #[test]
     fn test_from_anyhow_error() {
         let anyhow_error = anyhow::Error::msg("test");
-        let error = ArchiveError::from(anyhow_error);
+        let error = Error::from(anyhow_error);
         assert_eq!(error.to_string(), "test");
     }
 }
