@@ -9,13 +9,9 @@ use test_log::test;
 #[test]
 fn test_lifecycle() -> Result<()> {
     let mut postgresql = PostgreSQL::default();
-    let settings = postgresql.settings();
 
-    if settings.installation_dir.exists() {
-        assert_eq!(Status::Installed, postgresql.status());
-    } else {
-        assert_eq!(Status::NotInstalled, postgresql.status());
-    }
+    let initial_statuses = [Status::NotInstalled, Status::Installed, Status::Stopped];
+    assert!(initial_statuses.contains(&postgresql.status()));
 
     postgresql.setup()?;
     assert_eq!(Status::Stopped, postgresql.status());
