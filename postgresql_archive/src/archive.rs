@@ -16,7 +16,7 @@ use std::io::{copy, BufReader, Cursor};
 use std::path::Path;
 use std::str::FromStr;
 use tar::Archive;
-use tracing::{debug, info, warn};
+use tracing::{debug, warn};
 
 const GITHUB_API_VERSION_HEADER: &str = "X-GitHub-Api-Version";
 const GITHUB_API_VERSION: &str = "2022-11-28";
@@ -24,7 +24,7 @@ const GITHUB_API_VERSION: &str = "2022-11-28";
 lazy_static! {
     static ref GITHUB_TOKEN: Option<String> = match std::env::var("GITHUB_TOKEN") {
         Ok(token) => {
-            info!("GITHUB_TOKEN environment variable found");
+            debug!("GITHUB_TOKEN environment variable found");
             Some(token)
         }
         Err(_) => None,
@@ -79,7 +79,7 @@ async fn get_release(version: &Version) -> Result<Release> {
         let response = request.send().await?.error_for_status()?;
         let release = response.json::<Release>().await?;
 
-        info!("Release found for version {version}");
+        debug!("Release found for version {version}");
         return Ok(release);
     }
 
@@ -127,7 +127,7 @@ async fn get_release(version: &Version) -> Result<Release> {
     match result {
         Some(release) => {
             let release_version = Version::from_str(&release.tag_name)?;
-            info!("Release {release_version} found for version {version}");
+            debug!("Release {release_version} found for version {version}");
             Ok(release)
         }
         None => Err(ReleaseNotFound(version.to_string())),
@@ -211,7 +211,7 @@ pub async fn get_archive_for_target<S: AsRef<str>>(
         Some(hash) => hash.as_str().to_string(),
         None => return Err(AssetHashNotFound(asset.name)),
     };
-    info!(
+    debug!(
         "Archive hash {} downloaded: {}",
         asset_hash.browser_download_url,
         human_bytes(text.len() as f64)
@@ -223,7 +223,7 @@ pub async fn get_archive_for_target<S: AsRef<str>>(
         .add_github_headers()?;
     let response = request.send().await?.error_for_status()?;
     let archive: Bytes = response.bytes().await?;
-    info!(
+    debug!(
         "Archive {} downloaded: {}",
         asset.browser_download_url,
         human_bytes(archive.len() as f64)
@@ -286,7 +286,7 @@ pub async fn extract(bytes: &Bytes, out_dir: &Path) -> Result<()> {
         }
     }
 
-    info!(
+    debug!(
         "Extracting {} files totalling {}",
         files.to_formatted_string(&Locale::en),
         human_bytes(extracted_bytes as f64)

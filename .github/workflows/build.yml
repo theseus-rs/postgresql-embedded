@@ -55,7 +55,7 @@ jobs:
         CARGO_TERM_COLOR: always
         GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
         LLVM_PROFILE_FILE: postgresql-%p-%m.profraw
-        RUST_LOG: "info"
+        RUST_LOG: "info,postgresql_archive=debug,postgresql_embedded=debug"
         RUST_LOG_SPAN_EVENTS: full
         RUSTFLAGS: -Cinstrument-coverage
         RUSTDOCFLAGS: -Cinstrument-coverage

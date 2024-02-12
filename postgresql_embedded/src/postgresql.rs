@@ -20,7 +20,7 @@ use std::net::TcpListener;
 use std::ops::Deref;
 #[cfg(feature = "bundled")]
 use std::str::FromStr;
-use tracing::{debug, info};
+use tracing::debug;
 
 use crate::command::psql::PsqlBuilder;
 use crate::Error::{CreateDatabaseError, DatabaseExistsError, DropDatabaseError};
@@ -30,7 +30,7 @@ lazy_static::lazy_static! {
     pub(crate) static ref ARCHIVE_VERSION: Version = {
         let version_string = include_str!(concat!(std::env!("OUT_DIR"), "/postgresql.version"));
         let version = Version::from_str(version_string).unwrap();
-        info!("Bundled installation archive version {version}");
+        debug!("Bundled installation archive version {version}");
         version
     };
 }
@@ -231,7 +231,7 @@ impl PostgreSQL {
             }
         }
 
-        info!(
+        debug!(
             "Installed PostgreSQL version {} to {}",
             self.version,
             self.settings.installation_dir.to_string_lossy()
@@ -271,7 +271,7 @@ impl PostgreSQL {
         match self.execute_command(initdb).await {
             Ok((_stdout, _stderr)) => {
                 self.status = Status::Stopped;
-                info!(
+                debug!(
                     "Initialized database {}",
                     self.settings.data_dir.to_string_lossy()
                 );
@@ -311,7 +311,7 @@ impl PostgreSQL {
         match self.execute_command(pg_ctl).await {
             Ok((_stdout, _stderr)) => {
                 self.status = Status::Started;
-                info!(
+                debug!(
                     "Started database {} on port {}",
                     self.settings.data_dir.to_string_lossy(),
                     self.settings.port
@@ -342,7 +342,7 @@ impl PostgreSQL {
         match self.execute_command(pg_ctl).await {
             Ok((_stdout, _stderr)) => {
                 self.status = Status::Stopped;
-                info!(
+                debug!(
                     "Stopped database {}",
                     self.settings.data_dir.to_string_lossy()
                 );
@@ -375,7 +375,7 @@ impl PostgreSQL {
 
         match self.execute_command(psql).await {
             Ok((_stdout, _stderr)) => {
-                info!(
+                debug!(
                     "Created database {} for {}:{}",
                     database_name.as_ref(),
                     self.settings.host,
@@ -440,7 +440,7 @@ impl PostgreSQL {
 
         match self.execute_command(psql).await {
             Ok((_stdout, _stderr)) => {
-                info!(
+                debug!(
                     "Dropped database {} for {}:{}",
                     database_name.as_ref(),
                     self.settings.host,
