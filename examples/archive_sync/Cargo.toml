@@ -1,8 +1,9 @@
 [package]
-edition = "2021"
+edition.workspace = true
 name = "archive_sync"
 publish = false
-version = "0.1.0"
+license.workspace = true
+version.workspace = true
 
 [dependencies]
 postgresql_archive = { path = "../../postgresql_archive", features = ["blocking"] }
