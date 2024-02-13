@@ -4,6 +4,7 @@ use crate::error::Error::{AssetHashNotFound, AssetNotFound, ReleaseNotFound, Une
 use crate::error::Result;
 use crate::github::{Asset, Release};
 use crate::version::Version;
+use crate::Error::ArchiveHashMismatch;
 use bytes::Bytes;
 use flate2::bufread::GzDecoder;
 use human_bytes::human_bytes;
@@ -11,6 +12,7 @@ use num_format::{Locale, ToFormattedString};
 use regex::Regex;
 use reqwest::header::HeaderMap;
 use reqwest::{header, RequestBuilder};
+use sha2::{Digest, Sha256};
 use std::fs::{create_dir_all, File};
 use std::io::{copy, BufReader, Cursor};
 use std::path::Path;
@@ -179,8 +181,8 @@ async fn get_asset<S: AsRef<str>>(version: &Version, target: S) -> Result<(Versi
 /// If the [version](Version) is not found for this target, then an
 /// [error](crate::error::Error) is returned.
 ///
-/// Returns the archive bytes and the archive hash.
-pub async fn get_archive(version: &Version) -> Result<(Version, Bytes, String)> {
+/// Returns the archive version and bytes.
+pub async fn get_archive(version: &Version) -> Result<(Version, Bytes)> {
     get_archive_for_target(version, target_triple::TARGET).await
 }
 
@@ -189,11 +191,11 @@ pub async fn get_archive(version: &Version) -> Result<(Version, Bytes, String)> 
 /// If the [version](Version) or [target](https://doc.rust-lang.org/nightly/rustc/platform-support.html)
 /// is not found, then an [error](crate::error::Error) is returned.
 ///
-/// Returns the archive bytes and the archive hash.
+/// Returns the archive version and bytes.
 pub async fn get_archive_for_target<S: AsRef<str>>(
     version: &Version,
     target: S,
-) -> Result<(Version, Bytes, String)> {
+) -> Result<(Version, Bytes)> {
     let (asset_version, asset, asset_hash) = get_asset(version, target).await?;
 
     debug!(
@@ -229,7 +231,15 @@ pub async fn get_archive_for_target<S: AsRef<str>>(
         human_bytes(archive.len() as f64)
     );
 
-    Ok((asset_version, archive, hash))
+    let mut hasher = Sha256::new();
+    hasher.update(&archive);
+    let archive_hash = hex::encode(hasher.finalize());
+
+    if archive_hash != hash {
+        return Err(ArchiveHashMismatch { archive_hash, hash });
+    }
+
+    Ok((asset_version, archive))
 }
 
 /// Extracts the compressed tar [bytes](Bytes) to the [out_dir](Path).

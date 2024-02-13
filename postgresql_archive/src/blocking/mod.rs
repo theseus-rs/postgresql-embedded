@@ -20,8 +20,8 @@ pub fn get_version(version: &Version) -> crate::Result<Version> {
 /// If the [version](Version) is not found for this target, then an
 /// [error](crate::Error) is returned.
 ///
-/// Returns the archive bytes and the archive hash.
-pub fn get_archive(version: &Version) -> crate::Result<(Version, Bytes, String)> {
+/// Returns the archive version and bytes.
+pub fn get_archive(version: &Version) -> crate::Result<(Version, Bytes)> {
     RUNTIME
         .handle()
         .block_on(async move { crate::get_archive(version).await })
@@ -32,11 +32,11 @@ pub fn get_archive(version: &Version) -> crate::Result<(Version, Bytes, String)>
 /// If the [version](Version) or [target](https://doc.rust-lang.org/nightly/rustc/platform-support.html)
 /// is not found, then an [error](crate::error::Error) is returned.
 ///
-/// Returns the archive bytes and the archive hash.
+/// Returns the archive version and bytes.
 pub fn get_archive_for_target<S: AsRef<str>>(
     version: &Version,
     target: S,
-) -> crate::Result<(Version, Bytes, String)> {
+) -> crate::Result<(Version, Bytes)> {
     RUNTIME
         .handle()
         .block_on(async move { crate::get_archive_for_target(version, target).await })
