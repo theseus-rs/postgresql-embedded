@@ -1,0 +1,8 @@
+[package]
+edition = "2021"
+name = "embedded_sync"
+publish = false
+version = "0.1.0"
+
+[dependencies]
+postgresql_embedded = { path = "../../postgresql_embedded", features = ["blocking"] }

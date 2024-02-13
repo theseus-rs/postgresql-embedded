@@ -28,7 +28,7 @@ async fn main() -> Result<()> {
     postgresql.database_exists(database_name).await?;
     postgresql.drop_database(database_name).await?;
 
-    postgresql.stop().await;
+    postgresql.stop().await
 }
 ```
 

@@ -1,0 +1,9 @@
+[package]
+edition = "2021"
+name = "archive_sync"
+publish = false
+version = "0.1.0"
+
+[dependencies]
+postgresql_archive = { path = "../../postgresql_archive", features = ["blocking"] }
+tempfile = { workspace = true }
