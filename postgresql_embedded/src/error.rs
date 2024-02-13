@@ -9,9 +9,6 @@ pub enum Error {
     /// Error when PostgreSQL archive operations fail
     #[error(transparent)]
     ArchiveError(postgresql_archive::Error),
-    /// Error when the archive is not found for a specific version
-    #[error("Archive not found for version [{0}]")]
-    ArchiveNotFound(String),
     /// Error when a command fails
     #[error("Command error: stdout={stdout}; stderr={stderr}")]
     CommandError { stdout: String, stderr: String },
@@ -108,7 +105,7 @@ mod test {
     #[tokio::test]
     async fn test_from_elapsed_error() {
         let result = tokio::time::timeout(std::time::Duration::from_nanos(1), async {
-            tokio::time::sleep(std::time::Duration::from_millis(1)).await;
+            tokio::time::sleep(std::time::Duration::from_secs(1)).await;
         })
         .await;
         assert!(result.is_err());
