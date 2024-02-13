@@ -3,9 +3,7 @@ use crate::command::pg_ctl::Mode::{Start, Stop};
 use crate::command::pg_ctl::PgCtlBuilder;
 use crate::command::pg_ctl::ShutdownMode::Fast;
 use crate::command::traits::{CommandBuilder, CommandExecutor};
-use crate::error::Error::{
-    ArchiveNotFound, DatabaseInitializationError, DatabaseStartError, DatabaseStopError,
-};
+use crate::error::Error::{DatabaseInitializationError, DatabaseStartError, DatabaseStopError};
 use crate::error::Result;
 use crate::settings::Settings;
 use bytes::Bytes;
@@ -94,7 +92,7 @@ impl PostgreSQL {
         postgresql
     }
 
-    /// Get the default version used by if not otherwise specified
+    /// Get the default version used if not otherwise specified
     pub fn default_version() -> Version {
         if cfg!(feature = "bundled") {
             *ARCHIVE_VERSION
@@ -168,18 +166,7 @@ impl PostgreSQL {
     /// already exists, the archive will not be extracted. If the archive is not found, an error will be
     /// returned.
     async fn install(&mut self) -> Result<()> {
-        let mut archive_bytes: Option<Bytes> = None;
-
         debug!("Starting installation process for version {}", self.version);
-
-        #[cfg(feature = "bundled")]
-        // If the requested version is the same as the version of the bundled archive, use the bundled
-        // archive. This avoids downloading the archive in environments where internet access is
-        // restricted or undesirable.
-        if ARCHIVE_VERSION.deref() == &self.version {
-            debug!("Using bundled installation archive");
-            archive_bytes = Some(Bytes::copy_from_slice(ARCHIVE));
-        }
 
         // If the minor and release version are not set, determine the latest version and update the
         // version and installation directory accordingly. This is an optimization to avoid downloading
@@ -191,35 +178,33 @@ impl PostgreSQL {
                 .settings
                 .installation_dir
                 .join(self.version.to_string());
-
-            if self.settings.installation_dir.exists() {
-                debug!("Installation directory already exists");
-                self.update_status();
-                return Ok(());
-            }
         }
 
-        if archive_bytes.is_none() {
-            let (version, bytes) = get_archive(&self.version).await?;
-            self.version = version;
-            archive_bytes = Some(bytes);
+        if self.settings.installation_dir.exists() {
+            debug!("Installation directory already exists");
+            self.update_status();
+            return Ok(());
         }
 
-        if !self.settings.installation_dir.exists() {
-            self.status = Status::Installing;
-            create_dir_all(&self.settings.installation_dir)?;
+        #[cfg(feature = "bundled")]
+        // If the requested version is the same as the version of the bundled archive, use the bundled
+        // archive. This avoids downloading the archive in environments where internet access is
+        // restricted or undesirable.
+        let (version, bytes) = if ARCHIVE_VERSION.deref() == &self.version {
+            debug!("Using bundled installation archive");
+            (self.version, Bytes::copy_from_slice(ARCHIVE))
+        } else {
+            get_archive(&self.version).await?
+        };
 
-            match archive_bytes {
-                Some(bytes) => {
-                    extract(&bytes, &self.settings.installation_dir).await?;
-                    self.status = Status::Installed;
-                }
-                None => {
-                    self.update_status();
-                    return Err(ArchiveNotFound(self.version.to_string()));
-                }
-            }
-        }
+        #[cfg(not(feature = "bundled"))]
+        let (version, bytes) = { get_archive(&self.version).await? };
+
+        self.version = version;
+        self.status = Status::Installing;
+        create_dir_all(&self.settings.installation_dir)?;
+        extract(&bytes, &self.settings.installation_dir).await?;
+        self.status = Status::Installed;
 
         debug!(
             "Installed PostgreSQL version {} to {}",

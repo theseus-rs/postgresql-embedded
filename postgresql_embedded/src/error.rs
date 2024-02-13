@@ -9,9 +9,6 @@ pub enum Error {
     /// Error when PostgreSQL archive operations fail
     #[error(transparent)]
     ArchiveError(postgresql_archive::Error),
-    /// Error when the archive is not found for a specific version
-    #[error("Archive not found for version [{0}]")]
-    ArchiveNotFound(String),
     /// Error when a command fails
     #[error("Command error: stdout={stdout}; stderr={stderr}")]
     CommandError { stdout: String, stderr: String },
