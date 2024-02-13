@@ -1,0 +1,11 @@
+[package]
+edition.workspace = true
+name = "embedded_async"
+publish = false
+license.workspace = true
+version.workspace = true
+
+[dependencies]
+postgresql_embedded = { path = "../../postgresql_embedded" }
+tokio = { workspace = true }
+

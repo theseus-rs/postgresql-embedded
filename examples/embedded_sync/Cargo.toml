@@ -1,0 +1,9 @@
+[package]
+edition.workspace = true
+name = "embedded_sync"
+publish = false
+license.workspace = true
+version.workspace = true
+
+[dependencies]
+postgresql_embedded = { path = "../../postgresql_embedded", features = ["blocking"] }

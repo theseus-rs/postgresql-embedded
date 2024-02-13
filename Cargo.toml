@@ -1,6 +1,6 @@
 [workspace]
 default-members = ["postgresql_archive", "postgresql_embedded"]
-members = ["postgresql_archive", "postgresql_embedded"]
+members = ["examples/*", "postgresql_archive", "postgresql_embedded"]
 resolver = "2"
 
 [workspace.package]

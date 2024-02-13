@@ -1,0 +1,11 @@
+[package]
+edition.workspace = true
+name = "archive_async"
+publish = false
+license.workspace = true
+version.workspace = true
+
+[dependencies]
+postgresql_archive = { path = "../../postgresql_archive" }
+tempfile = { workspace = true }
+tokio = { workspace = true }

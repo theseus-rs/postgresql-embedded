@@ -96,6 +96,7 @@ impl PostgreSQL {
         postgresql
     }
 
+    /// Get the default version used by if not otherwise specified
     pub fn default_version() -> Version {
         if cfg!(feature = "bundled") {
             *ARCHIVE_VERSION
