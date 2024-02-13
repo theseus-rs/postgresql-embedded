@@ -34,7 +34,7 @@ checksum = "080e9890a082662b09c1ad45f567faeeb47f22b5fb23895fbe1e651e718e25ca"
 
 [[package]]
 name = "archive_async"
-version = "0.3.2"
+version = "0.4.0"
 dependencies = [
  "postgresql_archive",
  "tempfile",
@@ -43,7 +43,7 @@ dependencies = [
 
 [[package]]
 name = "archive_sync"
-version = "0.3.2"
+version = "0.4.0"
 dependencies = [
  "postgresql_archive",
  "tempfile",
@@ -186,7 +186,7 @@ dependencies = [
 
 [[package]]
 name = "embedded_async"
-version = "0.3.2"
+version = "0.4.0"
 dependencies = [
  "postgresql_embedded",
  "tokio",
@@ -194,7 +194,7 @@ dependencies = [
 
 [[package]]
 name = "embedded_sync"
-version = "0.3.2"
+version = "0.4.0"
 dependencies = [
  "postgresql_embedded",
 ]
@@ -651,7 +651,7 @@ checksum = "8b870d8c151b6f2fb93e84a13146138f05d02ed11c7e7c54f8826aaaf7c9f184"
 
 [[package]]
 name = "postgresql_archive"
-version = "0.3.2"
+version = "0.4.0"
 dependencies = [
  "anyhow",
  "bytes",
@@ -676,7 +676,7 @@ dependencies = [
 
 [[package]]
 name = "postgresql_embedded"
-version = "0.3.2"
+version = "0.4.0"
 dependencies = [
  "anyhow",
  "bytes",
