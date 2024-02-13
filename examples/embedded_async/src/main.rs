@@ -13,3 +13,13 @@ async fn main() -> Result<()> {
 
     postgresql.stop().await
 }
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn test_main() -> Result<()> {
+        main()
+    }
+}

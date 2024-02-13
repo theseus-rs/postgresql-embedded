@@ -12,3 +12,13 @@ fn main() -> Result<()> {
     );
     Ok(())
 }
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn test_main() -> Result<()> {
+        main()
+    }
+}
