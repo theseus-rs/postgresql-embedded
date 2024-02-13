@@ -228,19 +228,13 @@ impl PostgreSQL {
             self.settings.data_dir.to_string_lossy()
         );
 
-        let encoding = if cfg!(target_os = "windows") {
-            "SQL_ASCII"
-        } else {
-            "UTF8"
-        };
-
         let initdb = InitDbBuilder::new()
             .program_dir(self.settings.binary_dir())
             .pgdata(&self.settings.data_dir)
             .auth("password")
             .pwfile(&self.settings.password_file)
             .username(&self.settings.username)
-            .encoding(encoding);
+            .encoding("UTF8");
 
         self.status = Status::Initializing;
         match self.execute_command(initdb).await {
