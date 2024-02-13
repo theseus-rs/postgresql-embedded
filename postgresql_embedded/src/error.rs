@@ -108,7 +108,7 @@ mod test {
     #[tokio::test]
     async fn test_from_elapsed_error() {
         let result = tokio::time::timeout(std::time::Duration::from_nanos(1), async {
-            tokio::time::sleep(std::time::Duration::from_millis(1)).await;
+            tokio::time::sleep(std::time::Duration::from_secs(1)).await;
         })
         .await;
         assert!(result.is_err());
