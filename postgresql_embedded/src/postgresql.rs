@@ -4,15 +4,13 @@ use crate::command::pg_ctl::PgCtlBuilder;
 use crate::command::pg_ctl::ShutdownMode::Fast;
 use crate::command::traits::{CommandBuilder, CommandExecutor};
 use crate::error::Error::{
-    ArchiveHashMismatch, ArchiveNotFound, DatabaseInitializationError, DatabaseStartError,
-    DatabaseStopError,
+    ArchiveNotFound, DatabaseInitializationError, DatabaseStartError, DatabaseStopError,
 };
 use crate::error::Result;
 use crate::settings::Settings;
 use bytes::Bytes;
 use postgresql_archive::{extract, get_archive};
 use postgresql_archive::{get_version, Version};
-use sha2::{Digest, Sha256};
 use std::fs::{create_dir_all, remove_dir_all, remove_file};
 use std::io::prelude::*;
 use std::net::TcpListener;
@@ -202,16 +200,7 @@ impl PostgreSQL {
         }
 
         if archive_bytes.is_none() {
-            let (version, bytes, hash) = get_archive(&self.version).await?;
-
-            let mut hasher = Sha256::new();
-            hasher.update(&bytes);
-            let archive_hash = hex::encode(hasher.finalize());
-
-            if archive_hash != hash {
-                return Err(ArchiveHashMismatch { archive_hash, hash });
-            }
-
+            let (version, bytes) = get_archive(&self.version).await?;
             self.version = version;
             archive_bytes = Some(bytes);
         }

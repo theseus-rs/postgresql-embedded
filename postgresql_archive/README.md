@@ -19,7 +19,7 @@ use postgresql_archive::{extract, get_archive, Result, LATEST};
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    let (archive_version, archive, hash) = get_archive(&LATEST).await?;
+    let (archive_version, archive) = get_archive(&LATEST).await?;
     let out_dir = std::env::temp_dir();
     extract(&archive, &out_dir).await
 }
@@ -31,7 +31,7 @@ use postgresql_archive::{Result, LATEST};
 use postgresql_archive::blocking::{extract, get_archive};
 
 fn main() -> Result<()> {
-    let (archive_version, archive, hash) = get_archive(&LATEST)?;
+    let (archive_version, archive) = get_archive(&LATEST)?;
     let out_dir = std::env::temp_dir();
     extract(&archive, &out_dir)
 }

@@ -10,6 +10,9 @@ pub enum Error {
     /// Asset hash not found
     #[error("asset hash not found for asset [{0}]")]
     AssetHashNotFound(String),
+    /// Error when the hash of the archive does not match the expected hash
+    #[error("Archive hash [{archive_hash}] does not match expected hash [{hash}]")]
+    ArchiveHashMismatch { archive_hash: String, hash: String },
     /// Invalid version
     #[error("version [{0}] is invalid")]
     InvalidVersion(String),
