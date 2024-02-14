@@ -83,3 +83,11 @@ jobs:
       with:
         files: lcov.info
         fail_ci_if_error: true
+
+    - name: Install benchmarking tools
+      if: ${{ startsWith(matrix.os, 'ubuntu-') }}
+      uses: bencherdev/bencher@main
+
+    - name: Run benchmarks
+      if: ${{ startsWith(matrix.os, 'ubuntu-') }}
+      run: cargo bench --features blocking
