@@ -91,6 +91,7 @@ jobs:
     - name: Run benchmarks
       if: ${{ startsWith(matrix.os, 'ubuntu-') }}
       env:
+        BENCHER_API_TOKEN: ${{ secrets.BENCHER_API_TOKEN }}
         BENCHER_PROJECT: theseus-rs-postgresql-embedded
         BENCHER_ADAPTER: rust_criterion
       run: |
