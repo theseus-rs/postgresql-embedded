@@ -47,5 +47,6 @@ features = ["blocking", "tokio"]
 targets = ["x86_64-unknown-linux-gnu"]
 
 [[bench]]
-name = "embedded"
 harness = false
+name = "embedded"
+

@@ -44,5 +44,5 @@ features = ["blocking"]
 targets = ["x86_64-unknown-linux-gnu"]
 
 [[bench]]
-name = "archive"
 harness = false
+name = "archive"
