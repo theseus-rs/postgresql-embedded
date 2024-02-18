@@ -33,7 +33,8 @@ fn extract_archive(archive: &Bytes) -> Result<()> {
 criterion_group!(
     name = benches;
     config = Criterion::default()
-        .measurement_time(Duration::from_secs(30));
+        .measurement_time(Duration::from_secs(30))
+        .sample_size(10);
     targets = benchmarks
 );
 criterion_main!(benches);
