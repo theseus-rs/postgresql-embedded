@@ -49,4 +49,3 @@ targets = ["x86_64-unknown-linux-gnu"]
 [[bench]]
 harness = false
 name = "embedded"
-
