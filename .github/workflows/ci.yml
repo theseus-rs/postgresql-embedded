@@ -123,11 +123,11 @@ jobs:
         run: |
           cargo bench --bench archive --features blocking -- --output-format criterion | \
             bencher run \
-              --ci-number "${{ env.PR_NUMBER }}" \
+              --ci-number "${{ github.event.number }}" \
               --github-actions "${{ secrets.GITHUB_TOKEN }}" \
               --err
           cargo bench --bench embedded --features blocking -- --output-format criterion | \
             bencher run \
-              --ci-number "${{ env.PR_NUMBER }}" \
+              --ci-number "${{ github.event.number }}" \
               --github-actions "${{ secrets.GITHUB_TOKEN }}" \
               --err
