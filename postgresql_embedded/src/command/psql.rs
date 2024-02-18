@@ -41,6 +41,7 @@ pub struct PsqlBuilder {
     username: Option<OsString>,
     no_password: bool,
     password: bool,
+    pg_password: Option<OsString>,
 }
 
 impl PsqlBuilder {
@@ -267,6 +268,12 @@ impl PsqlBuilder {
         self.password = true;
         self
     }
+
+    /// database user name
+    pub fn pg_password<S: AsRef<OsStr>>(mut self, pg_password: S) -> Self {
+        self.pg_password = Some(pg_password.as_ref().to_os_string());
+        self
+    }
 }
 
 impl CommandBuilder for PsqlBuilder {
@@ -440,6 +447,16 @@ impl CommandBuilder for PsqlBuilder {
 
         args
     }
+
+    fn get_envs(&self) -> Vec<(OsString, OsString)> {
+        let mut envs: Vec<(OsString, OsString)> = Vec::new();
+
+        if let Some(password) = &self.pg_password {
+            envs.push(("PGPASSWORD".into(), password.into()));
+        }
+
+        envs
+    }
 }
 
 #[cfg(test)]
@@ -496,10 +513,11 @@ mod tests {
             .username("postgres")
             .no_password()
             .password()
+            .pg_password("password")
             .build();
 
         assert_eq!(
-            r#""psql" "--command" "SELECT * FROM test" "--dbname" "dbname" "--file" "test.sql" "--list" "--variable" "ON_ERROR_STOP=1" "--version" "--no-psqlrc" "--single-transaction" "--help" "options" "--echo-all" "--echo-errors" "--echo-queries" "--echo-hidden" "--log-file" "psql.log" "--no-readline" "--output" "output.txt" "--quiet" "--single-step" "--single-line" "--no-align" "--csv" "--field-separator" "|" "--html" "--pset" "border=1" "--record-separator" "\n" "--tuples-only" "--table-attr" "width=100" "--expanded" "--field-separator-zero" "--record-separator-zero" "--host" "localhost" "--port" "5432" "--username" "postgres" "--no-password" "--password""#,
+            r#"PGPASSWORD="password" "psql" "--command" "SELECT * FROM test" "--dbname" "dbname" "--file" "test.sql" "--list" "--variable" "ON_ERROR_STOP=1" "--version" "--no-psqlrc" "--single-transaction" "--help" "options" "--echo-all" "--echo-errors" "--echo-queries" "--echo-hidden" "--log-file" "psql.log" "--no-readline" "--output" "output.txt" "--quiet" "--single-step" "--single-line" "--no-align" "--csv" "--field-separator" "|" "--html" "--pset" "border=1" "--record-separator" "\n" "--tuples-only" "--table-attr" "width=100" "--expanded" "--field-separator-zero" "--record-separator-zero" "--host" "localhost" "--port" "5432" "--username" "postgres" "--no-password" "--password""#,
             command.to_command_string()
         );
     }

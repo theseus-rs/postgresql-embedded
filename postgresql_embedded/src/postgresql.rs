@@ -338,6 +338,7 @@ impl PostgreSQL {
             .host(&self.settings.host)
             .port(self.settings.port)
             .username(&self.settings.username)
+            .pg_password(&self.settings.password)
             .no_psqlrc()
             .no_align()
             .tuples_only();
@@ -373,6 +374,7 @@ impl PostgreSQL {
             .host(&self.settings.host)
             .port(self.settings.port)
             .username(&self.settings.username)
+            .pg_password(&self.settings.password)
             .no_psqlrc()
             .no_align()
             .tuples_only();
@@ -403,6 +405,7 @@ impl PostgreSQL {
             .host(&self.settings.host)
             .port(self.settings.port)
             .username(&self.settings.username)
+            .pg_password(&self.settings.password)
             .no_psqlrc()
             .no_align()
             .tuples_only();
@@ -428,8 +431,6 @@ impl PostgreSQL {
         command_builder: B,
     ) -> Result<(String, String)> {
         let mut command = command_builder.build();
-        // TODO: move this into the command builder
-        command.env("PGPASSWORD", &self.settings.password);
         command.execute(self.settings.timeout).await
     }
 
@@ -440,8 +441,6 @@ impl PostgreSQL {
         command_builder: B,
     ) -> Result<(String, String)> {
         let mut command = command_builder.build_tokio();
-        // TODO: move this into the command builder
-        command.env("PGPASSWORD", &self.settings.password);
         command.execute(self.settings.timeout).await
     }
 }

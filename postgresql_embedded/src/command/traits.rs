@@ -23,7 +23,14 @@ pub trait CommandBuilder {
     }
 
     /// Get the arguments for the command
-    fn get_args(&self) -> Vec<OsString>;
+    fn get_args(&self) -> Vec<OsString> {
+        vec![]
+    }
+
+    /// Get the environment variables for the command
+    fn get_envs(&self) -> Vec<(OsString, OsString)> {
+        vec![]
+    }
 
     /// Build a standard Command
     fn build(self) -> std::process::Command
@@ -34,6 +41,7 @@ pub trait CommandBuilder {
         let mut command = std::process::Command::new(program_file);
 
         command.args(self.get_args());
+        command.envs(self.get_envs());
         command
     }
 
@@ -47,6 +55,7 @@ pub trait CommandBuilder {
         let mut command = tokio::process::Command::new(program_file);
 
         command.args(self.get_args());
+        command.envs(self.get_envs());
         command
     }
 }
