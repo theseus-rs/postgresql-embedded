@@ -24,11 +24,11 @@
 
       // Add the IDs of extensions you want installed when the container is created.
       "extensions": [
-        "vadimcn.vscode-lldb",
         "mutantdino.resourcemonitor",
         "rust-lang.rust-analyzer",
+        "serayuzgur.crates",
         "tamasfe.even-better-toml",
-        "serayuzgur.crates"
+        "vadimcn.vscode-lldb"
       ]
     }
   },
