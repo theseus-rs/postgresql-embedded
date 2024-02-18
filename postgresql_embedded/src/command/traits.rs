@@ -156,9 +156,32 @@ mod test {
     use super::*;
     use test_log::test;
 
+    #[test]
+    fn test_command_builder_defaults() {
+        struct DefaultCommandBuilder {
+            program_dir: Option<PathBuf>,
+        }
+
+        impl CommandBuilder for DefaultCommandBuilder {
+            fn get_program(&self) -> &'static OsStr {
+                "test".as_ref()
+            }
+
+            fn get_program_dir(&self) -> &Option<PathBuf> {
+                &self.program_dir
+            }
+        }
+
+        let builder = DefaultCommandBuilder { program_dir: None };
+        let command = builder.build();
+
+        assert_eq!(r#""test""#, command.to_command_string());
+    }
+
     struct TestCommandBuilder {
         program_dir: Option<PathBuf>,
         args: Vec<OsString>,
+        envs: Vec<(OsString, OsString)>,
     }
 
     impl CommandBuilder for TestCommandBuilder {
@@ -173,6 +196,10 @@ mod test {
         fn get_args(&self) -> Vec<OsString> {
             self.args.clone()
         }
+
+        fn get_envs(&self) -> Vec<(OsString, OsString)> {
+            self.envs.clone()
+        }
     }
 
     #[test]
@@ -180,11 +207,15 @@ mod test {
         let builder = TestCommandBuilder {
             program_dir: None,
             args: vec!["--help".to_string().into()],
+            envs: vec![(OsString::from("PASSWORD"), OsString::from("foo"))],
         };
         let command = builder.build();
 
         assert_eq!(
-            format!(r#""{}" "--help""#, PathBuf::from("test").to_string_lossy()),
+            format!(
+                r#"PASSWORD="foo" "{}" "--help""#,
+                PathBuf::from("test").to_string_lossy()
+            ),
             command.to_command_string()
         );
     }
@@ -195,11 +226,15 @@ mod test {
         let builder = TestCommandBuilder {
             program_dir: None,
             args: vec!["--help".to_string().into()],
+            envs: vec![(OsString::from("PASSWORD"), OsString::from("foo"))],
         };
         let command = builder.build_tokio();
 
         assert_eq!(
-            format!(r#""{}" "--help""#, PathBuf::from("test").to_string_lossy()),
+            format!(
+                r#"PASSWORD="foo" "{}" "--help""#,
+                PathBuf::from("test").to_string_lossy()
+            ),
             command.to_command_string()
         );
     }
