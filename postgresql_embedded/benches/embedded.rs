@@ -27,7 +27,8 @@ fn lifecycle() -> Result<()> {
 criterion_group!(
     name = benches;
     config = Criterion::default()
-        .measurement_time(Duration::from_secs(60));
+        .measurement_time(Duration::from_secs(30))
+        .sample_size(10);
     targets = benchmarks
 );
 criterion_main!(benches);
