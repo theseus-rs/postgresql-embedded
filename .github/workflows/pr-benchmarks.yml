@@ -1,0 +1,47 @@
+name: Run and Cache Benchmarks
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+
+permissions:
+  pull-requests: write
+
+jobs:
+  benchmark:
+    name: Run Benchmarks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@master
+        with:
+          components: 'llvm-tools-preview'
+          toolchain: stable
+
+      - name: Enable caching
+        uses: Swatinem/rust-cache@v2
+
+      - name: Install benchmarking tools
+        if: ${{ startsWith(matrix.os, 'ubuntu-') }}
+        uses: bencherdev/bencher@main
+
+      - name: Run benchmarks
+        if: ${{ startsWith(matrix.os, 'ubuntu-') }}
+        env:
+          BENCHER_API_TOKEN: ${{ secrets.BENCHER_API_TOKEN }}
+          BENCHER_PROJECT: theseus-rs-postgresql-embedded
+          BENCHER_ADAPTER: rust_criterion
+        run: |
+          cargo bench --bench archive --features blocking -- --output-format criterion | \
+            bencher run \
+              --ci-number "${{ github.event.number }}" \
+              --github-actions "${{ secrets.GITHUB_TOKEN }}" \
+              --err
+          cargo bench --bench embedded --features blocking -- --output-format criterion | \
+            bencher run \
+              --ci-number "${{ github.event.number }}" \
+              --github-actions "${{ secrets.GITHUB_TOKEN }}" \
+              --err
