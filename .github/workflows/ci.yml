@@ -10,32 +10,16 @@ on:
 
 permissions:
   contents: read
+  pull-requests: write
 
 jobs:
-  initialize:
-    name: Initialize
-    runs-on: ubuntu-22.04
-    steps:
-      - name: Get PR head ref
-        if: ${{ github.event_name == 'pull_request' }}
-        id: pr_head_ref
-        run: |
-          echo "ref=refs/pull/${{ github.event.pull_request.number }}/head" >> $GITHUB_OUTPUT
-    outputs:
-      ref: >-
-        ${{
-          (github.event_name == 'pull_request' && startsWith(github.head_ref, 'release/v'))
-          && steps.pr_head_ref.outputs.ref
-          || github.ref
-        }}
-
   checks:
     name: Checks
     uses: ./.github/workflows/checks.yml
 
   build:
     name: ${{ matrix.platform }}
-    needs: [initialize, checks]
+    needs: [checks]
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -59,8 +43,6 @@ jobs:
     steps:
       - name: Checkout source code
         uses: actions/checkout@v4
-        with:
-          ref: ${{ github.ref }}
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@master
@@ -122,6 +104,12 @@ jobs:
           BENCHER_ADAPTER: rust_criterion
         run: |
           cargo bench --bench archive --features blocking -- --output-format criterion | \
-            bencher run
+            bencher run \
+              --ci-number "${{ github.event.number }}" \
+              --github-actions "${{ secrets.GITHUB_TOKEN }}" \
+              --err
           cargo bench --bench embedded --features blocking -- --output-format criterion | \
-            bencher run
+            bencher run \
+              --ci-number "${{ github.event.number }}" \
+              --github-actions "${{ secrets.GITHUB_TOKEN }}" \
+              --err
