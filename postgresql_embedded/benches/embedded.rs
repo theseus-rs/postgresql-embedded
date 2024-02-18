@@ -8,7 +8,7 @@ fn benchmarks(criterion: &mut Criterion) {
 }
 
 fn bench_lifecycle(criterion: &mut Criterion) -> Result<()> {
-    criterion.bench_function("extract", |bencher| {
+    criterion.bench_function("lifecycle", |bencher| {
         bencher.iter(|| {
             lifecycle().ok();
         });
