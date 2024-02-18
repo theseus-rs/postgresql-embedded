@@ -269,7 +269,7 @@ impl PsqlBuilder {
         self
     }
 
-    /// database user name
+    /// user password
     pub fn pg_password<S: AsRef<OsStr>>(mut self, pg_password: S) -> Self {
         self.pg_password = Some(pg_password.as_ref().to_os_string());
         self
@@ -448,6 +448,7 @@ impl CommandBuilder for PsqlBuilder {
         args
     }
 
+    /// Get the environment variables for the command
     fn get_envs(&self) -> Vec<(OsString, OsString)> {
         let mut envs: Vec<(OsString, OsString)> = Vec::new();
 
