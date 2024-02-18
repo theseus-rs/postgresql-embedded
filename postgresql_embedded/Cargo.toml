@@ -28,6 +28,7 @@ tokio = { workspace = true, optional = true }
 tracing = { workspace = true }
 
 [dev-dependencies]
+criterion = { workspace = true }
 test-log = { workspace = true }
 tokio = { workspace = true }
 
@@ -44,3 +45,7 @@ dependent-version = "upgrade"
 no-default-features = true
 features = ["blocking", "tokio"]
 targets = ["x86_64-unknown-linux-gnu"]
+
+[[bench]]
+harness = false
+name = "embedded"
