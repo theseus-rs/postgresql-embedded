@@ -34,7 +34,7 @@ jobs:
     uses: ./.github/workflows/checks.yml
 
   build:
-    name: ${{ matrix.platform }} (${{ matrix.target }}) (${{ matrix.os }})
+    name: ${{ matrix.platform }}
     needs: [initialize, checks]
     runs-on: ${{ matrix.os }}
     strategy:
@@ -122,13 +122,12 @@ jobs:
           BENCHER_ADAPTER: rust_criterion
         run: |
           cargo bench --bench archive --features blocking -- --output-format criterion | \
-            bencher run
+            bencher run \
               --if-branch '${{ env.PR_HEAD }}' \
               --else-if-branch '${{ env.PR_BASE }}' \
               --else-if-branch '${{ env.PR_DEFAULT }}' \
               --ci-number '${{ env.PR_NUMBER }}' \
               --github-actions "${{ secrets.GITHUB_TOKEN }}" \
-              --token "${{ secrets.BENCHER_API_TOKEN }}" \
               --err
 
       - name: Run embedded benchmarks
@@ -139,11 +138,10 @@ jobs:
           BENCHER_ADAPTER: rust_criterion
         run: |
           cargo bench --bench embedded --features blocking -- --output-format criterion | \
-            bencher run
+            bencher run \
               --if-branch '${{ env.PR_HEAD }}' \
               --else-if-branch '${{ env.PR_BASE }}' \
               --else-if-branch '${{ env.PR_DEFAULT }}' \
               --ci-number '${{ env.PR_NUMBER }}' \
               --github-actions "${{ secrets.GITHUB_TOKEN }}" \
-              --token "${{ secrets.BENCHER_API_TOKEN }}" \
               --err
