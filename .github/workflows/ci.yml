@@ -123,9 +123,6 @@ jobs:
         run: |
           cargo bench --bench archive --features blocking -- --output-format criterion | \
             bencher run \
-              --if-branch '${{ env.PR_HEAD }}' \
-              --else-if-branch '${{ env.PR_BASE }}' \
-              --else-if-branch '${{ env.PR_DEFAULT }}' \
               --ci-number '${{ env.PR_NUMBER }}' \
               --github-actions "${{ secrets.GITHUB_TOKEN }}" \
               --err
@@ -139,9 +136,6 @@ jobs:
         run: |
           cargo bench --bench embedded --features blocking -- --output-format criterion | \
             bencher run \
-              --if-branch '${{ env.PR_HEAD }}' \
-              --else-if-branch '${{ env.PR_BASE }}' \
-              --else-if-branch '${{ env.PR_DEFAULT }}' \
               --ci-number '${{ env.PR_NUMBER }}' \
               --github-actions "${{ secrets.GITHUB_TOKEN }}" \
               --err
