@@ -1,7 +1,6 @@
 use crate::error::Result;
 use std::ffi::{OsStr, OsString};
 use std::path::PathBuf;
-use std::process::Stdio;
 use std::time::Duration;
 use tracing::debug;
 
@@ -93,9 +92,6 @@ impl CommandExecutor for std::process::Command {
     /// Execute the command and return the stdout and stderr
     async fn execute(&mut self, _timeout: Option<Duration>) -> Result<(String, String)> {
         debug!("Executing command: {}", self.to_command_string());
-        self.stdout(Stdio::piped());
-        self.stderr(Stdio::piped());
-
         let output = self.output()?;
         let stdout = String::from_utf8_lossy(&output.stdout).into_owned();
         let stderr = String::from_utf8_lossy(&output.stderr).into_owned();
@@ -123,9 +119,6 @@ impl CommandExecutor for tokio::process::Command {
     /// Execute the command and return the stdout and stderr
     async fn execute(&mut self, timeout: Option<Duration>) -> Result<(String, String)> {
         debug!("Executing command: {}", self.to_command_string());
-        self.stdout(Stdio::piped());
-        self.stderr(Stdio::piped());
-
         let output = match timeout {
             Some(duration) => tokio::time::timeout(duration, self.output()).await?,
             None => self.output().await,
