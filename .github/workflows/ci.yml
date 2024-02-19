@@ -102,5 +102,4 @@ jobs:
           BENCHER_PROJECT: theseus-rs-postgresql-embedded
           BENCHER_ADAPTER: rust_criterion
         run: |
-          cargo bench --bench archive --features blocking -- --output-format criterion | bencher run
-          cargo bench --bench embedded --features blocking -- --output-format criterion | bencher run
+          bencher run "cargo bench --features blocking"

@@ -33,15 +33,9 @@ jobs:
           BENCHER_PROJECT: theseus-rs-postgresql-embedded
           BENCHER_ADAPTER: rust_criterion
         run: |
-          cargo bench --bench archive --features blocking -- --output-format criterion | \
-            bencher run \
-              --branch $GITHUB_HEAD_REF \
-              --ci-number "${{ github.event.number }}" \
-              --github-actions "${{ secrets.GITHUB_TOKEN }}" \
-              --err
-          cargo bench --bench embedded --features blocking -- --output-format criterion | \
-            bencher run \
-              --branch $GITHUB_HEAD_REF \
-              --ci-number "${{ github.event.number }}" \
-              --github-actions "${{ secrets.GITHUB_TOKEN }}" \
-              --err
+          bencher run \
+            --branch $GITHUB_HEAD_REF \
+            --ci-number "${{ github.event.number }}" \
+            --github-actions "${{ secrets.GITHUB_TOKEN }}" \
+            --err \
+            "cargo bench --features blocking"
