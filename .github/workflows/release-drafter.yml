@@ -12,12 +12,14 @@ on:
         type: string
 
 permissions:
-  contents: write
+  contents: read
   pull-requests: read
 
 jobs:
   main:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Draft release
         uses: release-drafter/release-drafter@v6

@@ -2,15 +2,17 @@ name: Pull request labeler
 
 on:
   pull_request_target:
-    types: [opened, edited]
+    types: [ opened, edited ]
 
 permissions:
   contents: read
-  pull-requests: write
 
 jobs:
   main:
+    name: PR Labeler
     runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
     steps:
       - name: Label pull request
         uses: release-drafter/release-drafter@v6

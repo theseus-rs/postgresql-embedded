@@ -7,6 +7,9 @@ env:
 on:
   workflow_call:
 
+permissions:
+  contents: read
+
 jobs:
   audit:
     runs-on: ubuntu-22.04
