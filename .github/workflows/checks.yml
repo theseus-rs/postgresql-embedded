@@ -24,6 +24,26 @@ jobs:
         uses: Swatinem/rust-cache@v2
       - name: Install cargo audit
         run: cargo install cargo-audit
+
+      # Ignoring RUSTSEC-2023-0071 as it only occurs in a dependency used in an example
+      # and is not exploitable in the context of this project.
+      #
+      # Crate:     rsa
+      # Version:   0.9.6
+      # Title:     Marvin Attack: potential key recovery through timing sidechannels
+      # Date:      2023-11-22
+      # ID:        RUSTSEC-2023-0071
+      # URL:       https://rustsec.org/advisories/RUSTSEC-2023-0071
+      # Severity:  5.9 (medium)
+      # Solution:  No fixed upgrade is available!
+      # Dependency tree:
+      # rsa 0.9.6
+      # └── sqlx-mysql 0.7.3
+      #     ├── sqlx-macros-core 0.7.3
+      #     │   └── sqlx-macros 0.7.3
+      #     │       └── sqlx 0.7.3
+      #     │           └── sqlx_embedded 0.4.1
+      #     └── sqlx 0.7.3
       - name: Audit dependencies
         run: cargo audit --ignore RUSTSEC-2023-0071
 
