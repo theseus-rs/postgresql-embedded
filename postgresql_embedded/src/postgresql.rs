@@ -58,10 +58,7 @@ pub struct PostgreSQL {
 impl PostgreSQL {
     /// Create a new [`PostgreSQL`] instance
     pub fn new(version: Version, settings: Settings) -> Self {
-        let mut postgresql = PostgreSQL {
-            version,
-            settings,
-        };
+        let mut postgresql = PostgreSQL { version, settings };
 
         // If the minor and release version are set, append the version to the installation directory
         // to avoid conflicts with other versions.  This will also facilitate setting the status
@@ -229,9 +226,7 @@ impl PostgreSQL {
                 );
                 Ok(())
             }
-            Err(error) => {
-                Err(DatabaseInitializationError(error.into()))
-            }
+            Err(error) => Err(DatabaseInitializationError(error.into())),
         }
     }
 
@@ -267,9 +262,7 @@ impl PostgreSQL {
                 );
                 Ok(())
             }
-            Err(error) => {
-                Err(DatabaseStartError(error.into()))
-            }
+            Err(error) => Err(DatabaseStartError(error.into())),
         }
     }
 
@@ -294,9 +287,7 @@ impl PostgreSQL {
                 );
                 Ok(())
             }
-            Err(error) => {
-                Err(DatabaseStopError(error.into()))
-            }
+            Err(error) => Err(DatabaseStopError(error.into())),
         }
     }
 
