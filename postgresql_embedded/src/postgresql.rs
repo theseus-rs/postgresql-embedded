@@ -39,18 +39,10 @@ pub(crate) const ARCHIVE: &[u8] = include_bytes!(concat!(env!("OUT_DIR"), "/post
 pub enum Status {
     /// Archive not installed
     NotInstalled,
-    /// Installing software from archive
-    Installing,
     /// Installation complete; not initialized
     Installed,
-    /// Initialization running
-    Initializing,
-    /// Server starting
-    Starting,
     /// Server started
     Started,
-    /// Server stopping
-    Stopping,
     /// Server initialized and stopped
     Stopped,
 }
@@ -58,7 +50,6 @@ pub enum Status {
 /// PostgreSQL server
 #[derive(Clone, Debug)]
 pub struct PostgreSQL {
-    status: Status,
     version: Version,
     settings: Settings,
 }
@@ -67,11 +58,7 @@ pub struct PostgreSQL {
 impl PostgreSQL {
     /// Create a new [`PostgreSQL`] instance
     pub fn new(version: Version, settings: Settings) -> Self {
-        let mut postgresql = PostgreSQL {
-            status: Status::NotInstalled,
-            version,
-            settings,
-        };
+        let mut postgresql = PostgreSQL { version, settings };
 
         // If the minor and release version are set, append the version to the installation directory
         // to avoid conflicts with other versions.  This will also facilitate setting the status
@@ -85,8 +72,6 @@ impl PostgreSQL {
                 postgresql.settings.installation_dir =
                     postgresql.settings.installation_dir.join(version_string);
             }
-
-            postgresql.update_status();
         }
 
         postgresql
@@ -101,23 +86,17 @@ impl PostgreSQL {
         }
     }
 
-    /// Determine the status of the PostgreSQL server based on the settings
-    fn update_status(&mut self) {
-        let is_installed = self.is_installed();
-        let is_initialized = self.is_initialized();
-
-        if is_installed && is_initialized {
-            self.status = Status::Stopped
-        } else if is_installed {
-            self.status = Status::Installed
-        } else {
-            self.status = Status::NotInstalled
-        }
-    }
-
     /// Get the [status](Status) of the PostgreSQL server
     pub fn status(&self) -> Status {
-        self.status
+        if self.is_running() {
+            Status::Started
+        } else if self.is_initialized() {
+            Status::Stopped
+        } else if self.is_installed() {
+            Status::Installed
+        } else {
+            Status::NotInstalled
+        }
     }
 
     /// Get the [version](Version) of the PostgreSQL server
@@ -143,6 +122,12 @@ impl PostgreSQL {
     /// Check if the PostgreSQL server is initialized
     fn is_initialized(&self) -> bool {
         self.settings.data_dir.join("postgresql.conf").exists()
+    }
+
+    /// Check if the PostgreSQL server is running
+    fn is_running(&self) -> bool {
+        let pid_file = self.settings.data_dir.join("postmaster.pid");
+        pid_file.exists()
     }
 
     /// Set up the database by extracting the archive and initializing the database.
@@ -182,7 +167,6 @@ impl PostgreSQL {
 
         if self.settings.installation_dir.exists() {
             debug!("Installation directory already exists");
-            self.update_status();
             return Ok(());
         }
 
@@ -201,10 +185,8 @@ impl PostgreSQL {
         let (version, bytes) = { get_archive(&self.version).await? };
 
         self.version = version;
-        self.status = Status::Installing;
         create_dir_all(&self.settings.installation_dir)?;
         extract(&bytes, &self.settings.installation_dir).await?;
-        self.status = Status::Installed;
 
         debug!(
             "Installed PostgreSQL version {} to {}",
@@ -236,20 +218,15 @@ impl PostgreSQL {
             .username(&self.settings.username)
             .encoding("UTF8");
 
-        self.status = Status::Initializing;
         match self.execute_command(initdb).await {
             Ok((_stdout, _stderr)) => {
-                self.status = Status::Stopped;
                 debug!(
                     "Initialized database {}",
                     self.settings.data_dir.to_string_lossy()
                 );
                 Ok(())
             }
-            Err(error) => {
-                self.update_status();
-                Err(DatabaseInitializationError(error.into()))
-            }
+            Err(error) => Err(DatabaseInitializationError(error.into())),
         }
     }
 
@@ -276,10 +253,8 @@ impl PostgreSQL {
             .options(options)
             .wait();
 
-        self.status = Status::Starting;
         match self.execute_command(pg_ctl).await {
             Ok((_stdout, _stderr)) => {
-                self.status = Status::Started;
                 debug!(
                     "Started database {} on port {}",
                     self.settings.data_dir.to_string_lossy(),
@@ -287,15 +262,12 @@ impl PostgreSQL {
                 );
                 Ok(())
             }
-            Err(error) => {
-                self.update_status();
-                Err(DatabaseStartError(error.into()))
-            }
+            Err(error) => Err(DatabaseStartError(error.into())),
         }
     }
 
     /// Stop the database gracefully (smart mode) and wait for the shutdown to complete.
-    pub async fn stop(&mut self) -> Result<()> {
+    pub async fn stop(&self) -> Result<()> {
         debug!(
             "Stopping database {}",
             self.settings.data_dir.to_string_lossy()
@@ -307,25 +279,20 @@ impl PostgreSQL {
             .shutdown_mode(Fast)
             .wait();
 
-        self.status = Status::Stopping;
         match self.execute_command(pg_ctl).await {
             Ok((_stdout, _stderr)) => {
-                self.status = Status::Stopped;
                 debug!(
                     "Stopped database {}",
                     self.settings.data_dir.to_string_lossy()
                 );
                 Ok(())
             }
-            Err(error) => {
-                self.update_status();
-                Err(DatabaseStopError(error.into()))
-            }
+            Err(error) => Err(DatabaseStopError(error.into())),
         }
     }
 
     /// Create a new database with the given name.
-    pub async fn create_database<S: AsRef<str>>(&mut self, database_name: S) -> Result<()> {
+    pub async fn create_database<S: AsRef<str>>(&self, database_name: S) -> Result<()> {
         debug!(
             "Creating database {} for {}:{}",
             database_name.as_ref(),
@@ -358,7 +325,7 @@ impl PostgreSQL {
     }
 
     /// Check if a database with the given name exists.
-    pub async fn database_exists<S: AsRef<str>>(&mut self, database_name: S) -> Result<bool> {
+    pub async fn database_exists<S: AsRef<str>>(&self, database_name: S) -> Result<bool> {
         debug!(
             "Checking if database {} exists for {}:{}",
             database_name.as_ref(),
@@ -389,7 +356,7 @@ impl PostgreSQL {
     }
 
     /// Drop a database with the given name.
-    pub async fn drop_database<S: AsRef<str>>(&mut self, database_name: S) -> Result<()> {
+    pub async fn drop_database<S: AsRef<str>>(&self, database_name: S) -> Result<()> {
         debug!(
             "Dropping database {} for {}:{}",
             database_name.as_ref(),
@@ -457,7 +424,7 @@ impl Default for PostgreSQL {
 /// Stop the PostgreSQL server and remove the data directory if it is marked as temporary.
 impl Drop for PostgreSQL {
     fn drop(&mut self) {
-        if self.status == Status::Starting || self.status == Status::Started {
+        if self.status() == Status::Started {
             let mut pg_ctl = PgCtlBuilder::new()
                 .program_dir(self.settings.binary_dir())
                 .mode(Stop)
