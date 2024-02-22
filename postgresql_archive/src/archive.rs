@@ -1,5 +1,6 @@
 //! Manage PostgreSQL archive
 #![allow(dead_code)]
+
 use crate::error::Error::{AssetHashNotFound, AssetNotFound, ReleaseNotFound, Unexpected};
 use crate::error::Result;
 use crate::github::{Asset, Release};
@@ -266,7 +267,7 @@ pub async fn extract(bytes: &Bytes, out_dir: &Path) -> Result<()> {
             None => {
                 return Err(Unexpected(
                     "Failed to get file header path prefix".to_string(),
-                ))
+                ));
             }
         };
         let stripped_entry_header_path = entry_header_path.strip_prefix(prefix)?.to_path_buf();
