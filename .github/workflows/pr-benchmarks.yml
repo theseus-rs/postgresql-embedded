@@ -2,15 +2,17 @@ name: Benchmarks
 
 on:
   pull_request:
-    types: [opened, reopened, synchronize]
+    types: [ opened, reopened, synchronize ]
 
 permissions:
-  pull-requests: write
+  contents: read
 
 jobs:
   benchmark:
     name: Run Benchmarks
     runs-on: ubuntu-22.04
+    permissions:
+      pull-requests: write
     steps:
       - name: Checkout source code
         uses: actions/checkout@v4
