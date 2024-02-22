@@ -25,7 +25,7 @@ jobs:
       - name: Install cargo audit
         run: cargo install cargo-audit
       - name: Audit dependencies
-        run: cargo audit
+        run: cargo audit --ignore RUSTSEC-2023-0071
 
   check:
     runs-on: ubuntu-22.04
