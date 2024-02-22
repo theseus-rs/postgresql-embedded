@@ -55,28 +55,28 @@ impl PostgreSQL {
     }
 
     /// Stop the database gracefully (smart mode) and wait for the shutdown to complete.
-    pub fn stop(&mut self) -> Result<()> {
+    pub fn stop(&self) -> Result<()> {
         RUNTIME
             .handle()
             .block_on(async move { self.inner.stop().await })
     }
 
     /// Create a new database with the given name.
-    pub fn create_database<S: AsRef<str>>(&mut self, database_name: S) -> Result<()> {
+    pub fn create_database<S: AsRef<str>>(&self, database_name: S) -> Result<()> {
         RUNTIME
             .handle()
             .block_on(async move { self.inner.create_database(database_name).await })
     }
 
     /// Check if a database with the given name exists.
-    pub fn database_exists<S: AsRef<str>>(&mut self, database_name: S) -> Result<bool> {
+    pub fn database_exists<S: AsRef<str>>(&self, database_name: S) -> Result<bool> {
         RUNTIME
             .handle()
             .block_on(async move { self.inner.database_exists(database_name).await })
     }
 
     /// Drop a database with the given name.
-    pub fn drop_database<S: AsRef<str>>(&mut self, database_name: S) -> Result<()> {
+    pub fn drop_database<S: AsRef<str>>(&self, database_name: S) -> Result<()> {
         RUNTIME
             .handle()
             .block_on(async move { self.inner.drop_database(database_name).await })
