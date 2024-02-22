@@ -31,8 +31,6 @@ fn main() -> Result<()> {
     println!("Marking todo {todo_id} as done");
     if complete_todo(&mut client, todo_id)? {
         println!("Todo {todo_id} is marked as done");
-    } else {
-        println!("Invalid id {todo_id}");
     }
 
     println!("Printing list of all todos");
