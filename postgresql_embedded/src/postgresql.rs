@@ -6,7 +6,6 @@ use crate::command::traits::{CommandBuilder, CommandExecutor};
 use crate::error::Error::{DatabaseInitializationError, DatabaseStartError, DatabaseStopError};
 use crate::error::Result;
 use crate::settings::Settings;
-use bytes::Bytes;
 use postgresql_archive::{extract, get_archive};
 use postgresql_archive::{get_version, Version};
 use std::fs::{create_dir_all, remove_dir_all, remove_file};
@@ -79,11 +78,11 @@ impl PostgreSQL {
 
     /// Get the default version used if not otherwise specified
     pub fn default_version() -> Version {
-        if cfg!(feature = "bundled") {
-            *ARCHIVE_VERSION
-        } else {
-            postgresql_archive::LATEST
-        }
+        #[cfg(feature = "bundled")]
+        { *ARCHIVE_VERSION }
+
+        #[cfg(not(feature = "bundled"))]
+        { postgresql_archive::LATEST }
     }
 
     /// Get the [status](Status) of the PostgreSQL server
@@ -176,7 +175,7 @@ impl PostgreSQL {
         // restricted or undesirable.
         let (version, bytes) = if ARCHIVE_VERSION.deref() == &self.version {
             debug!("Using bundled installation archive");
-            (self.version, Bytes::copy_from_slice(ARCHIVE))
+            (self.version, bytes::Bytes::copy_from_slice(ARCHIVE))
         } else {
             get_archive(&self.version).await?
         };

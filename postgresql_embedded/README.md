@@ -71,14 +71,14 @@ At runtime, the PostgreSQL binaries are cached by default in the following direc
 
 ## Feature flags
 
-postgresql_embedded uses [feature flags] to address compile time and binary size
+postgresql_embedded uses feature flags to address compile time and binary size
 uses.
 
 The following features are available:
 
 | Name       | Description                                               | Default? |
 |------------|-----------------------------------------------------------|----------|
-| `bundled`  | Bundles the PostgreSQL archive into the resulting binary  | Yes      |
+| `bundled`  | Bundles the PostgreSQL archive into the resulting binary  | No       |
 | `blocking` | Enables the blocking API; requires `tokio`                | No       |
 | `tokio`    | Enables using tokio for async                             | No       |
 
