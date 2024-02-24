@@ -448,8 +448,6 @@ impl Drop for PostgreSQL {
 
 #[cfg(test)]
 mod tests {
-    use test_log::test;
-
     #[test]
     #[cfg(feature = "bundled")]
     fn test_archive_version() {
