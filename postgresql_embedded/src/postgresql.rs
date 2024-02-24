@@ -79,10 +79,14 @@ impl PostgreSQL {
     /// Get the default version used if not otherwise specified
     pub fn default_version() -> Version {
         #[cfg(feature = "bundled")]
-        { *ARCHIVE_VERSION }
+        {
+            *ARCHIVE_VERSION
+        }
 
         #[cfg(not(feature = "bundled"))]
-        { postgresql_archive::LATEST }
+        {
+            postgresql_archive::LATEST
+        }
     }
 
     /// Get the [status](Status) of the PostgreSQL server
