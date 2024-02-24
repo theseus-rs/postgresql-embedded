@@ -33,7 +33,7 @@ test-log = { workspace = true }
 tokio = { workspace = true }
 
 [features]
-default = ["bundled"]
+default = []
 blocking = ["tokio"]
 bundled = []
 tokio = ["dep:tokio"]
