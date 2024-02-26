@@ -10,20 +10,22 @@ fn main() -> Result<()> {
     let database_name = "test";
     postgresql.create_database(database_name)?;
     let settings = postgresql.settings();
-    let host = settings.host.to_string();
-    let port = settings.port.to_string();
-    let username = settings.username.to_string();
-    let password = settings.password.to_string();
-
     let mut client = Client::connect(
-        format!("host={host} port={port} user={username} password={password}").as_str(),
+        format!(
+            "host={host} port={port} user={username} password={password}",
+            host = settings.host,
+            port = settings.port,
+            username = settings.username,
+            password = settings.password
+        )
+        .as_str(),
         NoTls,
     )?;
 
     println!("Creating table 'todos'");
     create_table_todo(&mut client)?;
 
-    let description = "Implement embedded database with sqlx";
+    let description = "Implement embedded database with postgres";
     println!("Adding new todo with description '{description}'");
     let todo_id = add_todo(&mut client, description)?;
     println!("Added new todo with id {todo_id}");
