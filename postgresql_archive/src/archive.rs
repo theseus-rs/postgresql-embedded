@@ -48,7 +48,7 @@ lazy_static! {
 
 /// Middleware to add GitHub headers to the request. If a GitHub token is set, then it is added as a
 /// bearer token. This is used to authenticate with the GitHub API to increase the rate limit.
-#[derive(Debug, Default)]
+#[derive(Debug)]
 struct GithubMiddleware;
 
 impl GithubMiddleware {
@@ -92,7 +92,7 @@ fn reqwest_client() -> ClientWithMiddleware {
     let retry_policy = ExponentialBackoff::builder().build_with_max_retries(3);
     ClientBuilder::new(reqwest::Client::new())
         .with(TracingMiddleware::default())
-        .with(GithubMiddleware::default())
+        .with(GithubMiddleware)
         .with(RetryTransientMiddleware::new_with_policy(retry_policy))
         .build()
 }
