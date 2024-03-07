@@ -44,6 +44,13 @@ impl From<reqwest::Error> for Error {
     }
 }
 
+/// Converts a [`reqwest_middleware::Error`] into an [`IoError`](Error::IoError)
+impl From<reqwest_middleware::Error> for Error {
+    fn from(error: reqwest_middleware::Error) -> Self {
+        Error::IoError(error.into())
+    }
+}
+
 /// Converts a [`std::io::Error`] into an [`IoError`](Error::IoError)
 impl From<std::io::Error> for Error {
     fn from(error: std::io::Error) -> Self {
@@ -77,6 +84,7 @@ impl From<anyhow::Error> for Error {
 #[cfg(test)]
 mod test {
     use super::*;
+    use anyhow::anyhow;
     use std::path::PathBuf;
     use std::str::FromStr;
 
@@ -95,6 +103,14 @@ mod test {
             let error = Error::from(error);
             assert!(error.to_string().contains("https://a.com"));
         }
+    }
+
+    #[tokio::test]
+    async fn test_from_reqwest_middeleware_error() {
+        let reqwest_middleware_error =
+            reqwest_middleware::Error::Middleware(anyhow!("middleware error: test"));
+        let error = Error::from(reqwest_middleware_error);
+        assert!(error.to_string().contains("middleware error: test"));
     }
 
     #[test]
