@@ -14,6 +14,7 @@ version = "0.6.1"
 
 [workspace.dependencies]
 anyhow = { version = "1.0" }
+async-trait = { version = "0.1" }
 bytes = { version = "1.5" }
 criterion = { version = "0.5" }
 flate2 = { version = "1.0" }
@@ -25,10 +26,14 @@ num-format = { version = "0.4" }
 rand = { version = "0.8" }
 regex = { version = "1.10" }
 reqwest = { version = "0.11", default-features = false, features = ["json", "rustls-tls-native-roots"] }
+reqwest-middleware = { version = "0.2.4" }
+reqwest-retry = { version = "0.4.0" }
+reqwest-tracing = { version = "0.4.0" }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = { version = "1.0" }
 sha2 = { version = "0.10" }
 tar = { version = "0.4" }
+task-local-extensions = { version = "0.1" }
 target-triple = { version = "0.1" }
 test-log = { version = "0.2" }
 tempfile = { version = "3.10" }

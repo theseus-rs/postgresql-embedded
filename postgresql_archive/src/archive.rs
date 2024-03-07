@@ -11,14 +11,18 @@ use flate2::bufread::GzDecoder;
 use human_bytes::human_bytes;
 use num_format::{Locale, ToFormattedString};
 use regex::Regex;
-use reqwest::header::HeaderMap;
-use reqwest::{header, RequestBuilder};
+use reqwest::{header, Request, Response};
+use reqwest_middleware::{ClientBuilder, ClientWithMiddleware, Middleware, Next};
+use reqwest_retry::policies::ExponentialBackoff;
+use reqwest_retry::RetryTransientMiddleware;
+use reqwest_tracing::TracingMiddleware;
 use sha2::{Digest, Sha256};
 use std::fs::{create_dir_all, File};
 use std::io::{copy, BufReader, Cursor};
 use std::path::Path;
 use std::str::FromStr;
 use tar::Archive;
+use task_local_extensions::Extensions;
 use tracing::{debug, warn};
 
 const GITHUB_API_VERSION_HEADER: &str = "X-GitHub-Api-Version";
@@ -42,43 +46,67 @@ lazy_static! {
     );
 }
 
-/// Adds GitHub headers to the request builder.
-trait GitHubHeaders {
-    /// Adds GitHub headers to the request builder. If a GitHub token is set, then it is added as a
-    /// bearer token. This is used to authenticate with the GitHub API to increase the rate limit.
-    fn add_github_headers(self) -> anyhow::Result<RequestBuilder>;
-}
+/// Middleware to add GitHub headers to the request. If a GitHub token is set, then it is added as a
+/// bearer token. This is used to authenticate with the GitHub API to increase the rate limit.
+#[derive(Debug)]
+struct GithubMiddleware;
 
-/// Implementation that adds GitHub headers to a request builder.
-impl GitHubHeaders for RequestBuilder {
-    /// Adds GitHub headers to the request builder. If a GitHub token is set, then it is added as a
-    /// bearer token. This is used to authenticate with the GitHub API to increase the rate limit.
-    fn add_github_headers(self) -> anyhow::Result<RequestBuilder> {
-        let mut headers = HeaderMap::new();
+impl GithubMiddleware {
+    fn add_github_headers(&self, request: &mut Request) -> Result<()> {
+        let headers = request.headers_mut();
 
-        headers.append(GITHUB_API_VERSION_HEADER, GITHUB_API_VERSION.parse()?);
-        headers.append(header::USER_AGENT, USER_AGENT.parse()?);
+        headers.append(
+            GITHUB_API_VERSION_HEADER,
+            GITHUB_API_VERSION.parse().unwrap(),
+        );
+        headers.append(header::USER_AGENT, USER_AGENT.parse().unwrap());
 
         if let Some(token) = &*GITHUB_TOKEN {
-            headers.append(header::AUTHORIZATION, format!("Bearer {token}").parse()?);
+            headers.append(
+                header::AUTHORIZATION,
+                format!("Bearer {token}").parse().unwrap(),
+            );
         }
 
-        Ok(self.headers(headers))
+        Ok(())
     }
+}
+
+#[async_trait::async_trait]
+impl Middleware for GithubMiddleware {
+    async fn handle(
+        &self,
+        mut request: Request,
+        extensions: &mut Extensions,
+        next: Next<'_>,
+    ) -> reqwest_middleware::Result<Response> {
+        match self.add_github_headers(&mut request) {
+            Ok(_) => next.run(request, extensions).await,
+            Err(error) => Err(reqwest_middleware::Error::Middleware(error.into())),
+        }
+    }
+}
+
+/// Creates a new reqwest client with middleware for tracing, GitHub, and retrying transient errors.
+fn reqwest_client() -> ClientWithMiddleware {
+    let retry_policy = ExponentialBackoff::builder().build_with_max_retries(3);
+    ClientBuilder::new(reqwest::Client::new())
+        .with(TracingMiddleware::default())
+        .with(GithubMiddleware)
+        .with(RetryTransientMiddleware::new_with_policy(retry_policy))
+        .build()
 }
 
 /// Gets a release from GitHub for a given [version](Version) of PostgreSQL. If a release for the
 /// [version](Version) is not found, then a [ReleaseNotFound] error is returned.
 async fn get_release(version: &Version) -> Result<Release> {
     let url = "https://api.github.com/repos/theseus-rs/postgresql-binaries/releases";
-    let client = reqwest::Client::new();
+    let client = reqwest_client();
 
     debug!("Attempting to locate release for version {version}");
 
     if version.minor.is_some() && version.release.is_some() {
-        let request = client
-            .get(format!("{url}/tags/{version}"))
-            .add_github_headers()?;
+        let request = client.get(format!("{url}/tags/{version}"));
         let response = request.send().await?.error_for_status()?;
         let release = response.json::<Release>().await?;
 
@@ -92,7 +120,6 @@ async fn get_release(version: &Version) -> Result<Release> {
     loop {
         let request = client
             .get(url)
-            .add_github_headers()?
             .query(&[("page", page.to_string().as_str()), ("per_page", "100")]);
         let response = request.send().await?.error_for_status()?;
         let response_releases = response.json::<Vec<Release>>().await?;
@@ -203,10 +230,8 @@ pub async fn get_archive_for_target<S: AsRef<str>>(
         "Downloading archive hash {}",
         asset_hash.browser_download_url
     );
-    let client = reqwest::Client::new();
-    let request = client
-        .get(&asset_hash.browser_download_url)
-        .add_github_headers()?;
+    let client = reqwest_client();
+    let request = client.get(&asset_hash.browser_download_url);
     let response = request.send().await?.error_for_status()?;
     let text = response.text().await?;
     let re = Regex::new(r"[0-9a-f]{64}")?;
@@ -221,9 +246,7 @@ pub async fn get_archive_for_target<S: AsRef<str>>(
     );
 
     debug!("Downloading archive {}", asset.browser_download_url);
-    let request = client
-        .get(&asset.browser_download_url)
-        .add_github_headers()?;
+    let request = client.get(&asset.browser_download_url);
     let response = request.send().await?.error_for_status()?;
     let archive: Bytes = response.bytes().await?;
     debug!(
