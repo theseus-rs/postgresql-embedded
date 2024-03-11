@@ -1,5 +1,5 @@
 <p align="center"><img width="250" height="250" src="images/logo.png"></p>
- 
+
 # PostgreSQL Embedded
 
 [![ci](https://github.com/theseus-rs/postgresql-embedded/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/theseus-rs/postgresql-embedded/actions/workflows/ci.yml)
@@ -10,12 +10,13 @@
 [![License](https://img.shields.io/crates/l/postgresql_embedded)](https://github.com/theseus-rs/postgresql-embedded#license)
 [![Semantic Versioning](https://img.shields.io/badge/%E2%9A%99%EF%B8%8F_SemVer-2.0.0-blue)](https://semver.org/spec/v2.0.0.html)
 
-Install and run a PostgreSQL database locally on Linux, MacOS or Windows.  PostgreSQL can be
+Install and run a PostgreSQL database locally on Linux, MacOS or Windows. PostgreSQL can be
 bundled with your application, or downloaded on demand.
 
 ## Getting Started
 
 ### Example
+
 ```rust
 use postgresql_embedded::{PostgreSQL, Result};
 
@@ -24,12 +25,12 @@ async fn main() -> Result<()> {
     let mut postgresql = PostgreSQL::default();
     postgresql.setup().await?;
     postgresql.start().await?;
-    
+
     let database_name = "test";
     postgresql.create_database(database_name).await?;
     postgresql.database_exists(database_name).await?;
     postgresql.drop_database(database_name).await?;
-    
+
     postgresql.stop().await
 }
 ```
@@ -61,7 +62,7 @@ additional terms or conditions.
 
 <a href="https://vscode.dev/redirect?url=vscode://ms-vscode-remote.remote-containers/cloneInVolume?url=https://github.com/theseus-rs/postgresql-embedded">
 <img
-  src="https://img.shields.io/static/v1?label=Local%20Dev%20Container&logo=visualstudiocode&message=Open&color=orange"
+  src="https://img.shields.io/static/v1?label=VSCode%20Development%20Container&logo=visualstudiocode&message=Open&color=orange"
   alt="VSCode Development Container"
 />
 </a>
@@ -74,6 +75,8 @@ additional terms or conditions.
 </a>
 
 ## Prior Art
+
 Projects that inspired this one:
+
 * [zonkyio/embedded-postgres-binaries](https://github.com/zonkyio/embedded-postgres-binaries)
 * [faokunega/pg-embed](https://github.com/faokunega/pg-embed)
