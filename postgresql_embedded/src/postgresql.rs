@@ -8,7 +8,7 @@ use crate::error::Result;
 use crate::settings::Settings;
 use postgresql_archive::{extract, get_archive};
 use postgresql_archive::{get_version, Version};
-use std::fs::{create_dir_all, remove_dir_all, remove_file};
+use std::fs::{remove_dir_all, remove_file};
 use std::io::prelude::*;
 use std::net::TcpListener;
 #[cfg(feature = "bundled")]
@@ -188,7 +188,6 @@ impl PostgreSQL {
         let (version, bytes) = { get_archive(&self.version).await? };
 
         self.version = version;
-        create_dir_all(&self.settings.installation_dir)?;
         extract(&bytes, &self.settings.installation_dir).await?;
 
         debug!(

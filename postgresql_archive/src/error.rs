@@ -58,6 +58,13 @@ impl From<std::io::Error> for Error {
     }
 }
 
+/// Converts a [`std::time::SystemTimeError`] into an [`IoError`](Error::IoError)
+impl From<std::time::SystemTimeError> for Error {
+    fn from(error: std::time::SystemTimeError) -> Self {
+        Error::IoError(error.into())
+    }
+}
+
 /// Converts a [`std::num::ParseIntError`] into an [`ParseError`](Error::ParseError)
 impl From<std::num::ParseIntError> for Error {
     fn from(error: std::num::ParseIntError) -> Self {

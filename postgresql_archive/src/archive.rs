@@ -17,10 +17,12 @@ use reqwest_retry::policies::ExponentialBackoff;
 use reqwest_retry::RetryTransientMiddleware;
 use reqwest_tracing::TracingMiddleware;
 use sha2::{Digest, Sha256};
-use std::fs::{create_dir_all, File};
+use std::fs::{create_dir_all, remove_file, rename, File};
 use std::io::{copy, BufReader, Cursor};
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::str::FromStr;
+use std::thread::sleep;
+use std::time::Duration;
 use tar::Archive;
 use task_local_extensions::Extensions;
 use tracing::{debug, warn};
@@ -266,6 +268,50 @@ pub async fn get_archive_for_target<S: AsRef<str>>(
     Ok((asset_version, archive))
 }
 
+/// Acquires a lock file in the [out_dir](Path) to prevent multiple processes from extracting the
+/// archive at the same time.
+fn acquire_lock(out_dir: &Path) -> Result<PathBuf> {
+    let lock_file = out_dir.join("postgresql-archive.lock");
+
+    if lock_file.is_file() {
+        let metadata = lock_file.metadata()?;
+        let created = metadata.created()?;
+
+        if created.elapsed()?.as_secs() > 300 {
+            warn!(
+                "Stale lock file detected; removing file to attempt process recovery: {}",
+                lock_file.to_string_lossy()
+            );
+            remove_file(&lock_file)?;
+        }
+    }
+
+    debug!(
+        "Attempting to acquire lock: {}",
+        lock_file.to_string_lossy()
+    );
+
+    for _ in 0..30 {
+        let lock = std::fs::OpenOptions::new()
+            .create(true)
+            .write(true)
+            .open(&lock_file);
+
+        match lock {
+            Ok(_) => {
+                debug!("Lock acquired: {}", lock_file.to_string_lossy());
+                return Ok(lock_file);
+            }
+            Err(error) => {
+                warn!("unable to acquire lock: {error}");
+                sleep(Duration::from_secs(1));
+            }
+        }
+    }
+
+    Err(Unexpected("Failed to acquire lock".to_string()))
+}
+
 /// Extracts the compressed tar [bytes](Bytes) to the [out_dir](Path).
 pub async fn extract(bytes: &Bytes, out_dir: &Path) -> Result<()> {
     let input = BufReader::new(Cursor::new(bytes));
@@ -274,7 +320,31 @@ pub async fn extract(bytes: &Bytes, out_dir: &Path) -> Result<()> {
     let mut files = 0;
     let mut extracted_bytes = 0;
 
-    debug!("Extracting archive to {}", out_dir.to_string_lossy());
+    let parent_dir = match out_dir.parent() {
+        Some(parent) => parent,
+        None => {
+            debug!("No parent directory for {}", out_dir.to_string_lossy());
+            out_dir
+        }
+    };
+    create_dir_all(parent_dir)?;
+
+    let lock_file = acquire_lock(parent_dir)?;
+    // If the directory already exists, then the archive has already been
+    // extracted by another process.
+    if out_dir.exists() {
+        debug!(
+            "Directory already exists {}; skipping extraction: ",
+            out_dir.to_string_lossy()
+        );
+        remove_file(&lock_file)?;
+        return Ok(());
+    }
+
+    let extract_dir = tempfile::tempdir()?.into_path();
+    create_dir_all(&extract_dir)?;
+
+    debug!("Extracting archive to {}", extract_dir.to_string_lossy());
 
     for archive_entry in archive.entries()? {
         let mut entry = archive_entry?;
@@ -294,7 +364,7 @@ pub async fn extract(bytes: &Bytes, out_dir: &Path) -> Result<()> {
             }
         };
         let stripped_entry_header_path = entry_header_path.strip_prefix(prefix)?.to_path_buf();
-        let mut entry_name = out_dir.to_path_buf();
+        let mut entry_name = extract_dir.to_path_buf();
         entry_name.push(stripped_entry_header_path);
 
         if entry_type.is_dir() || entry_name.is_dir() {
@@ -319,6 +389,15 @@ pub async fn extract(bytes: &Bytes, out_dir: &Path) -> Result<()> {
             }
         }
     }
+
+    debug!(
+        "Renaming {} to {}",
+        extract_dir.to_string_lossy(),
+        out_dir.to_string_lossy()
+    );
+    rename(extract_dir, out_dir)?;
+    debug!("Removing lock file: {}", lock_file.to_string_lossy());
+    remove_file(lock_file)?;
 
     debug!(
         "Extracting {} files totalling {}",
