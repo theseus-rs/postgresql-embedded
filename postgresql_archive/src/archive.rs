@@ -17,7 +17,7 @@ use reqwest_retry::policies::ExponentialBackoff;
 use reqwest_retry::RetryTransientMiddleware;
 use reqwest_tracing::TracingMiddleware;
 use sha2::{Digest, Sha256};
-use std::fs::{create_dir_all, remove_file, rename, File};
+use std::fs::{create_dir_all, remove_dir_all, remove_file, rename, File};
 use std::io::{copy, BufReader, Cursor};
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
@@ -390,14 +390,26 @@ pub async fn extract(bytes: &Bytes, out_dir: &Path) -> Result<()> {
         }
     }
 
-    debug!(
-        "Renaming {} to {}",
-        extract_dir.to_string_lossy(),
-        out_dir.to_string_lossy()
-    );
-    rename(extract_dir, out_dir)?;
-    debug!("Removing lock file: {}", lock_file.to_string_lossy());
-    remove_file(lock_file)?;
+    if out_dir.exists() {
+        debug!(
+            "Directory already exists {}; skipping name and removing extraction directory: {}",
+            out_dir.to_string_lossy(),
+            extract_dir.to_string_lossy()
+        );
+        remove_dir_all(&extract_dir)?;
+    } else {
+        debug!(
+            "Renaming {} to {}",
+            extract_dir.to_string_lossy(),
+            out_dir.to_string_lossy()
+        );
+        rename(extract_dir, out_dir)?;
+    }
+
+    if lock_file.is_file() {
+        debug!("Removing lock file: {}", lock_file.to_string_lossy());
+        remove_file(lock_file)?;
+    }
 
     debug!(
         "Extracting {} files totalling {}",
