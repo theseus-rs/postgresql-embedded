@@ -7,4 +7,4 @@ version.workspace = true
 
 [dependencies]
 postgresql_embedded = { path = "../../postgresql_embedded" }
-tokio = { workspace = true }
+tokio = { workspace = true, features = ["full"] }

@@ -13,7 +13,7 @@ version.workspace = true
 [build-dependencies]
 anyhow = { workspace = true }
 postgresql_archive = { path = "../postgresql_archive", version = "0.7.1" }
-tokio = { workspace = true }
+tokio = { workspace = true, features = ["full"] }
 
 [dependencies]
 anyhow = { workspace = true }
@@ -24,13 +24,13 @@ postgresql_archive = { path = "../postgresql_archive", version = "0.7.1" }
 rand = { workspace = true }
 tempfile = { workspace = true }
 thiserror = { workspace = true }
-tokio = { workspace = true, optional = true }
-tracing = { workspace = true }
+tokio = { workspace = true, features = ["full"], optional = true }
+tracing = { workspace = true, features = ["log"] }
 
 [dev-dependencies]
 criterion = { workspace = true }
 test-log = { workspace = true }
-tokio = { workspace = true }
+tokio = { workspace = true, features = ["full"] }
 
 [features]
 default = []

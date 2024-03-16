@@ -25,7 +25,7 @@ use std::thread::sleep;
 use std::time::Duration;
 use tar::Archive;
 use task_local_extensions::Extensions;
-use tracing::{debug, warn};
+use tracing::{debug, instrument, warn};
 
 const GITHUB_API_VERSION_HEADER: &str = "X-GitHub-Api-Version";
 const GITHUB_API_VERSION: &str = "2022-11-28";
@@ -101,6 +101,7 @@ fn reqwest_client() -> ClientWithMiddleware {
 
 /// Gets a release from GitHub for a given [version](Version) of PostgreSQL. If a release for the
 /// [version](Version) is not found, then a [ReleaseNotFound] error is returned.
+#[instrument(level = "debug")]
 async fn get_release(version: &Version) -> Result<Release> {
     let url = "https://api.github.com/repos/theseus-rs/postgresql-binaries/releases";
     let client = reqwest_client();
@@ -169,6 +170,7 @@ async fn get_release(version: &Version) -> Result<Release> {
 /// Gets the version of PostgreSQL for the specified [version](Version).  If the version minor or release is not
 /// specified, then the latest version is returned. If a release for the [version](Version) is not found, then a
 /// [ReleaseNotFound] error is returned.
+#[instrument(level = "debug")]
 pub async fn get_version(version: &Version) -> Result<Version> {
     let release = get_release(version).await?;
     Version::from_str(&release.tag_name)
@@ -180,6 +182,7 @@ pub async fn get_version(version: &Version) -> Result<Version> {
 /// is not found, then an [error](crate::error::Error) is returned.
 ///
 /// Two assets are returned. The first [asset](Asset) is the archive, and the second [asset](Asset) is the archive hash.
+#[instrument(level = "debug", skip(target))]
 async fn get_asset<S: AsRef<str>>(version: &Version, target: S) -> Result<(Version, Asset, Asset)> {
     let release = get_release(version).await?;
     let asset_version = Version::from_str(&release.tag_name)?;
@@ -212,6 +215,7 @@ async fn get_asset<S: AsRef<str>>(version: &Version, target: S) -> Result<(Versi
 /// [error](crate::error::Error) is returned.
 ///
 /// Returns the archive version and bytes.
+#[instrument]
 pub async fn get_archive(version: &Version) -> Result<(Version, Bytes)> {
     get_archive_for_target(version, target_triple::TARGET).await
 }
@@ -222,6 +226,7 @@ pub async fn get_archive(version: &Version) -> Result<(Version, Bytes)> {
 /// is not found, then an [error](crate::error::Error) is returned.
 ///
 /// Returns the archive version and bytes.
+#[instrument(level = "debug", skip(target))]
 pub async fn get_archive_for_target<S: AsRef<str>>(
     version: &Version,
     target: S,
@@ -270,6 +275,7 @@ pub async fn get_archive_for_target<S: AsRef<str>>(
 
 /// Acquires a lock file in the [out_dir](Path) to prevent multiple processes from extracting the
 /// archive at the same time.
+#[instrument(level = "debug")]
 fn acquire_lock(out_dir: &Path) -> Result<PathBuf> {
     let lock_file = out_dir.join("postgresql-archive.lock");
 
@@ -313,6 +319,7 @@ fn acquire_lock(out_dir: &Path) -> Result<PathBuf> {
 }
 
 /// Extracts the compressed tar [bytes](Bytes) to the [out_dir](Path).
+#[instrument]
 pub async fn extract(bytes: &Bytes, out_dir: &Path) -> Result<()> {
     let input = BufReader::new(Cursor::new(bytes));
     let decoder = GzDecoder::new(input);

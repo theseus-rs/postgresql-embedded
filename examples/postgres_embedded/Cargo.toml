@@ -7,5 +7,5 @@ version.workspace = true
 
 [dependencies]
 anyhow = { workspace = true }
-postgres = { version = "0.19" }
+postgres = { version = "0.19.7" }
 postgresql_embedded = { path = "../../postgresql_embedded", features = ["blocking"] }

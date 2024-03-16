@@ -1,11 +1,12 @@
 use crate::error::Result;
 use std::ffi::{OsStr, OsString};
+use std::fmt::Debug;
 use std::path::PathBuf;
 use std::time::Duration;
 use tracing::debug;
 
 /// Trait to build a command
-pub trait CommandBuilder {
+pub trait CommandBuilder: Debug {
     /// Get the program name
     fn get_program(&self) -> &'static OsStr;
 
@@ -151,6 +152,7 @@ mod test {
 
     #[test]
     fn test_command_builder_defaults() {
+        #[derive(Debug)]
         struct DefaultCommandBuilder {
             program_dir: Option<PathBuf>,
         }
@@ -171,6 +173,7 @@ mod test {
         assert_eq!(r#""test""#, command.to_command_string());
     }
 
+    #[derive(Debug)]
     struct TestCommandBuilder {
         program_dir: Option<PathBuf>,
         args: Vec<OsString>,
