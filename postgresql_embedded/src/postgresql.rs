@@ -15,7 +15,7 @@ use std::net::TcpListener;
 use std::ops::Deref;
 #[cfg(feature = "bundled")]
 use std::str::FromStr;
-use tracing::debug;
+use tracing::{debug, instrument};
 
 use crate::command::psql::PsqlBuilder;
 use crate::Error::{CreateDatabaseError, DatabaseExistsError, DropDatabaseError};
@@ -90,6 +90,7 @@ impl PostgreSQL {
     }
 
     /// Get the [status](Status) of the PostgreSQL server
+    #[instrument(level = "debug")]
     pub fn status(&self) -> Status {
         if self.is_running() {
             Status::Started
@@ -136,6 +137,7 @@ impl PostgreSQL {
     /// Set up the database by extracting the archive and initializing the database.
     /// If the installation directory already exists, the archive will not be extracted.
     /// If the data directory already exists, the database will not be initialized.
+    #[instrument]
     pub async fn setup(&mut self) -> Result<()> {
         if !self.is_installed() {
             self.install().await?;
@@ -153,6 +155,7 @@ impl PostgreSQL {
     /// hash does not match the expected hash, an error will be returned. If the installation directory
     /// already exists, the archive will not be extracted. If the archive is not found, an error will be
     /// returned.
+    #[instrument]
     async fn install(&mut self) -> Result<()> {
         debug!("Starting installation process for version {}", self.version);
 
@@ -201,6 +204,7 @@ impl PostgreSQL {
 
     /// Initialize the database in the data directory. This will create the necessary files and
     /// directories to start the database.
+    #[instrument]
     async fn initialize(&mut self) -> Result<()> {
         if !self.settings.password_file.exists() {
             let mut file = std::fs::File::create(&self.settings.password_file)?;
@@ -234,6 +238,7 @@ impl PostgreSQL {
 
     /// Start the database and wait for the startup to complete.
     /// If the port is set to `0`, the database will be started on a random port.
+    #[instrument]
     pub async fn start(&mut self) -> Result<()> {
         if self.settings.port == 0 {
             let listener = TcpListener::bind(("0.0.0.0", 0))?;
@@ -269,6 +274,7 @@ impl PostgreSQL {
     }
 
     /// Stop the database gracefully (smart mode) and wait for the shutdown to complete.
+    #[instrument]
     pub async fn stop(&self) -> Result<()> {
         debug!(
             "Stopping database {}",
@@ -294,6 +300,7 @@ impl PostgreSQL {
     }
 
     /// Create a new database with the given name.
+    #[instrument(skip(database_name))]
     pub async fn create_database<S: AsRef<str>>(&self, database_name: S) -> Result<()> {
         debug!(
             "Creating database {} for {}:{}",
@@ -327,6 +334,7 @@ impl PostgreSQL {
     }
 
     /// Check if a database with the given name exists.
+    #[instrument(skip(database_name))]
     pub async fn database_exists<S: AsRef<str>>(&self, database_name: S) -> Result<bool> {
         debug!(
             "Checking if database {} exists for {}:{}",
@@ -358,6 +366,7 @@ impl PostgreSQL {
     }
 
     /// Drop a database with the given name.
+    #[instrument(skip(database_name))]
     pub async fn drop_database<S: AsRef<str>>(&self, database_name: S) -> Result<()> {
         debug!(
             "Dropping database {} for {}:{}",
@@ -405,6 +414,7 @@ impl PostgreSQL {
 
     #[cfg(feature = "tokio")]
     /// Execute a command and return the stdout and stderr as strings.
+    #[instrument(level = "debug")]
     async fn execute_command<B: CommandBuilder>(
         &self,
         command_builder: B,

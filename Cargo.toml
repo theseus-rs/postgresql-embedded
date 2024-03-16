@@ -13,33 +13,33 @@ repository = "https://github.com/theseus-rs/postgresql-embedded"
 version = "0.7.1"
 
 [workspace.dependencies]
-anyhow = { version = "1.0" }
-async-trait = { version = "0.1" }
-bytes = { version = "1.5" }
-criterion = { version = "0.5" }
-flate2 = { version = "1.0" }
-hex = { version = "0.4" }
-home = { version = "0.5" }
-human_bytes = { version = "0.4", default-features = false }
-lazy_static = { version = "1.4" }
-num-format = { version = "0.4" }
-rand = { version = "0.8" }
-regex = { version = "1.10" }
-reqwest = { version = "0.11", default-features = false, features = ["json", "rustls-tls-native-roots"] }
-reqwest-middleware = { version = "0.2.4" }
-reqwest-retry = { version = "0.4.0" }
-reqwest-tracing = { version = "0.4.0" }
-serde = { version = "1.0", features = ["derive"] }
-serde_json = { version = "1.0" }
-sha2 = { version = "0.10" }
-tar = { version = "0.4" }
-task-local-extensions = { version = "0.1" }
-target-triple = { version = "0.1" }
-test-log = { version = "0.2" }
-tempfile = { version = "3.10" }
-thiserror = { version = "1.0" }
-tokio = { version = "1.36", features = ["full"] }
-tracing = { version = "0.1", features = ["log"] }
+anyhow = "1.0.81"
+async-trait = "0.1.77"
+bytes = "1.5.0"
+criterion = "0.5.1"
+flate2 = "1.0.28"
+hex = "0.4.3"
+home = "0.5.9"
+human_bytes = { version = "0.4.3", default-features = false }
+lazy_static = "1.4.0"
+num-format = "0.4.4"
+rand = "0.8.5"
+regex = "1.10.3"
+reqwest = { version = "0.11.26", default-features = false }
+reqwest-middleware = "0.2.4"
+reqwest-retry = "0.4.0"
+reqwest-tracing = "0.4.0"
+serde = "1.0.197"
+serde_json = "1.0.114"
+sha2 = "0.10.8"
+tar = "0.4.40"
+task-local-extensions = "0.1.4"
+target-triple = "0.1.2"
+test-log = "0.2.15"
+tempfile = "3.10.1"
+thiserror = "1.0.58"
+tokio = "1.36.0"
+tracing = "0.1.40"
 
 [workspace.metadata.release]
 shared-version = true
