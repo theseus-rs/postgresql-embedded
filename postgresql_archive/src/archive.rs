@@ -300,6 +300,7 @@ fn acquire_lock(out_dir: &Path) -> Result<PathBuf> {
     for _ in 0..30 {
         let lock = std::fs::OpenOptions::new()
             .create(true)
+            .truncate(true)
             .write(true)
             .open(&lock_file);
 

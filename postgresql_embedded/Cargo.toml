@@ -26,6 +26,7 @@ tempfile = { workspace = true }
 thiserror = { workspace = true }
 tokio = { workspace = true, features = ["full"], optional = true }
 tracing = { workspace = true, features = ["log"] }
+url = { workspace = true }
 
 [dev-dependencies]
 criterion = { workspace = true }

@@ -30,6 +30,9 @@ pub enum Error {
     /// Error when the database could not be dropped
     #[error(transparent)]
     DropDatabaseError(anyhow::Error),
+    /// Error when an invalid URL is provided
+    #[error("Invalid URL: {url}; {message}")]
+    InvalidUrl { url: String, message: String },
     /// Error when IO operations fail
     #[error(transparent)]
     IoError(anyhow::Error),
