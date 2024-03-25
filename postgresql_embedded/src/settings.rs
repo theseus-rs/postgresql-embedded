@@ -1,15 +1,19 @@
+use crate::error::{Error, Result};
 use home::home_dir;
 use rand::distributions::Alphanumeric;
 use rand::Rng;
+use std::collections::HashMap;
 use std::env;
 use std::env::current_dir;
 use std::path::PathBuf;
+use std::str::FromStr;
 use std::time::Duration;
+use url::Url;
 
 /// Database settings
 #[derive(Clone, Debug, PartialEq, PartialOrd)]
 pub struct Settings {
-    /// PostgreSQL installation directory
+    /// PostgreSQL's installation directory
     pub installation_dir: PathBuf,
     /// PostgreSQL password file
     pub password_file: PathBuf,
@@ -90,6 +94,81 @@ impl Settings {
             database_name.as_ref()
         )
     }
+
+    /// Create a new instance of [`Settings`] from the given URL.
+    ///
+    /// The URL must have the `embedded` parameter set to `true` or
+    /// an error will be returned.
+    pub fn from_url<S: AsRef<str>>(url: S) -> Result<Self> {
+        let parsed_url = match Url::parse(url.as_ref()) {
+            Ok(parsed_url) => parsed_url,
+            Err(error) => {
+                return Err(Error::InvalidUrl {
+                    url: url.as_ref().to_string(),
+                    message: error.to_string(),
+                });
+            }
+        };
+        let query_parameters: HashMap<String, String> =
+            parsed_url.query_pairs().into_owned().collect();
+        let embedded = query_parameters
+            .get("embedded")
+            .map(|v| v == "true")
+            .unwrap_or(false);
+
+        if !embedded {
+            return Err(Error::InvalidUrl {
+                url: url.as_ref().to_string(),
+                message: "Url parameter embedded=true not specified".to_string(),
+            });
+        }
+
+        let mut settings = Self::default();
+
+        if !parsed_url.username().is_empty() {
+            settings.username = parsed_url.username().to_string();
+        }
+        if let Some(password) = parsed_url.password() {
+            settings.password = password.to_string();
+        }
+        if let Some(host) = parsed_url.host() {
+            settings.host = host.to_string();
+        }
+        if let Some(port) = parsed_url.port() {
+            settings.port = port;
+        }
+        if let Some(installation_dir) = query_parameters.get("installation_dir") {
+            if let Ok(path) = PathBuf::from_str(installation_dir) {
+                settings.installation_dir = path;
+            }
+        }
+        if let Some(password_file) = query_parameters.get("password_file") {
+            if let Ok(path) = PathBuf::from_str(password_file) {
+                settings.password_file = path;
+            }
+        }
+        if let Some(data_dir) = query_parameters.get("data_dir") {
+            if let Ok(path) = PathBuf::from_str(data_dir) {
+                settings.data_dir = path;
+            }
+        }
+        if let Some(temporary) = query_parameters.get("temporary") {
+            settings.temporary = temporary == "true";
+        }
+        if let Some(timeout) = query_parameters.get("timeout") {
+            settings.timeout = match timeout.parse::<u64>() {
+                Ok(timeout) => Some(Duration::from_secs(timeout)),
+                Err(error) => {
+                    return Err(Error::InvalidUrl {
+                        url: url.as_ref().to_string(),
+                        message: error.to_string(),
+                    });
+                }
+            };
+        }
+
+        Ok(settings)
+    }
 }
 
 /// Default implementation for [`Settings`]
@@ -105,7 +184,7 @@ mod tests {
     use test_log::test;
 
     #[test]
-    fn test_settings_new() -> crate::error::Result<()> {
+    fn test_settings_new() -> Result<()> {
         let settings = Settings::new();
         assert!(!settings
             .installation_dir
@@ -127,5 +206,46 @@ mod tests {
         );
         assert_eq!(Some(Duration::from_secs(5)), settings.timeout);
         Ok(())
+    }
+
+    #[test]
+    fn test_settings_from_url() -> Result<()> {
+        let base_url = "postgresql://postgres:password@localhost:5432/test";
+        let embedded = "embedded=true";
+        let installation_dir = "installation_dir=/tmp/postgresql";
+        let password_file = "password_file=/tmp/.pgpass";
+        let data_dir = "data_dir=/tmp/data";
+        let temporary = "temporary=false";
+        let timeout = "timeout=10";
+        let url = format!("{base_url}?{embedded}&{installation_dir}&{password_file}&{data_dir}&{temporary}&{temporary}&{timeout}");
+        let settings = Settings::from_url(url)?;
+        assert_eq!("postgres", settings.username);
+        assert_eq!("password", settings.password);
+        assert_eq!("localhost", settings.host);
+        assert_eq!(5432, settings.port);
+        assert_eq!(base_url, settings.url("test"));
+        assert_eq!(PathBuf::from("/tmp//postgresql"), settings.installation_dir);
+        assert_eq!(PathBuf::from("/tmp/.pgpass"), settings.password_file);
+        assert_eq!(PathBuf::from("/tmp/data"), settings.data_dir);
+        assert!(!settings.temporary);
+        assert_eq!(Some(Duration::from_secs(10)), settings.timeout);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_settings_from_url_invalid_url() {
+        assert!(Settings::from_url("^`~").is_err());
+    }
+
+    #[test]
+    fn test_settings_from_url_invalid_embedded() {
+        assert!(Settings::from_url("postgresql://").is_err());
+        assert!(Settings::from_url("postgresql://?embedded=false").is_err());
+    }
+
+    #[test]
+    fn test_settings_from_url_invalid_timeout() {
+        assert!(Settings::from_url("postgresql://?embedded=true&timeout=foo").is_err());
     }
 }
