@@ -96,9 +96,6 @@ impl Settings {
     }
 
     /// Create a new instance of [`Settings`] from the given URL.
-    ///
-    /// The URL must have the `embedded` parameter set to `true` or
-    /// an error will be returned.
     pub fn from_url<S: AsRef<str>>(url: S) -> Result<Self> {
         let parsed_url = match Url::parse(url.as_ref()) {
             Ok(parsed_url) => parsed_url,
@@ -111,18 +108,6 @@ impl Settings {
         };
         let query_parameters: HashMap<String, String> =
             parsed_url.query_pairs().into_owned().collect();
-        let embedded = query_parameters
-            .get("embedded")
-            .map(|v| v == "true")
-            .unwrap_or(false);
-
-        if !embedded {
-            return Err(Error::InvalidUrl {
-                url: url.as_ref().to_string(),
-                message: "Url parameter embedded=true not specified".to_string(),
-            });
-        }
-
         let mut settings = Self::default();
 
         if !parsed_url.username().is_empty() {
@@ -211,13 +196,12 @@ mod tests {
     #[test]
     fn test_settings_from_url() -> Result<()> {
         let base_url = "postgresql://postgres:password@localhost:5432/test";
-        let embedded = "embedded=true";
         let installation_dir = "installation_dir=/tmp/postgresql";
         let password_file = "password_file=/tmp/.pgpass";
         let data_dir = "data_dir=/tmp/data";
         let temporary = "temporary=false";
         let timeout = "timeout=10";
-        let url = format!("{base_url}?{embedded}&{installation_dir}&{password_file}&{data_dir}&{temporary}&{temporary}&{timeout}");
+        let url = format!("{base_url}?{installation_dir}&{password_file}&{data_dir}&{temporary}&{temporary}&{timeout}");
         let settings = Settings::from_url(url)?;
         assert_eq!("postgres", settings.username);
         assert_eq!("password", settings.password);
@@ -239,13 +223,7 @@ mod tests {
     }
 
     #[test]
-    fn test_settings_from_url_invalid_embedded() {
-        assert!(Settings::from_url("postgresql://").is_err());
-        assert!(Settings::from_url("postgresql://?embedded=false").is_err());
-    }
-
-    #[test]
     fn test_settings_from_url_invalid_timeout() {
-        assert!(Settings::from_url("postgresql://?embedded=true&timeout=foo").is_err());
+        assert!(Settings::from_url("postgresql://?timeout=foo").is_err());
     }
 }
