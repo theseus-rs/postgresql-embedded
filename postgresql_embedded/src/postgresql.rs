@@ -2,6 +2,7 @@ use crate::command::initdb::InitDbBuilder;
 use crate::command::pg_ctl::Mode::{Start, Stop};
 use crate::command::pg_ctl::PgCtlBuilder;
 use crate::command::pg_ctl::ShutdownMode::Fast;
+use crate::command::pg_dump::PgDumpBuilder;
 use crate::command::traits::{CommandBuilder, CommandExecutor};
 use crate::error::Error::{DatabaseInitializationError, DatabaseStartError, DatabaseStopError};
 use crate::error::Result;
@@ -18,7 +19,7 @@ use std::str::FromStr;
 use tracing::{debug, instrument};
 
 use crate::command::psql::PsqlBuilder;
-use crate::Error::{CreateDatabaseError, DatabaseExistsError, DropDatabaseError};
+use crate::Error::{CreateDatabaseError, DatabaseExistsError, DropDatabaseError, CommandError};
 
 #[cfg(feature = "bundled")]
 lazy_static::lazy_static! {
@@ -399,6 +400,43 @@ impl PostgreSQL {
                 Ok(())
             }
             Err(error) => Err(DropDatabaseError(error.into())),
+        }
+    }
+
+    /// Dump a database schema with the given name and output file.
+    pub async fn dump_schema<S: AsRef<str>>(&self, database_name: S, output: S) -> Result<()> {
+        debug!(
+            "Dumping database {} for {}:{}",
+            database_name.as_ref(),
+            self.settings.host,
+            self.settings.port
+        );
+        let pg_dump = PgDumpBuilder::new()
+            .program_dir(self.settings.binary_dir())
+            .host(&self.settings.host)
+            .port(self.settings.port)
+            .username(&self.settings.username)
+            .pg_password(&self.settings.password)
+            .no_password()
+            .dbname(database_name.as_ref())
+            .schema_only()
+            .file(output.as_ref());
+
+        match self.execute_command(pg_dump).await {
+            Ok((_stdout, _stderr)) => {
+                debug!(
+                    "Dumped database {} for {}:{}",
+                    database_name.as_ref(),
+                    self.settings.host,
+                    self.settings.port
+                );
+                Ok(())
+            }
+            Err(error) => {
+                let stdout = String::from("");
+                let stderr = error.to_string();
+                Err(CommandError { stdout, stderr })
+            },
         }
     }
 
