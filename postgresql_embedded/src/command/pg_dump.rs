@@ -16,6 +16,14 @@ pub struct PgDumpBuilder {
     lock_wait_timeout: Option<u16>,
     no_sync: bool,
     help: bool,
+    host: Option<OsString>,
+    port: Option<u16>,
+    dbname: Option<OsString>,
+    username: Option<OsString>,
+    pg_password: Option<OsString>,
+    schema_only: bool,
+    no_password: bool,
+    password: bool,
 }
 
 impl PgDumpBuilder {
@@ -83,6 +91,48 @@ impl PgDumpBuilder {
         self.help = true;
         self
     }
+
+    /// database name to dump
+    pub fn dbname<S: AsRef<OsStr>>(mut self, dbname: S) -> Self {
+        self.dbname = Some(dbname.as_ref().to_os_string());
+        self
+    }
+
+    /// database server host or socket directory
+    pub fn host<S: AsRef<OsStr>>(mut self, host: S) -> Self {
+        self.host = Some(host.as_ref().to_os_string());
+        self
+    }
+
+    /// database server port
+    pub fn port(mut self, port: u16) -> Self {
+        self.port = Some(port);
+        self
+    }
+
+    /// database user name
+    pub fn username<S: AsRef<OsStr>>(mut self, username: S) -> Self {
+        self.username = Some(username.as_ref().to_os_string());
+        self
+    }
+
+    /// user password
+    pub fn pg_password<S: AsRef<OsStr>>(mut self, pg_password: S) -> Self {
+        self.pg_password = Some(pg_password.as_ref().to_os_string());
+        self
+    }
+
+    /// Dumps only the schema
+    pub fn schema_only(mut self) -> Self {
+        self.schema_only = true;
+        self
+    }
+
+    /// never prompt for password
+    pub fn no_password(mut self) -> Self {
+        self.no_password = true;
+        self
+    }
 }
 
 impl CommandBuilder for PgDumpBuilder {
@@ -141,7 +191,50 @@ impl CommandBuilder for PgDumpBuilder {
             args.push("--help".into());
         }
 
+        if self.schema_only {
+            args.push("--schema-only".into());
+        }
+
+        if let Some(dbname) = &self.dbname {
+            args.push("--dbname".into());
+            args.push(dbname.into());
+        }
+
+        if let Some(host) = &self.host {
+            args.push("--host".into());
+            args.push(host.into());
+        }
+
+        if let Some(port) = &self.port {
+            args.push("--port".into());
+            args.push(port.to_string().into());
+        }
+
+        if let Some(username) = &self.username {
+            args.push("--username".into());
+            args.push(username.into());
+        }
+
+        if self.no_password {
+            args.push("--no-password".into());
+        }
+
+        if self.password {
+            args.push("--password".into());
+        }
+
         args
+    }
+
+    /// Get the environment variables for the command
+    fn get_envs(&self) -> Vec<(OsString, OsString)> {
+        let mut envs: Vec<(OsString, OsString)> = Vec::new();
+
+        if let Some(password) = &self.pg_password {
+            envs.push(("PGPASSWORD".into(), password.into()));
+        }
+
+        envs
     }
 }
 
@@ -176,6 +269,24 @@ mod tests {
             .build();
         assert_eq!(
             r#""pg_dump" "--file" "file" "--format" "format" "--jobs" "jobs" "--verbose" "--version" "--compress" "compress" "--lock-wait-timeout" "10" "--no-sync" "--help""#,
+            command.to_command_string()
+        );
+    }
+
+    #[test]
+    fn test_builder_schema_only() {
+        let command = PgDumpBuilder::new()
+            .file("file")
+            .schema_only()
+            .dbname("dbname")
+            .host("host")
+            .port(123)
+            .username("username")
+            .pg_password("password")
+            .no_password()
+            .build();
+        assert_eq!(
+            r#"PGPASSWORD="password" "pg_dump" "--file" "file" "--schema-only" "--dbname" "dbname" "--host" "host" "--port" "123" "--username" "username" "--no-password""#,
             command.to_command_string()
         );
     }
