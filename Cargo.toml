@@ -38,7 +38,7 @@ target-triple = "0.1.2"
 test-log = "0.2.15"
 tempfile = "3.10.1"
 thiserror = "1.0.58"
-tokio = "1.36.0"
+tokio = "1.37.0"
 tracing = "0.1.40"
 url = "2.5.0"
 
