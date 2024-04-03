@@ -7,7 +7,11 @@ use postgresql_commands::initdb::InitDbBuilder;
 use postgresql_commands::pg_ctl::Mode::{Start, Stop};
 use postgresql_commands::pg_ctl::PgCtlBuilder;
 use postgresql_commands::pg_ctl::ShutdownMode::Fast;
-use postgresql_commands::{AsyncCommandExecutor, CommandBuilder, CommandExecutor};
+#[cfg(feature = "tokio")]
+use postgresql_commands::AsyncCommandExecutor;
+use postgresql_commands::CommandBuilder;
+#[cfg(not(feature = "tokio"))]
+use postgresql_commands::CommandExecutor;
 use std::fs::{remove_dir_all, remove_file};
 use std::io::prelude::*;
 use std::net::TcpListener;

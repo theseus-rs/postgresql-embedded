@@ -12,23 +12,24 @@ A library for executing PostgreSQL command line utilities.
 ## Examples
 
 ```rust
+use postgresql_commands::Result;
 use postgresql_commands::psql::PsqlBuilder;
 
-let psql = PsqlBuilder::new()
-.command("CREATE DATABASE \"test\"")
-.host("127.0.0.1")
-.port(5432)
-.username("postgresql")
-.pg_password("password")
-.build();
+fn main() -> Result<()> {
+    let psql = PsqlBuilder::new()
+        .command("CREATE DATABASE \"test\"")
+        .host("127.0.0.1")
+        .port(5432)
+        .username("postgresql")
+        .pg_password("password")
+        .build();
 
-let (stdout, stderr) = psql.execute(10).await?;
+    let (stdout, stderr) = psql.execute()?;
+    Ok(())
+}
 ```
 
 ## Feature flags
-
-postgresql_commands uses [feature flags] to address compile time and binary size
-uses.
 
 The following features are available:
 

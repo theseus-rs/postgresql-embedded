@@ -160,7 +160,7 @@ impl Settings {
 /// Implement the [`Settings`] trait for [`Settings`]
 impl postgresql_commands::Settings for Settings {
     fn get_binary_dir(&self) -> PathBuf {
-        self.get_binary_dir().clone()
+        self.binary_dir().clone()
     }
 
     fn get_host(&self) -> OsString {
