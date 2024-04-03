@@ -7,6 +7,7 @@ use postgresql_commands::initdb::InitDbBuilder;
 use postgresql_commands::pg_ctl::Mode::{Start, Stop};
 use postgresql_commands::pg_ctl::PgCtlBuilder;
 use postgresql_commands::pg_ctl::ShutdownMode::Fast;
+use postgresql_commands::psql::PsqlBuilder;
 #[cfg(feature = "tokio")]
 use postgresql_commands::AsyncCommandExecutor;
 use postgresql_commands::CommandBuilder;
@@ -22,7 +23,6 @@ use std::str::FromStr;
 use tracing::{debug, instrument};
 
 use crate::Error::{CreateDatabaseError, DatabaseExistsError, DropDatabaseError};
-use postgresql_commands::psql::PsqlBuilder;
 
 #[cfg(feature = "bundled")]
 lazy_static::lazy_static! {
