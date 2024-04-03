@@ -5,6 +5,7 @@ use rand::Rng;
 use std::collections::HashMap;
 use std::env;
 use std::env::current_dir;
+use std::ffi::OsString;
 use std::path::PathBuf;
 use std::str::FromStr;
 use std::time::Duration;
@@ -156,6 +157,29 @@ impl Settings {
     }
 }
 
+/// Implement the [`Settings`] trait for [`Settings`]
+impl postgresql_commands::Settings for Settings {
+    fn get_binary_dir(&self) -> PathBuf {
+        self.binary_dir().clone()
+    }
+
+    fn get_host(&self) -> OsString {
+        self.host.parse().expect("host")
+    }
+
+    fn get_port(&self) -> u16 {
+        self.port
+    }
+
+    fn get_username(&self) -> OsString {
+        self.username.parse().expect("username")
+    }
+
+    fn get_password(&self) -> OsString {
+        self.password.parse().expect("password")
+    }
+}
+
 /// Default implementation for [`Settings`]
 impl Default for Settings {
     fn default() -> Self {
@@ -202,13 +226,15 @@ mod tests {
         let temporary = "temporary=false";
         let timeout = "timeout=10";
         let url = format!("{base_url}?{installation_dir}&{password_file}&{data_dir}&{temporary}&{temporary}&{timeout}");
+
         let settings = Settings::from_url(url)?;
+
         assert_eq!("postgres", settings.username);
         assert_eq!("password", settings.password);
         assert_eq!("localhost", settings.host);
         assert_eq!(5432, settings.port);
         assert_eq!(base_url, settings.url("test"));
-        assert_eq!(PathBuf::from("/tmp//postgresql"), settings.installation_dir);
+        assert_eq!(PathBuf::from("/tmp/postgresql"), settings.installation_dir);
         assert_eq!(PathBuf::from("/tmp/.pgpass"), settings.password_file);
         assert_eq!(PathBuf::from("/tmp/data"), settings.data_dir);
         assert!(!settings.temporary);

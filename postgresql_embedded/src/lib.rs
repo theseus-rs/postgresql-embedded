@@ -111,7 +111,6 @@
 
 #[cfg(feature = "blocking")]
 pub mod blocking;
-mod command;
 mod error;
 mod postgresql;
 mod settings;

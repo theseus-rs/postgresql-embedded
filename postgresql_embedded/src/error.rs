@@ -36,9 +36,6 @@ pub enum Error {
     /// Error when IO operations fail
     #[error(transparent)]
     IoError(anyhow::Error),
-    /// Error when a command fails to execute before the timeout is reached
-    #[error(transparent)]
-    TimeoutError(anyhow::Error),
 }
 
 /// Convert PostgreSQL [archive errors](postgresql_archive::Error) to an [embedded errors](Error::ArchiveError)
@@ -59,14 +56,6 @@ impl From<std::io::Error> for Error {
 impl From<FromUtf8Error> for Error {
     fn from(error: FromUtf8Error) -> Self {
         Error::IoError(error.into())
-    }
-}
-
-#[cfg(feature = "tokio")]
-/// Convert [elapsed time errors](tokio::time::error::Elapsed) to [embedded errors](Error::TimeoutError)
-impl From<tokio::time::error::Elapsed> for Error {
-    fn from(error: tokio::time::error::Elapsed) -> Self {
-        Error::TimeoutError(error.into())
     }
 }
 
@@ -101,20 +90,6 @@ mod test {
                 error.to_string(),
                 "invalid utf-8 sequence of 1 bytes from index 1"
             );
-        }
-    }
-
-    #[cfg(feature = "tokio")]
-    #[tokio::test]
-    async fn test_from_elapsed_error() {
-        let result = tokio::time::timeout(std::time::Duration::from_nanos(1), async {
-            tokio::time::sleep(std::time::Duration::from_secs(1)).await;
-        })
-        .await;
-        assert!(result.is_err());
-        if let Err(elapsed_error) = result {
-            let error = Error::from(elapsed_error);
-            assert_eq!(error.to_string(), "deadline has elapsed");
         }
     }
 }

@@ -6,7 +6,7 @@ edition.workspace = true
 keywords.workspace = true
 license.workspace = true
 name = "postgresql_archive"
-repository = "https://github.com/theseus-rs/postgresql-embedded/tree/main/postgresql_archive"
+repository = "https://github.com/theseus-rs/postgresql-embedded"
 version.workspace = true
 
 [dependencies]

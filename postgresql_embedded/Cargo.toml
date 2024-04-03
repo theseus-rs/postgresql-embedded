@@ -7,7 +7,7 @@ edition.workspace = true
 keywords.workspace = true
 license.workspace = true
 name = "postgresql_embedded"
-repository = "https://github.com/theseus-rs/postgresql-embedded/tree/main/postgresql_embedded"
+repository = "https://github.com/theseus-rs/postgresql-embedded"
 version.workspace = true
 
 [build-dependencies]
@@ -21,6 +21,7 @@ bytes = { workspace = true }
 home = { workspace = true }
 lazy_static = { workspace = true }
 postgresql_archive = { path = "../postgresql_archive", version = "0.7.3" }
+postgresql_commands = { path = "../postgresql_commands", version = "0.7.3" }
 rand = { workspace = true }
 tempfile = { workspace = true }
 thiserror = { workspace = true }
@@ -37,7 +38,10 @@ tokio = { workspace = true, features = ["full"] }
 default = []
 blocking = ["tokio"]
 bundled = []
-tokio = ["dep:tokio"]
+tokio = [
+    "dep:tokio",
+    "postgresql_commands/tokio"
+]
 
 [package.metadata.release]
 dependent-version = "upgrade"
