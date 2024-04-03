@@ -1467,6 +1467,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "postgresql_commands"
+version = "0.7.3"
+dependencies = [
+ "anyhow",
+ "test-log",
+ "thiserror",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
 name = "postgresql_embedded"
 version = "0.7.3"
 dependencies = [
@@ -1476,6 +1487,7 @@ dependencies = [
  "home",
  "lazy_static",
  "postgresql_archive",
+ "postgresql_commands",
  "rand",
  "tempfile",
  "test-log",

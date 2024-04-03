@@ -2,7 +2,7 @@
 
 ## Supported Versions
 
-Only support the latest version of this crate is supported.
+Only the latest version of this crate is supported.
 
 ## Reporting a Vulnerability
 

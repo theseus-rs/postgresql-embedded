@@ -1,13 +1,13 @@
-use crate::command::initdb::InitDbBuilder;
-use crate::command::pg_ctl::Mode::{Start, Stop};
-use crate::command::pg_ctl::PgCtlBuilder;
-use crate::command::pg_ctl::ShutdownMode::Fast;
-use crate::command::traits::{CommandBuilder, CommandExecutor};
 use crate::error::Error::{DatabaseInitializationError, DatabaseStartError, DatabaseStopError};
 use crate::error::Result;
 use crate::settings::Settings;
 use postgresql_archive::{extract, get_archive};
 use postgresql_archive::{get_version, Version};
+use postgresql_commands::initdb::InitDbBuilder;
+use postgresql_commands::pg_ctl::Mode::{Start, Stop};
+use postgresql_commands::pg_ctl::PgCtlBuilder;
+use postgresql_commands::pg_ctl::ShutdownMode::Fast;
+use postgresql_commands::{AsyncCommandExecutor, CommandBuilder, CommandExecutor};
 use std::fs::{remove_dir_all, remove_file};
 use std::io::prelude::*;
 use std::net::TcpListener;
@@ -17,8 +17,8 @@ use std::ops::Deref;
 use std::str::FromStr;
 use tracing::{debug, instrument};
 
-use crate::command::psql::PsqlBuilder;
 use crate::Error::{CreateDatabaseError, DatabaseExistsError, DropDatabaseError};
+use postgresql_commands::psql::PsqlBuilder;
 
 #[cfg(feature = "bundled")]
 lazy_static::lazy_static! {
@@ -216,12 +216,10 @@ impl PostgreSQL {
             self.settings.data_dir.to_string_lossy()
         );
 
-        let initdb = InitDbBuilder::new()
-            .program_dir(self.settings.binary_dir())
+        let initdb = InitDbBuilder::from(&self.settings)
             .pgdata(&self.settings.data_dir)
             .auth("password")
             .pwfile(&self.settings.password_file)
-            .username(&self.settings.username)
             .encoding("UTF8");
 
         match self.execute_command(initdb).await {
@@ -252,8 +250,7 @@ impl PostgreSQL {
         );
         let start_log = self.settings.data_dir.join("start.log");
         let options = format!("-F -p {}", self.settings.port);
-        let pg_ctl = PgCtlBuilder::new()
-            .program_dir(self.settings.binary_dir())
+        let pg_ctl = PgCtlBuilder::from(&self.settings)
             .mode(Start)
             .pgdata(&self.settings.data_dir)
             .log(start_log)
@@ -280,8 +277,7 @@ impl PostgreSQL {
             "Stopping database {}",
             self.settings.data_dir.to_string_lossy()
         );
-        let pg_ctl = PgCtlBuilder::new()
-            .program_dir(self.settings.binary_dir())
+        let pg_ctl = PgCtlBuilder::from(&self.settings)
             .mode(Stop)
             .pgdata(&self.settings.data_dir)
             .shutdown_mode(Fast)
@@ -308,13 +304,8 @@ impl PostgreSQL {
             self.settings.host,
             self.settings.port
         );
-        let psql = PsqlBuilder::new()
-            .program_dir(self.settings.binary_dir())
+        let psql = PsqlBuilder::from(&self.settings)
             .command(format!("CREATE DATABASE \"{}\"", database_name.as_ref()))
-            .host(&self.settings.host)
-            .port(self.settings.port)
-            .username(&self.settings.username)
-            .pg_password(&self.settings.password)
             .no_psqlrc()
             .no_align()
             .tuples_only();
@@ -407,9 +398,9 @@ impl PostgreSQL {
     async fn execute_command<B: CommandBuilder>(
         &self,
         command_builder: B,
-    ) -> Result<(String, String)> {
+    ) -> postgresql_commands::Result<(String, String)> {
         let mut command = command_builder.build();
-        command.execute(self.settings.timeout).await
+        command.execute()
     }
 
     #[cfg(feature = "tokio")]
@@ -418,7 +409,7 @@ impl PostgreSQL {
     async fn execute_command<B: CommandBuilder>(
         &self,
         command_builder: B,
-    ) -> Result<(String, String)> {
+    ) -> postgresql_commands::Result<(String, String)> {
         let mut command = command_builder.build_tokio();
         command.execute(self.settings.timeout).await
     }
@@ -437,8 +428,7 @@ impl Default for PostgreSQL {
 impl Drop for PostgreSQL {
     fn drop(&mut self) {
         if self.status() == Status::Started {
-            let mut pg_ctl = PgCtlBuilder::new()
-                .program_dir(self.settings.binary_dir())
+            let mut pg_ctl = PgCtlBuilder::from(&self.settings)
                 .mode(Stop)
                 .pgdata(&self.settings.data_dir)
                 .shutdown_mode(Fast)
