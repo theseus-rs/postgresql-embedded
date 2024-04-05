@@ -320,7 +320,7 @@ fn acquire_lock(out_dir: &Path) -> Result<PathBuf> {
 }
 
 /// Extracts the compressed tar [bytes](Bytes) to the [out_dir](Path).
-#[instrument]
+#[instrument(skip(bytes))]
 pub async fn extract(bytes: &Bytes, out_dir: &Path) -> Result<()> {
     let input = BufReader::new(Cursor::new(bytes));
     let decoder = GzDecoder::new(input);
