@@ -24,7 +24,7 @@ use std::str::FromStr;
 use std::thread::sleep;
 use std::time::Duration;
 use tar::Archive;
-use task_local_extensions::Extensions;
+use http::Extensions;
 use tracing::{debug, instrument, warn};
 
 const GITHUB_API_VERSION_HEADER: &str = "X-GitHub-Api-Version";
