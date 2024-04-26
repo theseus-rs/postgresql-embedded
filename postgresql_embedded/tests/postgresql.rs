@@ -143,3 +143,24 @@ async fn postgres_concurrency() -> anyhow::Result<()> {
     }
     Ok(())
 }
+
+#[test(tokio::test)]
+async fn test_username_setting() -> Result<()> {
+    let username = "admin".to_string();
+    let settings = Settings {
+        username,
+        ..Default::default()
+    };
+    let mut postgresql = PostgreSQL::new(LATEST, settings);
+    postgresql.setup().await?;
+    postgresql.start().await?;
+
+    let database_name = "test";
+    postgresql.create_database(database_name).await?;
+    let database_exists = postgresql.database_exists(database_name).await?;
+    assert!(database_exists);
+    postgresql.drop_database(database_name).await?;
+    let database_exists = postgresql.database_exists(database_name).await?;
+    assert!(!database_exists);
+    Ok(())
+}
