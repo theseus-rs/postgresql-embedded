@@ -1,6 +1,6 @@
 use crate::error::Error::{DatabaseInitializationError, DatabaseStartError, DatabaseStopError};
 use crate::error::Result;
-use crate::settings::Settings;
+use crate::settings::{Settings, BOOTSTRAP_SUPERUSER};
 use postgresql_archive::{extract, get_archive};
 use postgresql_archive::{get_version, Version};
 use postgresql_commands::initdb::InitDbBuilder;
@@ -222,6 +222,7 @@ impl PostgreSQL {
 
         let initdb = InitDbBuilder::from(&self.settings)
             .pgdata(&self.settings.data_dir)
+            .username(BOOTSTRAP_SUPERUSER)
             .auth("password")
             .pwfile(&self.settings.password_file)
             .encoding("UTF8");
@@ -310,9 +311,8 @@ impl PostgreSQL {
         );
         let psql = PsqlBuilder::from(&self.settings)
             .command(format!("CREATE DATABASE \"{}\"", database_name.as_ref()))
-            .no_psqlrc()
-            .no_align()
-            .tuples_only();
+            .username(BOOTSTRAP_SUPERUSER)
+            .no_psqlrc();
 
         match self.execute_command(psql).await {
             Ok((_stdout, _stderr)) => {
@@ -337,18 +337,14 @@ impl PostgreSQL {
             self.settings.host,
             self.settings.port
         );
-        let psql = PsqlBuilder::new()
+        let psql = PsqlBuilder::from(&self.settings)
             .program_dir(self.settings.binary_dir())
             .command(format!(
                 "SELECT 1 FROM pg_database WHERE datname='{}'",
                 database_name.as_ref()
             ))
-            .host(&self.settings.host)
-            .port(self.settings.port)
-            .username(&self.settings.username)
-            .pg_password(&self.settings.password)
+            .username(BOOTSTRAP_SUPERUSER)
             .no_psqlrc()
-            .no_align()
             .tuples_only();
 
         match self.execute_command(psql).await {
@@ -379,9 +375,7 @@ impl PostgreSQL {
             .port(self.settings.port)
             .username(&self.settings.username)
             .pg_password(&self.settings.password)
-            .no_psqlrc()
-            .no_align()
-            .tuples_only();
+            .no_psqlrc();
 
         match self.execute_command(psql).await {
             Ok((_stdout, _stderr)) => {

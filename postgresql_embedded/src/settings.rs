@@ -11,6 +11,9 @@ use std::str::FromStr;
 use std::time::Duration;
 use url::Url;
 
+/// PostgreSQL's superuser
+pub const BOOTSTRAP_SUPERUSER: &str = "postgres";
+
 /// Database settings
 #[derive(Clone, Debug, PartialEq, PartialOrd)]
 pub struct Settings {
@@ -72,7 +75,7 @@ impl Settings {
             data_dir,
             host: "localhost".to_string(),
             port: 0,
-            username: "postgres".to_string(),
+            username: BOOTSTRAP_SUPERUSER.to_string(),
             password,
             temporary: true,
             timeout: Some(Duration::from_secs(5)),
@@ -203,7 +206,7 @@ mod tests {
         assert!(settings.password_file.ends_with(".pgpass"));
         assert!(!settings.data_dir.to_str().unwrap_or_default().is_empty());
         assert_eq!(0, settings.port);
-        assert_eq!("postgres", settings.username);
+        assert_eq!(BOOTSTRAP_SUPERUSER, settings.username);
         assert!(!settings.password.is_empty());
         assert_ne!("password", settings.password);
         assert!(settings.binary_dir().ends_with("bin"));
@@ -229,7 +232,7 @@ mod tests {
 
         let settings = Settings::from_url(url)?;
 
-        assert_eq!("postgres", settings.username);
+        assert_eq!(BOOTSTRAP_SUPERUSER, settings.username);
         assert_eq!("password", settings.password);
         assert_eq!("localhost", settings.host);
         assert_eq!(5432, settings.port);
