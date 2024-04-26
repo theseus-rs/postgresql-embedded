@@ -159,5 +159,8 @@ async fn test_username_setting() -> Result<()> {
     postgresql.create_database(database_name).await?;
     let database_exists = postgresql.database_exists(database_name).await?;
     assert!(database_exists);
+    postgresql.drop_database(database_name).await?;
+    let database_exists = postgresql.database_exists(database_name).await?;
+    assert!(!database_exists);
     Ok(())
 }

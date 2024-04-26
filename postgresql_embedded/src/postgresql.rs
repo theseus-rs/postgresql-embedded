@@ -365,16 +365,13 @@ impl PostgreSQL {
             self.settings.host,
             self.settings.port
         );
-        let psql = PsqlBuilder::new()
+        let psql = PsqlBuilder::from(&self.settings)
             .program_dir(self.settings.binary_dir())
             .command(format!(
                 "DROP DATABASE IF EXISTS \"{}\"",
                 database_name.as_ref()
             ))
-            .host(&self.settings.host)
-            .port(self.settings.port)
-            .username(&self.settings.username)
-            .pg_password(&self.settings.password)
+            .username(BOOTSTRAP_SUPERUSER)
             .no_psqlrc();
 
         match self.execute_command(psql).await {
