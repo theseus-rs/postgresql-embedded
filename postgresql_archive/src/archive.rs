@@ -349,9 +349,7 @@ pub async fn extract(bytes: &Bytes, out_dir: &Path) -> Result<()> {
         return Ok(());
     }
 
-    let extract_dir = tempfile::tempdir()?.into_path();
-    create_dir_all(&extract_dir)?;
-
+    let extract_dir = tempfile::tempdir_in(parent_dir)?.into_path();
     debug!("Extracting archive to {}", extract_dir.to_string_lossy());
 
     for archive_entry in archive.entries()? {
