@@ -398,7 +398,7 @@ pub async fn extract(bytes: &Bytes, out_dir: &Path) -> Result<()> {
 
     if out_dir.exists() {
         debug!(
-            "Directory already exists {}; skipping name and removing extraction directory: {}",
+            "Directory already exists {}; skipping rename and removing extraction directory: {}",
             out_dir.to_string_lossy(),
             extract_dir.to_string_lossy()
         );
