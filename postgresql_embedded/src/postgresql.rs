@@ -338,7 +338,6 @@ impl PostgreSQL {
             self.settings.port
         );
         let psql = PsqlBuilder::from(&self.settings)
-            .program_dir(self.settings.binary_dir())
             .command(format!(
                 "SELECT 1 FROM pg_database WHERE datname='{}'",
                 database_name.as_ref()
@@ -366,7 +365,6 @@ impl PostgreSQL {
             self.settings.port
         );
         let psql = PsqlBuilder::from(&self.settings)
-            .program_dir(self.settings.binary_dir())
             .command(format!(
                 "DROP DATABASE IF EXISTS \"{}\"",
                 database_name.as_ref()
