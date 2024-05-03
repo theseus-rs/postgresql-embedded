@@ -1,5 +1,7 @@
 use anyhow::bail;
 use postgresql_archive::LATEST;
+use postgresql_commands::psql::PsqlBuilder;
+use postgresql_commands::CommandBuilder;
 use postgresql_embedded::{PostgreSQL, Result, Settings, Status};
 use std::fs::{remove_dir_all, remove_file};
 use test_log::test;
@@ -145,10 +147,62 @@ async fn postgres_concurrency() -> anyhow::Result<()> {
 }
 
 #[test(tokio::test)]
+async fn test_authentication_success() -> Result<()> {
+    let mut postgresql = PostgreSQL::default();
+    postgresql.setup().await?;
+    postgresql.start().await?;
+
+    let mut psql = PsqlBuilder::from(postgresql.settings())
+        .command("SELECT 1")
+        .no_psqlrc()
+        .tuples_only()
+        .build();
+
+    let output = psql.output()?;
+    assert!(output.status.success());
+    Ok(())
+}
+
+#[test(tokio::test)]
+async fn test_authentication_invalid_username() -> Result<()> {
+    let mut postgresql = PostgreSQL::default();
+    postgresql.setup().await?;
+    postgresql.start().await?;
+
+    let mut psql = PsqlBuilder::from(postgresql.settings())
+        .command("SELECT 1")
+        .username("invalid")
+        .no_psqlrc()
+        .tuples_only()
+        .build();
+
+    let output = psql.output()?;
+    assert!(!output.status.success());
+    Ok(())
+}
+
+#[test(tokio::test)]
+async fn test_authentication_invalid_password() -> Result<()> {
+    let mut postgresql = PostgreSQL::default();
+    postgresql.setup().await?;
+    postgresql.start().await?;
+
+    let mut psql = PsqlBuilder::from(postgresql.settings())
+        .command("SELECT 1")
+        .pg_password("invalid")
+        .no_psqlrc()
+        .tuples_only()
+        .build();
+
+    let output = psql.output()?;
+    assert!(!output.status.success());
+    Ok(())
+}
+
+#[test(tokio::test)]
 async fn test_username_setting() -> Result<()> {
-    let username = "admin".to_string();
     let settings = Settings {
-        username,
+        username: "admin".to_string(),
         ..Default::default()
     };
     let mut postgresql = PostgreSQL::new(LATEST, settings);
