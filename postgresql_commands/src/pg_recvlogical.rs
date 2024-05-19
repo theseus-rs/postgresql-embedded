@@ -347,7 +347,7 @@ mod tests {
         let command = PgRecvLogicalBuilder::new().program_dir(".").build();
         assert_eq!(
             PathBuf::from(".").join("pg_recvlogical"),
-            PathBuf::from(command.to_command_string().replace("\"", ""))
+            PathBuf::from(command.to_command_string().replace('"', ""))
         );
     }
 

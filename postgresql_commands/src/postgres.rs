@@ -417,7 +417,7 @@ mod tests {
         let command = PostgresBuilder::new().program_dir(".").build();
         assert_eq!(
             PathBuf::from(".").join("postgres"),
-            PathBuf::from(command.to_command_string().replace("\"", ""))
+            PathBuf::from(command.to_command_string().replace('"', ""))
         );
     }
 

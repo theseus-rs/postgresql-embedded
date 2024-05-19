@@ -485,7 +485,7 @@ mod tests {
         let command = PgAmCheckBuilder::new().program_dir(".").build();
         assert_eq!(
             PathBuf::from(".").join("pg_amcheck"),
-            PathBuf::from(command.to_command_string().replace("\"", ""))
+            PathBuf::from(command.to_command_string().replace('"', ""))
         );
     }
 

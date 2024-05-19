@@ -336,7 +336,7 @@ mod tests {
         let command = PgConfigBuilder::new().program_dir(".").build();
         assert_eq!(
             PathBuf::from(".").join("pg_config"),
-            PathBuf::from(command.to_command_string().replace("\"", ""))
+            PathBuf::from(command.to_command_string().replace('"', ""))
         );
     }
 

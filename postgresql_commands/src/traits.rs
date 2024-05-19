@@ -278,16 +278,16 @@ mod test {
 
     #[test]
     fn test_standard_to_command_string() {
-        let mut command = std::process::Command::new("test".to_string());
-        command.arg("-l".to_string());
+        let mut command = std::process::Command::new("test");
+        command.arg("-l");
         assert_eq!(r#""test" "-l""#, command.to_command_string(),);
     }
 
     #[cfg(feature = "tokio")]
     #[test]
     fn test_tokio_to_command_string() {
-        let mut command = tokio::process::Command::new("test".to_string());
-        command.arg("-l".to_string());
+        let mut command = tokio::process::Command::new("test");
+        command.arg("-l");
         assert_eq!(r#""test" "-l""#, command.to_command_string(),);
     }
 
@@ -296,7 +296,7 @@ mod test {
         #[cfg(not(target_os = "windows"))]
         let mut command = std::process::Command::new("sh");
         #[cfg(not(target_os = "windows"))]
-        command.args(&["-c", "echo foo"]);
+        command.args(["-c", "echo foo"]);
 
         #[cfg(target_os = "windows")]
         let mut command = std::process::Command::new("cmd");
@@ -315,7 +315,7 @@ mod test {
         #[cfg(not(target_os = "windows"))]
         let mut command = tokio::process::Command::new("sh");
         #[cfg(not(target_os = "windows"))]
-        command.args(&["-c", "echo foo"]);
+        command.args(["-c", "echo foo"]);
 
         #[cfg(target_os = "windows")]
         let mut command = tokio::process::Command::new("cmd");

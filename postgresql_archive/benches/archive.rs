@@ -25,7 +25,7 @@ fn bench_extract(criterion: &mut Criterion) -> Result<()> {
 fn extract_archive(archive: &Bytes) -> Result<()> {
     let out_dir = tempfile::tempdir()?.path().to_path_buf();
     create_dir_all(&out_dir)?;
-    extract(&archive, &out_dir)?;
+    extract(archive, &out_dir)?;
     remove_dir_all(&out_dir)?;
     Ok(())
 }

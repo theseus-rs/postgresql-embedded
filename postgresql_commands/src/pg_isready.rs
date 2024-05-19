@@ -156,7 +156,7 @@ mod tests {
         let command = PgIsReadyBuilder::new().program_dir(".").build();
         assert_eq!(
             PathBuf::from(".").join("pg_isready"),
-            PathBuf::from(command.to_command_string().replace("\"", ""))
+            PathBuf::from(command.to_command_string().replace('"', ""))
         );
     }
 

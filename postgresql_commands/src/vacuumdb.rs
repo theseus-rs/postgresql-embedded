@@ -459,7 +459,7 @@ mod tests {
         let command = VacuumDbBuilder::new().program_dir(".").build();
         assert_eq!(
             PathBuf::from(".").join("vacuumdb"),
-            PathBuf::from(command.to_command_string().replace("\"", ""))
+            PathBuf::from(command.to_command_string().replace('"', ""))
         );
     }
 

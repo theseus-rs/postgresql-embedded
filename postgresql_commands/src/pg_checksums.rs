@@ -171,7 +171,7 @@ mod tests {
         let command = PgChecksumsBuilder::new().program_dir(".").build();
         assert_eq!(
             PathBuf::from(".").join("pg_checksums"),
-            PathBuf::from(command.to_command_string().replace("\"", ""))
+            PathBuf::from(command.to_command_string().replace('"', ""))
         );
     }
 

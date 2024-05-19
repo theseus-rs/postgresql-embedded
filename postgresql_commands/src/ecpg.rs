@@ -196,7 +196,7 @@ mod tests {
         let command = EcpgBuilder::new().program_dir(".").build();
         assert_eq!(
             PathBuf::from(".").join("ecpg"),
-            PathBuf::from(command.to_command_string().replace("\"", ""))
+            PathBuf::from(command.to_command_string().replace('"', ""))
         );
     }
 

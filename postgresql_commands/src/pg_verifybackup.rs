@@ -172,7 +172,7 @@ mod tests {
         let command = PgVerifyBackupBuilder::new().program_dir(".").build();
         assert_eq!(
             PathBuf::from(".").join("pg_verifybackup"),
-            PathBuf::from(command.to_command_string().replace("\"", ""))
+            PathBuf::from(command.to_command_string().replace('"', ""))
         );
     }
 

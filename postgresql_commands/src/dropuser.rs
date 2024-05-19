@@ -195,7 +195,7 @@ mod tests {
         let command = DropUserBuilder::new().program_dir(".").build();
         assert_eq!(
             PathBuf::from(".").join("dropuser"),
-            PathBuf::from(command.to_command_string().replace("\"", ""))
+            PathBuf::from(command.to_command_string().replace('"', ""))
         );
     }
 

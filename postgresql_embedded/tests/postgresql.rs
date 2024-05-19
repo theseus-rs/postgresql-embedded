@@ -112,11 +112,13 @@ async fn test_persistent_database_reuse() -> Result<()> {
     assert!(data_dir.exists());
     assert!(password_file.exists());
 
-    let mut settings = Settings::default();
-    settings.data_dir = data_dir.clone();
-    settings.password = password.clone();
-    settings.password_file = password_file.clone();
-    settings.temporary = false;
+    let settings = Settings {
+        data_dir: data_dir.clone(),
+        password: password.clone(),
+        password_file: password_file.clone(),
+        temporary: false,
+        ..Default::default()
+    };
 
     {
         let mut postgresql = PostgreSQL::new(version, settings);

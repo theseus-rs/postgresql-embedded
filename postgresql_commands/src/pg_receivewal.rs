@@ -311,7 +311,7 @@ mod tests {
         let command = PgReceiveWalBuilder::new().program_dir(".").build();
         assert_eq!(
             PathBuf::from(".").join("pg_receivewal"),
-            PathBuf::from(command.to_command_string().replace("\"", ""))
+            PathBuf::from(command.to_command_string().replace('"', ""))
         );
     }
 

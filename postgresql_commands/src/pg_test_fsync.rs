@@ -83,7 +83,7 @@ mod tests {
         let command = PgTestFsyncBuilder::new().program_dir(".").build();
         assert_eq!(
             PathBuf::from(".").join("pg_test_fsync"),
-            PathBuf::from(command.to_command_string().replace("\"", ""))
+            PathBuf::from(command.to_command_string().replace('"', ""))
         );
     }
 
