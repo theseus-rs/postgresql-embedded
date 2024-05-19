@@ -82,14 +82,11 @@ mod test {
     #[test]
     fn test_from_utf8_error() {
         let invalid_utf8: Vec<u8> = vec![0, 159, 146, 150];
-        let result = String::from_utf8(invalid_utf8);
-        assert!(result.is_err());
-        if let Err(error) = result {
-            let error = Error::from(error);
-            assert_eq!(
-                error.to_string(),
-                "invalid utf-8 sequence of 1 bytes from index 1"
-            );
-        }
+        let from_utf8_error = String::from_utf8(invalid_utf8).expect_err("from utf8 error");
+        let error = Error::from(from_utf8_error);
+        assert_eq!(
+            error.to_string(),
+            "invalid utf-8 sequence of 1 bytes from index 1"
+        );
     }
 }

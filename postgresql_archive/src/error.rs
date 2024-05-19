@@ -92,8 +92,10 @@ impl From<anyhow::Error> for Error {
 mod test {
     use super::*;
     use anyhow::anyhow;
+    use std::ops::Add;
     use std::path::PathBuf;
     use std::str::FromStr;
+    use std::time::{Duration, SystemTime};
 
     #[test]
     fn test_from_regex_error() {
@@ -129,23 +131,30 @@ mod test {
 
     #[test]
     fn test_from_parse_int_error() {
-        let result = u64::from_str("test");
-        assert!(result.is_err());
-        if let Err(error) = result {
-            let error = Error::from(error);
-            assert_eq!(error.to_string(), "invalid digit found in string");
-        }
+        let parse_int_error = u64::from_str("test").expect_err("parse int error");
+        let error = Error::from(parse_int_error);
+        assert_eq!(error.to_string(), "invalid digit found in string");
     }
 
     #[test]
     fn test_from_strip_prefix_error() {
         let path = PathBuf::from("test");
-        let result = path.strip_prefix("foo");
-        assert!(result.is_err());
-        if let Err(error) = result {
-            let error = Error::from(error);
-            assert_eq!(error.to_string(), "prefix not found");
-        }
+        let stip_prefix_error = path.strip_prefix("foo").expect_err("strip prefix error");
+        let error = Error::from(stip_prefix_error);
+        assert_eq!(error.to_string(), "prefix not found");
+    }
+
+    #[test]
+    fn test_from_system_time_error() {
+        let future_time = SystemTime::now().add(Duration::from_secs(300));
+        let system_time_error = SystemTime::now()
+            .duration_since(future_time)
+            .expect_err("system time error");
+        let error = Error::from(system_time_error);
+        assert_eq!(
+            error.to_string(),
+            "second time provided was later than self"
+        );
     }
 
     #[test]
