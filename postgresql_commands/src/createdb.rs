@@ -339,7 +339,7 @@ mod tests {
         let command = CreateDbBuilder::new().program_dir(".").build();
         assert_eq!(
             PathBuf::from(".").join("createdb"),
-            PathBuf::from(command.to_command_string().replace("\"", ""))
+            PathBuf::from(command.to_command_string().replace('"', ""))
         );
     }
 

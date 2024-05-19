@@ -228,7 +228,7 @@ mod tests {
         let command = DropDbBuilder::new().program_dir(".").build();
         assert_eq!(
             PathBuf::from(".").join("dropdb"),
-            PathBuf::from(command.to_command_string().replace("\"", ""))
+            PathBuf::from(command.to_command_string().replace('"', ""))
         );
     }
 

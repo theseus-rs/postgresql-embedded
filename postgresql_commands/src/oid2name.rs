@@ -224,7 +224,7 @@ mod tests {
         let command = Oid2NameBuilder::new().program_dir(".").build();
         assert_eq!(
             PathBuf::from(".").join("oid2name"),
-            PathBuf::from(command.to_command_string().replace("\"", ""))
+            PathBuf::from(command.to_command_string().replace('"', ""))
         );
     }
 

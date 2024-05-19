@@ -601,7 +601,7 @@ mod tests {
         let command = PgDumpAllBuilder::new().program_dir(".").build();
         assert_eq!(
             PathBuf::from(".").join("pg_dumpall"),
-            PathBuf::from(command.to_command_string().replace("\"", ""))
+            PathBuf::from(command.to_command_string().replace('"', ""))
         );
     }
 

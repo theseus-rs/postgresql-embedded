@@ -71,7 +71,7 @@ mod tests {
         let command = PgTestTimingBuilder::new().program_dir(".").build();
         assert_eq!(
             PathBuf::from(".").join("pg_test_timing"),
-            PathBuf::from(command.to_command_string().replace("\"", ""))
+            PathBuf::from(command.to_command_string().replace('"', ""))
         );
     }
 

@@ -770,7 +770,7 @@ mod tests {
         let command = PgDumpBuilder::new().program_dir(".").build();
         assert_eq!(
             PathBuf::from(".").join("pg_dump"),
-            PathBuf::from(command.to_command_string().replace("\"", ""))
+            PathBuf::from(command.to_command_string().replace('"', ""))
         );
     }
 

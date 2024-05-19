@@ -597,7 +597,7 @@ mod tests {
         let command = PgBenchBuilder::new().program_dir(".").build();
         assert_eq!(
             PathBuf::from(".").join("pgbench"),
-            PathBuf::from(command.to_command_string().replace("\"", ""))
+            PathBuf::from(command.to_command_string().replace('"', ""))
         );
     }
 

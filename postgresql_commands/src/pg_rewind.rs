@@ -205,7 +205,7 @@ mod tests {
         let command = PgRewindBuilder::new().program_dir(".").build();
         assert_eq!(
             PathBuf::from(".").join("pg_rewind"),
-            PathBuf::from(command.to_command_string().replace("\"", ""))
+            PathBuf::from(command.to_command_string().replace('"', ""))
         );
     }
 

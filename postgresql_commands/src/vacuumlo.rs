@@ -196,7 +196,7 @@ mod tests {
         let command = VacuumLoBuilder::new().program_dir(".").build();
         assert_eq!(
             PathBuf::from(".").join("vacuumlo"),
-            PathBuf::from(command.to_command_string().replace("\"", ""))
+            PathBuf::from(command.to_command_string().replace('"', ""))
         );
     }
 
