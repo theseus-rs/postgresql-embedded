@@ -102,10 +102,8 @@ impl FromStr for Version {
 
     fn from_str(version: &str) -> Result<Self, Self::Err> {
         let parts: Vec<&str> = version.split('.').collect();
-        let major: u64 = match parts.first() {
-            Some(major) => major.parse()?,
-            None => return Err(InvalidVersion(version.to_string())),
-        };
+        let major_str = parts.first().unwrap_or(&"not specified");
+        let major: u64 = major_str.parse()?;
 
         let minor: Option<u64> = match parts.get(1) {
             Some(minor) => Some(minor.parse()?),
