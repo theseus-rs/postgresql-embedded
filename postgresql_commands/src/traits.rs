@@ -198,7 +198,7 @@ impl AsyncCommandExecutor for tokio::process::Command {
             // on windows, pg_ctl start will appear to hang if you try to read out all of stdout
             // and stderr. so, on windows do a horrible hack and forcibly end reading of stdout
             // and stderr 50ms after the process exits. on not-windows, this early exit mechanism
-            //  is set up but never sent to, resulting in the same behavior as `read_to_end`.
+            // is set up but never sent to, resulting in the same behavior as `read_to_end`.
 
             let (exit_anyway_broadcast_sender, exit_anyway_broadcast_receiver_stdout) =
                 tokio::sync::broadcast::channel(1);

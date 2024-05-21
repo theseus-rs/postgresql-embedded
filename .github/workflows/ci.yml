@@ -18,7 +18,7 @@ jobs:
 
   build:
     name: ${{ matrix.platform }}
-    needs: [checks]
+    needs: [ checks ]
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -36,8 +36,8 @@ jobs:
             os: macos-14
           - platform: macos-x64
             os: macos-13
-          #- platform: windows-x64
-          #  os: windows-2022
+          - platform: windows-x64
+            os: windows-2022
 
     steps:
       - name: Checkout source code
