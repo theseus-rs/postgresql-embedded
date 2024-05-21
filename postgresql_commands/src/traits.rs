@@ -174,11 +174,11 @@ impl AsyncCommandExecutor for tokio::process::Command {
                 tokio::select! {
                     n = reader.read_buf(&mut vec) => {
                         if n? == 0 {
-                            return Ok(String::from_utf8_lossy(&*vec).into_owned());
+                            return Ok(String::from_utf8_lossy(&vec).into_owned());
                         }
                     },
                     _ = exit_anyway_broadcast_receiver.recv() => {
-                        return Ok(String::from_utf8_lossy(&*vec).into_owned());
+                        return Ok(String::from_utf8_lossy(&vec).into_owned());
                     },
                 }
             }
