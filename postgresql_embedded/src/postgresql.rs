@@ -94,7 +94,7 @@ impl PostgreSQL {
     }
 
     /// Get the [status](Status) of the PostgreSQL server
-    #[instrument(level = "debug")]
+    #[instrument(level = "debug", skip(self))]
     pub fn status(&self) -> Status {
         if self.is_running() {
             Status::Started
@@ -141,7 +141,7 @@ impl PostgreSQL {
     /// Set up the database by extracting the archive and initializing the database.
     /// If the installation directory already exists, the archive will not be extracted.
     /// If the data directory already exists, the database will not be initialized.
-    #[instrument]
+    #[instrument(skip(self))]
     pub async fn setup(&mut self) -> Result<()> {
         if !self.is_installed() {
             self.install().await?;
@@ -159,7 +159,7 @@ impl PostgreSQL {
     /// hash does not match the expected hash, an error will be returned. If the installation directory
     /// already exists, the archive will not be extracted. If the archive is not found, an error will be
     /// returned.
-    #[instrument]
+    #[instrument(skip(self))]
     async fn install(&mut self) -> Result<()> {
         debug!("Starting installation process for version {}", self.version);
 
@@ -208,7 +208,7 @@ impl PostgreSQL {
 
     /// Initialize the database in the data directory. This will create the necessary files and
     /// directories to start the database.
-    #[instrument]
+    #[instrument(skip(self))]
     async fn initialize(&mut self) -> Result<()> {
         if !self.settings.password_file.exists() {
             let mut file = std::fs::File::create(&self.settings.password_file)?;
@@ -241,7 +241,7 @@ impl PostgreSQL {
 
     /// Start the database and wait for the startup to complete.
     /// If the port is set to `0`, the database will be started on a random port.
-    #[instrument]
+    #[instrument(skip(self))]
     pub async fn start(&mut self) -> Result<()> {
         if self.settings.port == 0 {
             let listener = TcpListener::bind(("0.0.0.0", 0))?;
@@ -276,7 +276,7 @@ impl PostgreSQL {
     }
 
     /// Stop the database gracefully (smart mode) and wait for the shutdown to complete.
-    #[instrument]
+    #[instrument(skip(self))]
     pub async fn stop(&self) -> Result<()> {
         debug!(
             "Stopping database {}",
@@ -301,8 +301,11 @@ impl PostgreSQL {
     }
 
     /// Create a new database with the given name.
-    #[instrument(skip(database_name))]
-    pub async fn create_database<S: AsRef<str>>(&self, database_name: S) -> Result<()> {
+    #[instrument(skip(self))]
+    pub async fn create_database<S>(&self, database_name: S) -> Result<()>
+    where
+        S: AsRef<str> + std::fmt::Debug,
+    {
         debug!(
             "Creating database {} for {}:{}",
             database_name.as_ref(),
@@ -329,8 +332,11 @@ impl PostgreSQL {
     }
 
     /// Check if a database with the given name exists.
-    #[instrument(skip(database_name))]
-    pub async fn database_exists<S: AsRef<str>>(&self, database_name: S) -> Result<bool> {
+    #[instrument(skip(self))]
+    pub async fn database_exists<S>(&self, database_name: S) -> Result<bool>
+    where
+        S: AsRef<str> + std::fmt::Debug,
+    {
         debug!(
             "Checking if database {} exists for {}:{}",
             database_name.as_ref(),
@@ -356,8 +362,11 @@ impl PostgreSQL {
     }
 
     /// Drop a database with the given name.
-    #[instrument(skip(database_name))]
-    pub async fn drop_database<S: AsRef<str>>(&self, database_name: S) -> Result<()> {
+    #[instrument(skip(self))]
+    pub async fn drop_database<S>(&self, database_name: S) -> Result<()>
+    where
+        S: AsRef<str> + std::fmt::Debug,
+    {
         debug!(
             "Dropping database {} for {}:{}",
             database_name.as_ref(),
@@ -398,7 +407,7 @@ impl PostgreSQL {
 
     #[cfg(feature = "tokio")]
     /// Execute a command and return the stdout and stderr as strings.
-    #[instrument(level = "debug")]
+    #[instrument(level = "debug", skip(self, command_builder), fields(program = ?command_builder.get_program()))]
     async fn execute_command<B: CommandBuilder>(
         &self,
         command_builder: B,
