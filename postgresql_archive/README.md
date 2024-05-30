@@ -27,6 +27,7 @@ async fn main() -> Result<()> {
 ```
 
 ### Synchronous API
+
 ```rust
 use postgresql_archive::{Result, LATEST};
 use postgresql_archive::blocking::{extract, get_archive};
@@ -45,13 +46,16 @@ uses.
 
 The following features are available:
 
-| Name         | Description              | Default? |
-|--------------|--------------------------|----------|
-| `blocking`   | Enables the blocking API | No       |
+| Name         | Description                | Default? |
+|--------------|----------------------------|----------|
+| `blocking`   | Enables the blocking API   | No       |
+| `native-tls` | Enables native-tls support | No       |
+| `rustls-tls` | Enables rustls-tls support | Yes      |
 
 ## Supported platforms
 
-`postgresql_archive` supports all platforms provided by [theseus-rs/postgresql-binaries](https://github.com/theseus-rs/postgresql-binaries).
+`postgresql_archive` supports all platforms provided
+by [theseus-rs/postgresql-binaries](https://github.com/theseus-rs/postgresql-binaries).
 
 Currently supported platforms are:
 
