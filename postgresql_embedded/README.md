@@ -8,7 +8,7 @@
 [![License](https://img.shields.io/crates/l/postgresql_embedded)](https://github.com/theseus-rs/postgresql-embedded/tree/main/postgresql_embedded#license)
 [![Semantic Versioning](https://img.shields.io/badge/%E2%9A%99%EF%B8%8F_SemVer-2.0.0-blue)](https://semver.org/spec/v2.0.0.html)
 
-Install and run a PostgreSQL database locally on Linux, MacOS or Windows.  PostgreSQL can be
+Install and run a PostgreSQL database locally on Linux, MacOS or Windows. PostgreSQL can be
 bundled with your application, or downloaded on demand.
 
 ## Examples
@@ -34,6 +34,7 @@ async fn main() -> Result<()> {
 ```
 
 ### Synchronous API
+
 ```rust
 use postgresql_embedded::Result;
 use postgresql_embedded::blocking::PostgreSQL;
@@ -76,11 +77,13 @@ uses.
 
 The following features are available:
 
-| Name       | Description                                               | Default? |
-|------------|-----------------------------------------------------------|----------|
-| `bundled`  | Bundles the PostgreSQL archive into the resulting binary  | No       |
-| `blocking` | Enables the blocking API; requires `tokio`                | No       |
-| `tokio`    | Enables using tokio for async                             | No       |
+| Name         | Description                                              | Default? |
+|--------------|----------------------------------------------------------|----------|
+| `bundled`    | Bundles the PostgreSQL archive into the resulting binary | No       |
+| `blocking`   | Enables the blocking API; requires `tokio`               | No       |
+| `native-tls` | Enables native-tls support                               | No       |
+| `rustls-tls` | Enables rustls-tls support                               | Yes      |
+| `tokio`      | Enables using tokio for async                            | No       |
 
 ## Safety
 

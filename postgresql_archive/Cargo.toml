@@ -20,7 +20,7 @@ human_bytes = { workspace = true, default-features = false }
 lazy_static = { workspace = true }
 num-format = { workspace = true }
 regex = { workspace = true }
-reqwest = { workspace = true, default-features = false, features = ["json", "rustls-tls-native-roots"] }
+reqwest = { workspace = true, default-features = false, features = ["json"] }
 reqwest-middleware = { workspace = true }
 reqwest-retry = { workspace = true }
 reqwest-tracing = { workspace = true }
@@ -42,8 +42,10 @@ test-log = { workspace = true }
 tokio = { workspace = true }
 
 [features]
-default = []
+default = ["rustls-tls"]
 blocking = ["dep:tokio"]
+native-tls = ["reqwest/native-tls"]
+rustls-tls = ["reqwest/rustls-tls-native-roots"]
 
 [package.metadata.docs.rs]
 features = ["blocking"]
