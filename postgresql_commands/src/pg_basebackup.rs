@@ -4,7 +4,7 @@ use std::convert::AsRef;
 use std::ffi::{OsStr, OsString};
 use std::path::PathBuf;
 
-/// pg_basebackup takes a base backup of a running PostgreSQL server.
+/// `pg_basebackup` takes a base backup of a running PostgreSQL server.
 #[derive(Clone, Debug, Default)]
 pub struct PgBaseBackupBuilder {
     program_dir: Option<PathBuf>,
@@ -472,7 +472,7 @@ mod tests {
         assert_eq!(
             r#"PGPASSWORD="password" "./pg_basebackup" "--host" "localhost" "--port" "5432" "--username" "postgres""#,
             command.to_command_string()
-        )
+        );
     }
 
     #[test]

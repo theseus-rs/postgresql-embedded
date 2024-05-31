@@ -4,7 +4,7 @@ use std::convert::AsRef;
 use std::ffi::{OsStr, OsString};
 use std::path::PathBuf;
 
-/// dropuser removes a PostgreSQL role.
+/// `dropuser` removes a PostgreSQL role.
 #[derive(Clone, Debug, Default)]
 pub struct DropUserBuilder {
     program_dir: Option<PathBuf>,
@@ -205,7 +205,7 @@ mod tests {
         assert_eq!(
             r#"PGPASSWORD="password" "./dropuser" "--host" "localhost" "--port" "5432" "--username" "postgres""#,
             command.to_command_string()
-        )
+        );
     }
 
     #[test]

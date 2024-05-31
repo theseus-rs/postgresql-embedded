@@ -4,7 +4,7 @@ use std::convert::AsRef;
 use std::ffi::{OsStr, OsString};
 use std::path::PathBuf;
 
-/// pg_isready issues a connection check to a PostgreSQL database.
+/// `pg_isready` issues a connection check to a PostgreSQL database.
 #[derive(Clone, Debug, Default)]
 pub struct PgIsReadyBuilder {
     program_dir: Option<PathBuf>,
@@ -166,7 +166,7 @@ mod tests {
         assert_eq!(
             r#""./pg_isready" "--host" "localhost" "--port" "5432" "--username" "postgres""#,
             command.to_command_string()
-        )
+        );
     }
 
     #[test]

@@ -3,7 +3,7 @@ use crate::Settings;
 use std::ffi::{OsStr, OsString};
 use std::path::PathBuf;
 
-/// postgres is the PostgreSQL server.
+/// `postgres` is the PostgreSQL server.
 #[derive(Clone, Debug, Default)]
 pub struct PostgresBuilder {
     program_dir: Option<PathBuf>,
@@ -427,7 +427,7 @@ mod tests {
         assert_eq!(
             r#""./postgres" "-h" "localhost" "-p" "5432""#,
             command.to_command_string()
-        )
+        );
     }
 
     #[test]

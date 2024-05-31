@@ -4,7 +4,7 @@ use std::convert::AsRef;
 use std::ffi::{OsStr, OsString};
 use std::path::PathBuf;
 
-/// pg_archivecleanup removes older WAL files from PostgreSQL archives.
+/// `pg_archivecleanup` removes older WAL files from PostgreSQL archives.
 #[derive(Clone, Debug, Default)]
 pub struct PgArchiveCleanupBuilder {
     program_dir: Option<PathBuf>,
@@ -144,7 +144,7 @@ mod tests {
     #[test]
     fn test_builder_from() {
         let command = PgArchiveCleanupBuilder::from(&TestSettings).build();
-        assert_eq!(r#""./pg_archivecleanup""#, command.to_command_string())
+        assert_eq!(r#""./pg_archivecleanup""#, command.to_command_string());
     }
 
     #[test]

@@ -4,7 +4,7 @@ use std::convert::AsRef;
 use std::ffi::{OsStr, OsString};
 use std::path::PathBuf;
 
-/// clusterdb clusters all previously clustered tables in a database.
+/// `clusterdb` clusters all previously clustered tables in a database.
 #[derive(Clone, Debug, Default)]
 pub struct ClusterDbBuilder {
     program_dir: Option<PathBuf>,
@@ -252,7 +252,7 @@ mod tests {
         assert_eq!(
             r#"PGPASSWORD="password" "./clusterdb" "--host" "localhost" "--port" "5432" "--username" "postgres""#,
             command.to_command_string()
-        )
+        );
     }
 
     #[test]

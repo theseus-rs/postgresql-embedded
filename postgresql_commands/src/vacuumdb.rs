@@ -4,7 +4,7 @@ use std::convert::AsRef;
 use std::ffi::{OsStr, OsString};
 use std::path::PathBuf;
 
-/// vacuumdb cleans and analyzes a PostgreSQL database.
+/// `vacuumdb` cleans and analyzes a PostgreSQL database.
 #[derive(Clone, Debug, Default)]
 pub struct VacuumDbBuilder {
     program_dir: Option<PathBuf>,
@@ -469,7 +469,7 @@ mod tests {
         assert_eq!(
             r#"PGPASSWORD="password" "./vacuumdb" "--host" "localhost" "--port" "5432" "--username" "postgres""#,
             command.to_command_string()
-        )
+        );
     }
 
     #[test]

@@ -4,7 +4,7 @@ use std::convert::AsRef;
 use std::ffi::{OsStr, OsString};
 use std::path::PathBuf;
 
-/// createuser creates a new PostgreSQL role.
+/// `createuser` creates a new PostgreSQL role.
 #[derive(Clone, Debug, Default)]
 pub struct CreateUserBuilder {
     program_dir: Option<PathBuf>,
@@ -419,7 +419,7 @@ mod tests {
         assert_eq!(
             r#"PGPASSWORD="password" "./createuser" "--host" "localhost" "--port" "5432" "--username" "postgres""#,
             command.to_command_string()
-        )
+        );
     }
 
     #[test]

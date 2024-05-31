@@ -4,7 +4,7 @@ use std::convert::AsRef;
 use std::ffi::{OsStr, OsString};
 use std::path::PathBuf;
 
-/// pg_resetwal resets the PostgreSQL write-ahead log.
+/// `pg_resetwal` resets the PostgreSQL write-ahead log.
 #[derive(Clone, Debug, Default)]
 pub struct PgResetWalBuilder {
     program_dir: Option<PathBuf>,
@@ -230,7 +230,7 @@ mod tests {
     #[test]
     fn test_builder_from() {
         let command = PgResetWalBuilder::from(&TestSettings).build();
-        assert_eq!(r#""./pg_resetwal""#, command.to_command_string())
+        assert_eq!(r#""./pg_resetwal""#, command.to_command_string());
     }
 
     #[test]

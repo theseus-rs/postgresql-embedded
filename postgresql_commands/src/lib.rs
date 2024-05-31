@@ -1,5 +1,5 @@
-#![allow(async_fn_in_trait)]
 #![forbid(unsafe_code)]
+#![allow(async_fn_in_trait)]
 
 //! Command builders for interacting with PostgreSQL via CLI.
 //!

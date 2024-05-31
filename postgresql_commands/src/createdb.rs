@@ -4,7 +4,7 @@ use std::convert::AsRef;
 use std::ffi::{OsStr, OsString};
 use std::path::PathBuf;
 
-/// createdb creates a PostgreSQL database.
+/// `createdb` creates a PostgreSQL database.
 #[derive(Clone, Debug, Default)]
 pub struct CreateDbBuilder {
     program_dir: Option<PathBuf>,
@@ -349,7 +349,7 @@ mod tests {
         assert_eq!(
             r#"PGPASSWORD="password" "./createdb" "--host" "localhost" "--port" "5432" "--username" "postgres""#,
             command.to_command_string()
-        )
+        );
     }
 
     #[test]

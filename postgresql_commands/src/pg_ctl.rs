@@ -5,7 +5,7 @@ use std::ffi::{OsStr, OsString};
 use std::fmt::Display;
 use std::path::PathBuf;
 
-/// pg_ctl is a utility to initialize, start, stop, or control a PostgreSQL server.
+/// `pg_ctl` is a utility to initialize, start, stop, or control a PostgreSQL server.
 #[derive(Clone, Debug, Default)]
 pub struct PgCtlBuilder {
     program_dir: Option<PathBuf>,
@@ -303,7 +303,7 @@ mod tests {
     #[test]
     fn test_builder_from() {
         let command = PgCtlBuilder::from(&TestSettings).build();
-        assert_eq!(r#""./pg_ctl""#, command.to_command_string())
+        assert_eq!(r#""./pg_ctl""#, command.to_command_string());
     }
 
     #[test]

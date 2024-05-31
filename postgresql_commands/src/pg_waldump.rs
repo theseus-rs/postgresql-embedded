@@ -4,7 +4,7 @@ use std::convert::AsRef;
 use std::ffi::{OsStr, OsString};
 use std::path::PathBuf;
 
-/// pg_waldump decodes and displays PostgreSQL write-ahead logs for debugging.
+/// `pg_waldump` decodes and displays PostgreSQL write-ahead logs for debugging.
 #[derive(Clone, Debug, Default)]
 pub struct PgWalDumpBuilder {
     program_dir: Option<PathBuf>,
@@ -276,7 +276,7 @@ mod tests {
     #[test]
     fn test_builder_from() {
         let command = PgWalDumpBuilder::from(&TestSettings).build();
-        assert_eq!(r#""./pg_waldump""#, command.to_command_string())
+        assert_eq!(r#""./pg_waldump""#, command.to_command_string());
     }
 
     #[test]

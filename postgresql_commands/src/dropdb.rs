@@ -3,7 +3,7 @@ use crate::Settings;
 use std::ffi::{OsStr, OsString};
 use std::path::PathBuf;
 
-/// dropdb removes a PostgreSQL database.
+/// `dropdb` removes a PostgreSQL database.
 #[derive(Clone, Debug, Default)]
 pub struct DropDbBuilder {
     program_dir: Option<PathBuf>,
@@ -238,7 +238,7 @@ mod tests {
         assert_eq!(
             r#"PGPASSWORD="password" "./dropdb" "--host" "localhost" "--port" "5432" "--username" "postgres""#,
             command.to_command_string()
-        )
+        );
     }
 
     #[test]

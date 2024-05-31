@@ -4,7 +4,7 @@ use std::convert::AsRef;
 use std::ffi::{OsStr, OsString};
 use std::path::PathBuf;
 
-/// pg_config provides information about the installed version of PostgreSQL.
+/// `pg_config` provides information about the installed version of PostgreSQL.
 #[derive(Clone, Debug, Default)]
 pub struct PgConfigBuilder {
     program_dir: Option<PathBuf>,
@@ -343,7 +343,7 @@ mod tests {
     #[test]
     fn test_builder_from() {
         let command = PgConfigBuilder::from(&TestSettings).build();
-        assert_eq!(r#""./pg_config""#, command.to_command_string())
+        assert_eq!(r#""./pg_config""#, command.to_command_string());
     }
 
     #[test]

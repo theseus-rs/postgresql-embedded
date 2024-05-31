@@ -4,7 +4,7 @@ use std::convert::AsRef;
 use std::ffi::{OsStr, OsString};
 use std::path::PathBuf;
 
-/// pg_checksums enables, disables, or verifies data checksums in a PostgreSQL database cluster.
+/// `pg_checksums` enables, disables, or verifies data checksums in a PostgreSQL database cluster.
 #[derive(Clone, Debug, Default)]
 pub struct PgChecksumsBuilder {
     program_dir: Option<PathBuf>,
@@ -178,7 +178,7 @@ mod tests {
     #[test]
     fn test_builder_from() {
         let command = PgChecksumsBuilder::from(&TestSettings).build();
-        assert_eq!(r#""./pg_checksums""#, command.to_command_string())
+        assert_eq!(r#""./pg_checksums""#, command.to_command_string());
     }
 
     #[test]

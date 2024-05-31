@@ -4,7 +4,7 @@ use std::convert::AsRef;
 use std::ffi::{OsStr, OsString};
 use std::path::PathBuf;
 
-/// pg_dump dumps a database as a text file or to other formats.
+/// `pg_dump` dumps a database as a text file or to other formats.
 #[derive(Clone, Debug, Default)]
 pub struct PgDumpBuilder {
     program_dir: Option<PathBuf>,
@@ -780,7 +780,7 @@ mod tests {
         assert_eq!(
             r#"PGPASSWORD="password" "./pg_dump" "--host" "localhost" "--port" "5432" "--username" "postgres""#,
             command.to_command_string()
-        )
+        );
     }
 
     #[test]

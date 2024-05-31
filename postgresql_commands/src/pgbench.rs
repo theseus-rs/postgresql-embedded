@@ -4,7 +4,7 @@ use std::convert::AsRef;
 use std::ffi::{OsStr, OsString};
 use std::path::PathBuf;
 
-/// pgbench is a benchmarking tool for PostgreSQL.
+/// `pgbench` is a benchmarking tool for PostgreSQL.
 #[derive(Clone, Debug, Default)]
 pub struct PgBenchBuilder {
     program_dir: Option<PathBuf>,
@@ -607,7 +607,7 @@ mod tests {
         assert_eq!(
             r#""./pgbench" "--host" "localhost" "--port" "5432" "--username" "postgres""#,
             command.to_command_string()
-        )
+        );
     }
 
     #[test]

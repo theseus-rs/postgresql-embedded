@@ -4,7 +4,7 @@ use std::convert::AsRef;
 use std::ffi::{OsStr, OsString};
 use std::path::PathBuf;
 
-/// determine fastest wal_sync_method for PostgreSQL
+/// `pg_test_fsync` command to determine fastest wal_sync_method for PostgreSQL
 #[derive(Clone, Debug, Default)]
 pub struct PgTestFsyncBuilder {
     program_dir: Option<PathBuf>,
@@ -90,7 +90,7 @@ mod tests {
     #[test]
     fn test_builder_from() {
         let command = PgTestFsyncBuilder::from(&TestSettings).build();
-        assert_eq!(r#""./pg_test_fsync""#, command.to_command_string())
+        assert_eq!(r#""./pg_test_fsync""#, command.to_command_string());
     }
 
     #[test]

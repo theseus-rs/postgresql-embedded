@@ -4,7 +4,7 @@ use std::convert::AsRef;
 use std::ffi::{OsStr, OsString};
 use std::path::PathBuf;
 
-/// pg_restore restores a PostgreSQL database from an archive created by pg_dump.
+/// `pg_restore` restores a PostgreSQL database from an archive created by pg_dump.
 #[derive(Clone, Debug, Default)]
 pub struct PgRestoreBuilder {
     program_dir: Option<PathBuf>,
@@ -582,7 +582,7 @@ mod tests {
         assert_eq!(
             r#"PGPASSWORD="password" "./pg_restore" "--host" "localhost" "--port" "5432" "--username" "postgres""#,
             command.to_command_string()
-        )
+        );
     }
 
     #[test]

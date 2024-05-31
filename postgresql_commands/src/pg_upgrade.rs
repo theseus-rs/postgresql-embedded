@@ -4,7 +4,7 @@ use std::convert::AsRef;
 use std::ffi::{OsStr, OsString};
 use std::path::PathBuf;
 
-/// pg_upgrade upgrades a PostgreSQL cluster to a different major version.
+/// `pg_upgrade` upgrades a PostgreSQL cluster to a different major version.
 #[derive(Clone, Debug, Default)]
 pub struct PgUpgradeBuilder {
     program_dir: Option<PathBuf>,
@@ -297,7 +297,7 @@ mod tests {
     #[test]
     fn test_builder_from() {
         let command = PgUpgradeBuilder::from(&TestSettings).build();
-        assert_eq!(r#""./pg_upgrade""#, command.to_command_string())
+        assert_eq!(r#""./pg_upgrade""#, command.to_command_string());
     }
 
     #[test]

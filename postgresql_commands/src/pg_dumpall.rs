@@ -4,7 +4,7 @@ use std::convert::AsRef;
 use std::ffi::{OsStr, OsString};
 use std::path::PathBuf;
 
-/// pg_dumpall extracts a PostgreSQL database cluster into an SQL script file.
+/// `pg_dumpall` extracts a PostgreSQL database cluster into an SQL script file.
 #[derive(Clone, Debug, Default)]
 pub struct PgDumpAllBuilder {
     program_dir: Option<PathBuf>,
@@ -611,7 +611,7 @@ mod tests {
         assert_eq!(
             r#"PGPASSWORD="password" "./pg_dumpall" "--host" "localhost" "--port" "5432" "--username" "postgres""#,
             command.to_command_string()
-        )
+        );
     }
 
     #[test]

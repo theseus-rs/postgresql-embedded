@@ -4,7 +4,7 @@ use std::convert::AsRef;
 use std::ffi::{OsStr, OsString};
 use std::path::PathBuf;
 
-/// pg_test_timing tests the timing of a PostgreSQL instance.
+/// `pg_test_timing` tests the timing of a PostgreSQL instance.
 #[derive(Clone, Debug, Default)]
 pub struct PgTestTimingBuilder {
     program_dir: Option<PathBuf>,
@@ -78,7 +78,7 @@ mod tests {
     #[test]
     fn test_builder_from() {
         let command = PgTestTimingBuilder::from(&TestSettings).build();
-        assert_eq!(r#""./pg_test_timing""#, command.to_command_string())
+        assert_eq!(r#""./pg_test_timing""#, command.to_command_string());
     }
 
     #[test]

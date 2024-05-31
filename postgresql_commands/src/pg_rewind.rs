@@ -4,6 +4,7 @@ use std::convert::AsRef;
 use std::ffi::{OsStr, OsString};
 use std::path::PathBuf;
 
+/// `pg_rewind` synchronizes a PostgreSQL data directory with another data directory.
 #[derive(Clone, Debug, Default)]
 pub struct PgRewindBuilder {
     program_dir: Option<PathBuf>,
@@ -212,7 +213,7 @@ mod tests {
     #[test]
     fn test_builder_from() {
         let command = PgRewindBuilder::from(&TestSettings).build();
-        assert_eq!(r#""./pg_rewind""#, command.to_command_string())
+        assert_eq!(r#""./pg_rewind""#, command.to_command_string());
     }
 
     #[test]

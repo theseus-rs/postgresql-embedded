@@ -4,7 +4,7 @@ use std::convert::AsRef;
 use std::ffi::{OsStr, OsString};
 use std::path::PathBuf;
 
-/// initdb initializes a PostgreSQL database cluster.
+/// `initdb` initializes a PostgreSQL database cluster.
 #[derive(Clone, Debug, Default)]
 pub struct InitDbBuilder {
     program_dir: Option<PathBuf>,
@@ -478,7 +478,7 @@ mod tests {
         assert_eq!(
             r#""./initdb" "--username" "postgres""#,
             command.to_command_string()
-        )
+        );
     }
 
     #[test]

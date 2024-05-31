@@ -4,7 +4,7 @@ use std::convert::AsRef;
 use std::ffi::{OsStr, OsString};
 use std::path::PathBuf;
 
-/// pg_receivewal receives PostgreSQL streaming write-ahead logs.
+/// `pg_receivewal` receives PostgreSQL streaming write-ahead logs.
 #[derive(Clone, Debug, Default)]
 pub struct PgReceiveWalBuilder {
     program_dir: Option<PathBuf>,
@@ -321,7 +321,7 @@ mod tests {
         assert_eq!(
             r#"PGPASSWORD="password" "./pg_receivewal" "--host" "localhost" "--port" "5432" "--username" "postgres""#,
             command.to_command_string()
-        )
+        );
     }
 
     #[test]

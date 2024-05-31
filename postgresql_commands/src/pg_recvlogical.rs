@@ -4,7 +4,7 @@ use std::convert::AsRef;
 use std::ffi::{OsStr, OsString};
 use std::path::PathBuf;
 
-/// pg_recvlogical controls PostgreSQL logical decoding streams.
+/// `pg_recvlogical` controls PostgreSQL logical decoding streams.
 #[derive(Clone, Debug, Default)]
 pub struct PgRecvLogicalBuilder {
     program_dir: Option<PathBuf>,
@@ -357,7 +357,7 @@ mod tests {
         assert_eq!(
             r#"PGPASSWORD="password" "./pg_recvlogical" "--host" "localhost" "--port" "5432" "--username" "postgres""#,
             command.to_command_string()
-        )
+        );
     }
 
     #[test]

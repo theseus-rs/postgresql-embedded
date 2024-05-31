@@ -4,7 +4,7 @@ use std::convert::AsRef;
 use std::ffi::{OsStr, OsString};
 use std::path::PathBuf;
 
-/// pg_amcheck checks objects in a PostgreSQL database for corruption.
+/// `pg_amcheck` checks objects in a PostgreSQL database for corruption.
 #[derive(Clone, Debug, Default)]
 pub struct PgAmCheckBuilder {
     program_dir: Option<PathBuf>,
@@ -495,8 +495,9 @@ mod tests {
         assert_eq!(
             r#"PGPASSWORD="password" "./pg_amcheck" "--host" "localhost" "--port" "5432" "--username" "postgres""#,
             command.to_command_string()
-        )
+        );
     }
+
     #[test]
     fn test_builder() {
         let command = PgAmCheckBuilder::new()

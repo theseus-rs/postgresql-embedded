@@ -4,7 +4,7 @@ use std::convert::AsRef;
 use std::ffi::{OsStr, OsString};
 use std::path::PathBuf;
 
-/// vacuumlo removes unreferenced large objects from databases.
+/// `vacuumlo` removes unreferenced large objects from databases.
 #[derive(Clone, Debug, Default)]
 pub struct VacuumLoBuilder {
     program_dir: Option<PathBuf>,
@@ -206,7 +206,7 @@ mod tests {
         assert_eq!(
             r#"PGPASSWORD="password" "./vacuumlo" "--host" "localhost" "--port" "5432" "--username" "postgres""#,
             command.to_command_string()
-        )
+        );
     }
 
     #[test]

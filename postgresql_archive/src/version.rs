@@ -268,7 +268,7 @@ mod tests {
 
     #[test]
     fn test_version_deserialize_parse_error() {
-        assert!(serde_json::from_str::<Version>("\"foo\"").is_err())
+        assert!(serde_json::from_str::<Version>("\"foo\"").is_err());
     }
 
     //

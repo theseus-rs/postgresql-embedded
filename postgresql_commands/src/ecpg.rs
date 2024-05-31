@@ -4,7 +4,7 @@ use std::convert::AsRef;
 use std::ffi::{OsStr, OsString};
 use std::path::PathBuf;
 
-/// ecpg is the PostgreSQL embedded SQL preprocessor for C programs.
+/// `ecpg` is the PostgreSQL embedded SQL preprocessor for C programs.
 #[derive(Clone, Debug, Default)]
 pub struct EcpgBuilder {
     program_dir: Option<PathBuf>,
@@ -203,8 +203,9 @@ mod tests {
     #[test]
     fn test_builder_from() {
         let command = EcpgBuilder::from(&TestSettings).build();
-        assert_eq!(r#""./ecpg""#, command.to_command_string())
+        assert_eq!(r#""./ecpg""#, command.to_command_string());
     }
+
     #[test]
     fn test_builder() {
         let command = EcpgBuilder::new()

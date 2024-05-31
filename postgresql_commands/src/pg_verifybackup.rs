@@ -4,7 +4,7 @@ use std::convert::AsRef;
 use std::ffi::{OsStr, OsString};
 use std::path::PathBuf;
 
-/// pg_verifybackup verifies a backup against the backup manifest.
+/// `pg_verifybackup` verifies a backup against the backup manifest.
 #[derive(Clone, Debug, Default)]
 pub struct PgVerifyBackupBuilder {
     program_dir: Option<PathBuf>,
@@ -179,7 +179,7 @@ mod tests {
     #[test]
     fn test_builder_from() {
         let command = PgVerifyBackupBuilder::from(&TestSettings).build();
-        assert_eq!(r#""./pg_verifybackup""#, command.to_command_string())
+        assert_eq!(r#""./pg_verifybackup""#, command.to_command_string());
     }
 
     #[test]
