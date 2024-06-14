@@ -19,7 +19,7 @@ pub struct PgCtlBuilder {
     help: bool,
     core_files: bool,
     log: Option<PathBuf>,
-    options: Option<OsString>,
+    options: Vec<OsString>,
     path_to_postgres: Option<OsString>,
     shutdown_mode: Option<ShutdownMode>,
     signal: Option<OsString>,
@@ -149,8 +149,8 @@ impl PgCtlBuilder {
     }
 
     /// command line options to pass to postgres (PostgreSQL server executable) or initdb
-    pub fn options<S: AsRef<OsStr>>(mut self, options: S) -> Self {
-        self.options = Some(options.as_ref().to_os_string());
+    pub fn options<S: AsRef<OsStr>>(mut self, options: Vec<S>) -> Self {
+        self.options = options.iter().map(|s| s.as_ref().to_os_string()).collect();
         self
     }
 
@@ -237,9 +237,9 @@ impl CommandBuilder for PgCtlBuilder {
             args.push(log.into());
         }
 
-        if let Some(options) = &self.options {
+        for option in &self.options {
             args.push("-o".into());
-            args.push(options.into());
+            args.push(option.into());
         }
 
         if let Some(path_to_postgres) = &self.path_to_postgres {
@@ -319,7 +319,7 @@ mod tests {
             .help()
             .core_files()
             .log("log")
-            .options("-c log_connections=on")
+            .options(vec!["-c log_connections=on"])
             .path_to_postgres("path_to_postgres")
             .shutdown_mode(ShutdownMode::Smart)
             .signal("HUP")

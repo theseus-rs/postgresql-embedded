@@ -15,7 +15,7 @@ use url::Url;
 pub const BOOTSTRAP_SUPERUSER: &str = "postgres";
 
 /// Database settings
-#[derive(Clone, Debug, PartialEq, PartialOrd)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Settings {
     /// PostgreSQL's installation directory
     pub installation_dir: PathBuf,
@@ -35,6 +35,8 @@ pub struct Settings {
     pub temporary: bool,
     /// Command execution Timeout
     pub timeout: Option<Duration>,
+    /// Server configuration options
+    pub configuration: HashMap<String, String>,
 }
 
 /// Settings implementation
@@ -79,6 +81,7 @@ impl Settings {
             password,
             temporary: true,
             timeout: Some(Duration::from_secs(5)),
+            configuration: HashMap::new(),
         }
     }
 
@@ -155,6 +158,16 @@ impl Settings {
                 }
             };
         }
+        let configuration_prefix = "configuration.";
+        for (key, value) in query_parameters.iter() {
+            if key.starts_with(configuration_prefix) {
+                if let Some(configuration_key) = key.strip_prefix(configuration_prefix) {
+                    settings
+                        .configuration
+                        .insert(configuration_key.to_string(), value.to_string());
+                }
+            }
+        }
 
         Ok(settings)
     }
@@ -217,6 +230,7 @@ mod tests {
                 .replace(settings.password.as_str(), "password")
         );
         assert_eq!(Some(Duration::from_secs(5)), settings.timeout);
+        assert!(settings.configuration.is_empty());
         Ok(())
     }
 
@@ -228,7 +242,8 @@ mod tests {
         let data_dir = "data_dir=/tmp/data";
         let temporary = "temporary=false";
         let timeout = "timeout=10";
-        let url = format!("{base_url}?{installation_dir}&{password_file}&{data_dir}&{temporary}&{temporary}&{timeout}");
+        let configuration = "configuration.max_connections=42";
+        let url = format!("{base_url}?{installation_dir}&{password_file}&{data_dir}&{temporary}&{temporary}&{timeout}&{configuration}");
 
         let settings = Settings::from_url(url)?;
 
@@ -242,6 +257,8 @@ mod tests {
         assert_eq!(PathBuf::from("/tmp/data"), settings.data_dir);
         assert!(!settings.temporary);
         assert_eq!(Some(Duration::from_secs(10)), settings.timeout);
+        let configuration = HashMap::from([("max_connections".to_string(), "42".to_string())]);
+        assert_eq!(configuration, settings.configuration);
 
         Ok(())
     }
