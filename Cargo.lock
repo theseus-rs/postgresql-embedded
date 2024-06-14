@@ -123,7 +123,7 @@ checksum = "b3d1d046238990b9cf5bcde22a3fb3584ee5cf65fb2765f454ed428c7a0063da"
 
 [[package]]
 name = "archive_async"
-version = "0.10.0"
+version = "0.10.1"
 dependencies = [
  "postgresql_archive",
  "tempfile",
@@ -132,7 +132,7 @@ dependencies = [
 
 [[package]]
 name = "archive_sync"
-version = "0.10.0"
+version = "0.10.1"
 dependencies = [
  "postgresql_archive",
  "tempfile",
@@ -525,7 +525,7 @@ dependencies = [
 
 [[package]]
 name = "embedded_async"
-version = "0.10.0"
+version = "0.10.1"
 dependencies = [
  "postgresql_embedded",
  "tokio",
@@ -533,7 +533,7 @@ dependencies = [
 
 [[package]]
 name = "embedded_sync"
-version = "0.10.0"
+version = "0.10.1"
 dependencies = [
  "postgresql_embedded",
 ]
@@ -1730,7 +1730,7 @@ dependencies = [
 
 [[package]]
 name = "postgres_embedded"
-version = "0.10.0"
+version = "0.10.1"
 dependencies = [
  "anyhow",
  "postgres",
@@ -1739,7 +1739,7 @@ dependencies = [
 
 [[package]]
 name = "postgresql_archive"
-version = "0.10.0"
+version = "0.10.1"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -1771,7 +1771,7 @@ dependencies = [
 
 [[package]]
 name = "postgresql_commands"
-version = "0.10.0"
+version = "0.10.1"
 dependencies = [
  "anyhow",
  "test-log",
@@ -1782,7 +1782,7 @@ dependencies = [
 
 [[package]]
 name = "postgresql_embedded"
-version = "0.10.0"
+version = "0.10.1"
 dependencies = [
  "anyhow",
  "bytes",
@@ -2569,7 +2569,7 @@ dependencies = [
 
 [[package]]
 name = "sqlx_embedded"
-version = "0.10.0"
+version = "0.10.1"
 dependencies = [
  "anyhow",
  "postgresql_embedded",
