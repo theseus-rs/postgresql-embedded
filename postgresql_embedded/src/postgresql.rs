@@ -254,7 +254,11 @@ impl PostgreSQL {
             self.settings.port
         );
         let start_log = self.settings.data_dir.join("start.log");
-        let options = format!("-F -p {}", self.settings.port);
+        let mut options = Vec::new();
+        options.push(format!("-F -p {}", self.settings.port));
+        for (key, value) in &self.settings.configuration {
+            options.push(format!("-c {key}={value}"));
+        }
         let pg_ctl = PgCtlBuilder::from(&self.settings)
             .mode(Start)
             .pgdata(&self.settings.data_dir)
