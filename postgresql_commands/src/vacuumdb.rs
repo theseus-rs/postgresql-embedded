@@ -4,10 +4,12 @@ use std::convert::AsRef;
 use std::ffi::{OsStr, OsString};
 use std::path::PathBuf;
 
-/// `vacuumdb` cleans and analyzes a PostgreSQL database.
+/// `vacuumdb` cleans and analyzes a `PostgreSQL` database.
 #[derive(Clone, Debug, Default)]
+#[allow(clippy::struct_excessive_bools)]
 pub struct VacuumDbBuilder {
     program_dir: Option<PathBuf>,
+    envs: Vec<(OsString, OsString)>,
     all: bool,
     buffer_usage_limit: Option<OsString>,
     dbname: Option<OsString>,
@@ -44,14 +46,15 @@ pub struct VacuumDbBuilder {
     maintenance_db: Option<OsString>,
 }
 
-/// vacuumdb cleans and analyzes a PostgreSQL database.
+/// vacuumdb cleans and analyzes a `PostgreSQL` database.
 impl VacuumDbBuilder {
-    /// Create a new [VacuumDbBuilder]
+    /// Create a new [`VacuumDbBuilder`]
+    #[must_use]
     pub fn new() -> Self {
         Self::default()
     }
 
-    /// Create a new [VacuumDbBuilder] from [Settings]
+    /// Create a new [`VacuumDbBuilder`] from [Settings]
     pub fn from(settings: &dyn Settings) -> Self {
         Self::new()
             .program_dir(settings.get_binary_dir())
@@ -62,210 +65,245 @@ impl VacuumDbBuilder {
     }
 
     /// Location of the program binary
+    #[must_use]
     pub fn program_dir<P: Into<PathBuf>>(mut self, path: P) -> Self {
         self.program_dir = Some(path.into());
         self
     }
 
     /// vacuum all databases
+    #[must_use]
     pub fn all(mut self) -> Self {
         self.all = true;
         self
     }
 
     /// size of ring buffer used for vacuum
+    #[must_use]
     pub fn buffer_usage_limit<S: AsRef<OsStr>>(mut self, buffer_usage_limit: S) -> Self {
         self.buffer_usage_limit = Some(buffer_usage_limit.as_ref().to_os_string());
         self
     }
 
     /// database to vacuum
+    #[must_use]
     pub fn dbname<S: AsRef<OsStr>>(mut self, dbname: S) -> Self {
         self.dbname = Some(dbname.as_ref().to_os_string());
         self
     }
 
     /// disable all page-skipping behavior
+    #[must_use]
     pub fn disable_page_skipping(mut self) -> Self {
         self.disable_page_skipping = true;
         self
     }
 
     /// show the commands being sent to the server
+    #[must_use]
     pub fn echo(mut self) -> Self {
         self.echo = true;
         self
     }
 
     /// do full vacuuming
+    #[must_use]
     pub fn full(mut self) -> Self {
         self.full = true;
         self
     }
 
     /// freeze row transaction information
+    #[must_use]
     pub fn freeze(mut self) -> Self {
         self.freeze = true;
         self
     }
 
     /// always remove index entries that point to dead tuples
+    #[must_use]
     pub fn force_index_cleanup(mut self) -> Self {
         self.force_index_cleanup = true;
         self
     }
 
     /// use this many concurrent connections to vacuum
+    #[must_use]
     pub fn jobs(mut self, jobs: u32) -> Self {
         self.jobs = Some(jobs);
         self
     }
 
     /// minimum multixact ID age of tables to vacuum
+    #[must_use]
     pub fn min_mxid_age<S: AsRef<OsStr>>(mut self, min_mxid_age: S) -> Self {
         self.min_mxid_age = Some(min_mxid_age.as_ref().to_os_string());
         self
     }
 
     /// minimum transaction ID age of tables to vacuum
+    #[must_use]
     pub fn min_xid_age<S: AsRef<OsStr>>(mut self, min_xid_age: S) -> Self {
         self.min_xid_age = Some(min_xid_age.as_ref().to_os_string());
         self
     }
 
     /// don't remove index entries that point to dead tuples
+    #[must_use]
     pub fn no_index_cleanup(mut self) -> Self {
         self.no_index_cleanup = true;
         self
     }
 
     /// skip the main relation
+    #[must_use]
     pub fn no_process_main(mut self) -> Self {
         self.no_process_main = true;
         self
     }
 
     /// skip the TOAST table associated with the table to vacuum
+    #[must_use]
     pub fn no_process_toast(mut self) -> Self {
         self.no_process_toast = true;
         self
     }
 
     /// don't truncate empty pages at the end of the table
+    #[must_use]
     pub fn no_truncate(mut self) -> Self {
         self.no_truncate = true;
         self
     }
 
     /// vacuum tables in the specified schema(s) only
+    #[must_use]
     pub fn schema<S: AsRef<OsStr>>(mut self, schema: S) -> Self {
         self.schema = Some(schema.as_ref().to_os_string());
         self
     }
 
     /// do not vacuum tables in the specified schema(s)
+    #[must_use]
     pub fn exclude_schema<S: AsRef<OsStr>>(mut self, exclude_schema: S) -> Self {
         self.exclude_schema = Some(exclude_schema.as_ref().to_os_string());
         self
     }
 
     /// use this many background workers for vacuum, if available
+    #[must_use]
     pub fn parallel(mut self, parallel: u32) -> Self {
         self.parallel = Some(parallel);
         self
     }
 
     /// don't write any messages
+    #[must_use]
     pub fn quiet(mut self) -> Self {
         self.quiet = true;
         self
     }
 
     /// skip relations that cannot be immediately locked
+    #[must_use]
     pub fn skip_locked(mut self) -> Self {
         self.skip_locked = true;
         self
     }
 
     /// vacuum specific table(s) only
+    #[must_use]
     pub fn table<S: AsRef<OsStr>>(mut self, table: S) -> Self {
         self.table = Some(table.as_ref().to_os_string());
         self
     }
 
     /// write a lot of output
+    #[must_use]
     pub fn verbose(mut self) -> Self {
         self.verbose = true;
         self
     }
 
     /// output version information, then exit
+    #[must_use]
     pub fn version(mut self) -> Self {
         self.version = true;
         self
     }
 
     /// update optimizer statistics
+    #[must_use]
     pub fn analyze(mut self) -> Self {
         self.analyze = true;
         self
     }
 
     /// only update optimizer statistics; no vacuum
+    #[must_use]
     pub fn analyze_only(mut self) -> Self {
         self.analyze_only = true;
         self
     }
 
     /// only update optimizer statistics, in multiple stages for faster results; no vacuum
+    #[must_use]
     pub fn analyze_in_stages(mut self) -> Self {
         self.analyze_in_stages = true;
         self
     }
 
     /// show help, then exit
+    #[must_use]
     pub fn help(mut self) -> Self {
         self.help = true;
         self
     }
 
     /// database server host or socket directory
+    #[must_use]
     pub fn host<S: AsRef<OsStr>>(mut self, host: S) -> Self {
         self.host = Some(host.as_ref().to_os_string());
         self
     }
 
     /// database server port
+    #[must_use]
     pub fn port(mut self, port: u16) -> Self {
         self.port = Some(port);
         self
     }
 
     /// user name to connect as
+    #[must_use]
     pub fn username<S: AsRef<OsStr>>(mut self, username: S) -> Self {
         self.username = Some(username.as_ref().to_os_string());
         self
     }
 
     /// never prompt for password
+    #[must_use]
     pub fn no_password(mut self) -> Self {
         self.no_password = true;
         self
     }
 
     /// force password prompt
+    #[must_use]
     pub fn password(mut self) -> Self {
         self.password = true;
         self
     }
 
     /// user password
+    #[must_use]
     pub fn pg_password<S: AsRef<OsStr>>(mut self, pg_password: S) -> Self {
         self.pg_password = Some(pg_password.as_ref().to_os_string());
         self
     }
 
     /// alternate maintenance database
+    #[must_use]
     pub fn maintenance_db<S: AsRef<OsStr>>(mut self, maintenance_db: S) -> Self {
         self.maintenance_db = Some(maintenance_db.as_ref().to_os_string());
         self
@@ -284,6 +322,7 @@ impl CommandBuilder for VacuumDbBuilder {
     }
 
     /// Get the arguments for the command
+    #[allow(clippy::too_many_lines)]
     fn get_args(&self) -> Vec<OsString> {
         let mut args: Vec<OsString> = Vec::new();
 
@@ -437,13 +476,20 @@ impl CommandBuilder for VacuumDbBuilder {
 
     /// Get the environment variables for the command
     fn get_envs(&self) -> Vec<(OsString, OsString)> {
-        let mut envs: Vec<(OsString, OsString)> = Vec::new();
+        let mut envs: Vec<(OsString, OsString)> = self.envs.clone();
 
         if let Some(password) = &self.pg_password {
             envs.push(("PGPASSWORD".into(), password.into()));
         }
 
         envs
+    }
+
+    /// Set an environment variable for the command
+    fn env<S: AsRef<OsStr>>(mut self, key: S, value: S) -> Self {
+        self.envs
+            .push((key.as_ref().to_os_string(), value.as_ref().to_os_string()));
+        self
     }
 }
 
@@ -475,6 +521,7 @@ mod tests {
     #[test]
     fn test_builder() {
         let command = VacuumDbBuilder::new()
+            .env("PGDATABASE", "database")
             .all()
             .buffer_usage_limit("buffer_usage_limit")
             .dbname("dbname")
@@ -512,7 +559,7 @@ mod tests {
             .build();
 
         assert_eq!(
-            r#"PGPASSWORD="password" "vacuumdb" "--all" "--buffer-usage-limit" "buffer_usage_limit" "--dbname" "dbname" "--disable-page-skipping" "--echo" "--full" "--freeze" "--force-index-cleanup" "--jobs" "1" "--min-mxid-age" "min_mxid_age" "--min-xid-age" "min_xid_age" "--no-index-cleanup" "--no-process-main" "--no-process-toast" "--no-truncate" "--schema" "schema" "--exclude-schema" "exclude_schema" "--parallel" "1" "--quiet" "--skip-locked" "--table" "table" "--verbose" "--version" "--analyze" "--analyze-only" "--analyze-in-stages" "--help" "--host" "localhost" "--port" "5432" "--username" "username" "--no-password" "--password" "--maintenance-db" "maintenance_db""#,
+            r#"PGDATABASE="database" PGPASSWORD="password" "vacuumdb" "--all" "--buffer-usage-limit" "buffer_usage_limit" "--dbname" "dbname" "--disable-page-skipping" "--echo" "--full" "--freeze" "--force-index-cleanup" "--jobs" "1" "--min-mxid-age" "min_mxid_age" "--min-xid-age" "min_xid_age" "--no-index-cleanup" "--no-process-main" "--no-process-toast" "--no-truncate" "--schema" "schema" "--exclude-schema" "exclude_schema" "--parallel" "1" "--quiet" "--skip-locked" "--table" "table" "--verbose" "--version" "--analyze" "--analyze-only" "--analyze-in-stages" "--help" "--host" "localhost" "--port" "5432" "--username" "username" "--no-password" "--password" "--maintenance-db" "maintenance_db""#,
             command.to_command_string()
         );
     }

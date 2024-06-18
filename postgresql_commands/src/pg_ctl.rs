@@ -5,10 +5,13 @@ use std::ffi::{OsStr, OsString};
 use std::fmt::Display;
 use std::path::PathBuf;
 
-/// `pg_ctl` is a utility to initialize, start, stop, or control a PostgreSQL server.
+/// `pg_ctl` is a utility to initialize, start, stop, or control a `PostgreSQL` server.
 #[derive(Clone, Debug, Default)]
+#[allow(clippy::module_name_repetitions)]
+#[allow(clippy::struct_excessive_bools)]
 pub struct PgCtlBuilder {
     program_dir: Option<PathBuf>,
+    envs: Vec<(OsString, OsString)>,
     mode: Option<Mode>,
     pgdata: Option<PathBuf>,
     silent: bool,
@@ -73,106 +76,124 @@ impl Display for ShutdownMode {
 }
 
 impl PgCtlBuilder {
-    /// Create a new [PgCtlBuilder]
+    /// Create a new [`PgCtlBuilder`]
+    #[must_use]
     pub fn new() -> Self {
         Self::default()
     }
 
-    /// Create a new [PgCtlBuilder] from [Settings]
+    /// Create a new [`PgCtlBuilder`] from [Settings]
     pub fn from(settings: &dyn Settings) -> Self {
         Self::new().program_dir(settings.get_binary_dir())
     }
 
     /// Location of the program binary
+    #[must_use]
     pub fn program_dir<P: Into<PathBuf>>(mut self, path: P) -> Self {
         self.program_dir = Some(path.into());
         self
     }
 
+    /// mode
+    #[must_use]
     pub fn mode(mut self, mode: Mode) -> Self {
         self.mode = Some(mode);
         self
     }
 
     /// location of the database storage area
+    #[must_use]
     pub fn pgdata<P: Into<PathBuf>>(mut self, pgdata: P) -> Self {
         self.pgdata = Some(pgdata.into());
         self
     }
 
     /// only print errors, no informational messages
+    #[must_use]
     pub fn silent(mut self) -> Self {
         self.silent = true;
         self
     }
 
     /// seconds to wait when using -w option
+    #[must_use]
     pub fn timeout(mut self, timeout: u16) -> Self {
         self.timeout = Some(timeout);
         self
     }
 
     /// output version information, then exit
+    #[must_use]
     pub fn version(mut self) -> Self {
         self.version = true;
         self
     }
 
     /// wait until operation completes (default)
+    #[must_use]
     pub fn wait(mut self) -> Self {
         self.wait = true;
         self
     }
 
     /// do not wait until operation completes
+    #[must_use]
     pub fn no_wait(mut self) -> Self {
         self.no_wait = true;
         self
     }
 
     /// show help, then exit
+    #[must_use]
     pub fn help(mut self) -> Self {
         self.help = true;
         self
     }
 
     /// allow postgres to produce core files
+    #[must_use]
     pub fn core_files(mut self) -> Self {
         self.core_files = true;
         self
     }
 
     /// write (or append) server log to FILENAME
+    #[must_use]
     pub fn log<P: Into<PathBuf>>(mut self, log: P) -> Self {
         self.log = Some(log.into());
         self
     }
 
-    /// command line options to pass to postgres (PostgreSQL server executable) or initdb
-    pub fn options<S: AsRef<OsStr>>(mut self, options: Vec<S>) -> Self {
+    /// command line options to pass to postgres (`PostgreSQL` server executable) or initdb
+    #[must_use]
+    pub fn options<S: AsRef<OsStr>>(mut self, options: &[S]) -> Self {
         self.options = options.iter().map(|s| s.as_ref().to_os_string()).collect();
         self
     }
 
     /// normally not necessary
+    #[must_use]
     pub fn path_to_postgres<S: AsRef<OsStr>>(mut self, path_to_postgres: S) -> Self {
         self.path_to_postgres = Some(path_to_postgres.as_ref().to_os_string());
         self
     }
 
     /// MODE can be "smart", "fast", or "immediate"
+    #[must_use]
     pub fn shutdown_mode(mut self, shutdown_mode: ShutdownMode) -> Self {
         self.shutdown_mode = Some(shutdown_mode);
         self
     }
 
     /// SIGNALNAME
+    #[must_use]
     pub fn signal<S: AsRef<OsStr>>(mut self, signal: S) -> Self {
         self.signal = Some(signal.as_ref().to_os_string());
         self
     }
 
     /// PID
+    #[must_use]
     pub fn pid<S: AsRef<OsStr>>(mut self, pid: S) -> Self {
         self.pid = Some(pid.as_ref().to_os_string());
         self
@@ -262,6 +283,18 @@ impl CommandBuilder for PgCtlBuilder {
 
         args
     }
+
+    /// Get the environment variables for the command
+    fn get_envs(&self) -> Vec<(OsString, OsString)> {
+        self.envs.clone()
+    }
+
+    /// Set an environment variable for the command
+    fn env<S: AsRef<OsStr>>(mut self, key: S, value: S) -> Self {
+        self.envs
+            .push((key.as_ref().to_os_string(), value.as_ref().to_os_string()));
+        self
+    }
 }
 
 #[cfg(test)]
@@ -309,6 +342,7 @@ mod tests {
     #[test]
     fn test_builder() {
         let command = PgCtlBuilder::new()
+            .env("PGDATABASE", "database")
             .mode(Mode::Start)
             .pgdata("pgdata")
             .silent()
@@ -319,7 +353,7 @@ mod tests {
             .help()
             .core_files()
             .log("log")
-            .options(vec!["-c log_connections=on"])
+            .options(&["-c log_connections=on"])
             .path_to_postgres("path_to_postgres")
             .shutdown_mode(ShutdownMode::Smart)
             .signal("HUP")
@@ -327,7 +361,7 @@ mod tests {
             .build();
 
         assert_eq!(
-            r#""pg_ctl" "start" "--pgdata" "pgdata" "--silent" "--timeout" "60" "--version" "--wait" "--no-wait" "--help" "--core-files" "--log" "log" "-o" "-c log_connections=on" "-p" "path_to_postgres" "--mode" "smart" "HUP" "12345""#,
+            r#"PGDATABASE="database" "pg_ctl" "start" "--pgdata" "pgdata" "--silent" "--timeout" "60" "--version" "--wait" "--no-wait" "--help" "--core-files" "--log" "log" "-o" "-c log_connections=on" "-p" "path_to_postgres" "--mode" "smart" "HUP" "12345""#,
             command.to_command_string()
         );
     }

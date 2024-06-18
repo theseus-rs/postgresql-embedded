@@ -4,10 +4,13 @@ use std::convert::AsRef;
 use std::ffi::{OsStr, OsString};
 use std::path::PathBuf;
 
-/// `pg_restore` restores a PostgreSQL database from an archive created by pg_dump.
+/// `pg_restore` restores a `PostgreSQL` database from an archive created by `pg_dump`.
 #[derive(Clone, Debug, Default)]
+#[allow(clippy::module_name_repetitions)]
+#[allow(clippy::struct_excessive_bools)]
 pub struct PgRestoreBuilder {
     program_dir: Option<PathBuf>,
+    envs: Vec<(OsString, OsString)>,
     dbname: Option<OsString>,
     file: Option<OsString>,
     format: Option<OsString>,
@@ -55,12 +58,13 @@ pub struct PgRestoreBuilder {
 }
 
 impl PgRestoreBuilder {
-    /// Create a new [PgRestoreBuilder]
+    /// Create a new [`PgRestoreBuilder`]
+    #[must_use]
     pub fn new() -> Self {
         Self::default()
     }
 
-    /// Create a new [PgRestoreBuilder] from [Settings]
+    /// Create a new [`PgRestoreBuilder`] from [Settings]
     pub fn from(settings: &dyn Settings) -> Self {
         Self::new()
             .program_dir(settings.get_binary_dir())
@@ -71,270 +75,315 @@ impl PgRestoreBuilder {
     }
 
     /// Location of the program binary
+    #[must_use]
     pub fn program_dir<P: Into<PathBuf>>(mut self, path: P) -> Self {
         self.program_dir = Some(path.into());
         self
     }
 
     /// connect to database name
+    #[must_use]
     pub fn dbname<S: AsRef<OsStr>>(mut self, name: S) -> Self {
         self.dbname = Some(name.as_ref().to_os_string());
         self
     }
 
     /// output file name (- for stdout)
+    #[must_use]
     pub fn file<S: AsRef<OsStr>>(mut self, filename: S) -> Self {
         self.file = Some(filename.as_ref().to_os_string());
         self
     }
 
     /// backup file format (should be automatic)
+    #[must_use]
     pub fn format<S: AsRef<OsStr>>(mut self, format: S) -> Self {
         self.format = Some(format.as_ref().to_os_string());
         self
     }
 
     /// print summarized TOC of the archive
+    #[must_use]
     pub fn list(mut self) -> Self {
         self.list = true;
         self
     }
 
     /// verbose mode
+    #[must_use]
     pub fn verbose(mut self) -> Self {
         self.verbose = true;
         self
     }
 
     /// output version information, then exit
+    #[must_use]
     pub fn version(mut self) -> Self {
         self.version = true;
         self
     }
 
     /// show help, then exit
+    #[must_use]
     pub fn help(mut self) -> Self {
         self.help = true;
         self
     }
 
     /// restore only the data, no schema
+    #[must_use]
     pub fn data_only(mut self) -> Self {
         self.data_only = true;
         self
     }
 
     /// clean (drop) database objects before recreating
+    #[must_use]
     pub fn clean(mut self) -> Self {
         self.clean = true;
         self
     }
 
     /// create the target database
+    #[must_use]
     pub fn create(mut self) -> Self {
         self.create = true;
         self
     }
 
     /// exit on error, default is to continue
+    #[must_use]
     pub fn exit_on_error(mut self) -> Self {
         self.exit_on_error = true;
         self
     }
 
     /// restore named index
+    #[must_use]
     pub fn index<S: AsRef<OsStr>>(mut self, name: S) -> Self {
         self.index = Some(name.as_ref().to_os_string());
         self
     }
 
     /// use this many parallel jobs to restore
+    #[must_use]
     pub fn jobs<S: AsRef<OsStr>>(mut self, num: S) -> Self {
         self.jobs = Some(num.as_ref().to_os_string());
         self
     }
 
     /// use table of contents from this file for selecting/ordering output
+    #[must_use]
     pub fn use_list<S: AsRef<OsStr>>(mut self, filename: S) -> Self {
         self.use_list = Some(filename.as_ref().to_os_string());
         self
     }
 
     /// restore only objects in this schema
+    #[must_use]
     pub fn schema<S: AsRef<OsStr>>(mut self, name: S) -> Self {
         self.schema = Some(name.as_ref().to_os_string());
         self
     }
 
     /// do not restore objects in this schema
+    #[must_use]
     pub fn exclude_schema<S: AsRef<OsStr>>(mut self, name: S) -> Self {
         self.exclude_schema = Some(name.as_ref().to_os_string());
         self
     }
 
     /// skip restoration of object ownership
+    #[must_use]
     pub fn no_owner(mut self) -> Self {
         self.no_owner = true;
         self
     }
 
     /// restore named function
+    #[must_use]
     pub fn function<S: AsRef<OsStr>>(mut self, name: S) -> Self {
         self.function = Some(name.as_ref().to_os_string());
         self
     }
 
     /// restore only the schema, no data
+    #[must_use]
     pub fn schema_only(mut self) -> Self {
         self.schema_only = true;
         self
     }
 
     /// superuser user name to use for disabling triggers
+    #[must_use]
     pub fn superuser<S: AsRef<OsStr>>(mut self, name: S) -> Self {
         self.superuser = Some(name.as_ref().to_os_string());
         self
     }
 
     /// restore named relation (table, view, etc.)
+    #[must_use]
     pub fn table<S: AsRef<OsStr>>(mut self, name: S) -> Self {
         self.table = Some(name.as_ref().to_os_string());
         self
     }
 
     /// restore named trigger
+    #[must_use]
     pub fn trigger<S: AsRef<OsStr>>(mut self, name: S) -> Self {
         self.trigger = Some(name.as_ref().to_os_string());
         self
     }
 
     /// skip restoration of access privileges (grant/revoke)
+    #[must_use]
     pub fn no_privileges(mut self) -> Self {
         self.no_privileges = true;
         self
     }
 
     /// restore as a single transaction
+    #[must_use]
     pub fn single_transaction(mut self) -> Self {
         self.single_transaction = true;
         self
     }
 
     /// disable triggers during data-only restore
+    #[must_use]
     pub fn disable_triggers(mut self) -> Self {
         self.disable_triggers = true;
         self
     }
 
     /// enable row security
+    #[must_use]
     pub fn enable_row_security(mut self) -> Self {
         self.enable_row_security = true;
         self
     }
 
     /// use IF EXISTS when dropping objects
+    #[must_use]
     pub fn if_exists(mut self) -> Self {
         self.if_exists = true;
         self
     }
 
     /// do not restore comments
+    #[must_use]
     pub fn no_comments(mut self) -> Self {
         self.no_comments = true;
         self
     }
 
     /// do not restore data of tables that could not be created
+    #[must_use]
     pub fn no_data_for_failed_tables(mut self) -> Self {
         self.no_data_for_failed_tables = true;
         self
     }
 
     /// do not restore publications
+    #[must_use]
     pub fn no_publications(mut self) -> Self {
         self.no_publications = true;
         self
     }
 
     /// do not restore security labels
+    #[must_use]
     pub fn no_security_labels(mut self) -> Self {
         self.no_security_labels = true;
         self
     }
 
     /// do not restore subscriptions
+    #[must_use]
     pub fn no_subscriptions(mut self) -> Self {
         self.no_subscriptions = true;
         self
     }
 
     /// do not restore table access methods
+    #[must_use]
     pub fn no_table_access_method(mut self) -> Self {
         self.no_table_access_method = true;
         self
     }
 
     /// do not restore tablespace assignments
+    #[must_use]
     pub fn no_tablespaces(mut self) -> Self {
         self.no_tablespaces = true;
         self
     }
 
     /// restore named section (pre-data, data, or post-data)
+    #[must_use]
     pub fn section<S: AsRef<OsStr>>(mut self, section: S) -> Self {
         self.section = Some(section.as_ref().to_os_string());
         self
     }
 
     /// require table and/or schema include patterns to match at least one entity each
+    #[must_use]
     pub fn strict_names(mut self) -> Self {
         self.strict_names = true;
         self
     }
 
     /// use SET SESSION AUTHORIZATION commands instead of ALTER OWNER commands to set ownership
+    #[must_use]
     pub fn use_set_session_authorization(mut self) -> Self {
         self.use_set_session_authorization = true;
         self
     }
 
     /// database server host or socket directory
+    #[must_use]
     pub fn host<S: AsRef<OsStr>>(mut self, hostname: S) -> Self {
         self.host = Some(hostname.as_ref().to_os_string());
         self
     }
 
     /// database server port number
+    #[must_use]
     pub fn port(mut self, port: u16) -> Self {
         self.port = Some(port);
         self
     }
 
     /// connect as specified database user
+    #[must_use]
     pub fn username<S: AsRef<OsStr>>(mut self, name: S) -> Self {
         self.username = Some(name.as_ref().to_os_string());
         self
     }
 
     /// never prompt for password
+    #[must_use]
     pub fn no_password(mut self) -> Self {
         self.no_password = true;
         self
     }
 
     /// force password prompt (should happen automatically)
+    #[must_use]
     pub fn password(mut self) -> Self {
         self.password = true;
         self
     }
 
     /// user password
+    #[must_use]
     pub fn pg_password<S: AsRef<OsStr>>(mut self, pg_password: S) -> Self {
         self.pg_password = Some(pg_password.as_ref().to_os_string());
         self
     }
 
     /// do SET ROLE before restore
+    #[must_use]
     pub fn role<S: AsRef<OsStr>>(mut self, rolename: S) -> Self {
         self.role = Some(rolename.as_ref().to_os_string());
         self
@@ -353,6 +402,7 @@ impl CommandBuilder for PgRestoreBuilder {
     }
 
     /// Get the arguments for the command
+    #[allow(clippy::too_many_lines)]
     fn get_args(&self) -> Vec<OsString> {
         let mut args: Vec<OsString> = Vec::new();
 
@@ -550,13 +600,20 @@ impl CommandBuilder for PgRestoreBuilder {
 
     /// Get the environment variables for the command
     fn get_envs(&self) -> Vec<(OsString, OsString)> {
-        let mut envs: Vec<(OsString, OsString)> = Vec::new();
+        let mut envs: Vec<(OsString, OsString)> = self.envs.clone();
 
         if let Some(password) = &self.pg_password {
             envs.push(("PGPASSWORD".into(), password.into()));
         }
 
         envs
+    }
+
+    /// Set an environment variable for the command
+    fn env<S: AsRef<OsStr>>(mut self, key: S, value: S) -> Self {
+        self.envs
+            .push((key.as_ref().to_os_string(), value.as_ref().to_os_string()));
+        self
     }
 }
 
@@ -588,6 +645,7 @@ mod tests {
     #[test]
     fn test_builder() {
         let command = PgRestoreBuilder::new()
+            .env("PGDATABASE", "database")
             .dbname("dbname")
             .file("file")
             .format("format")
@@ -635,7 +693,7 @@ mod tests {
             .build();
 
         assert_eq!(
-            r#"PGPASSWORD="password" "pg_restore" "--dbname" "dbname" "--file" "file" "--format" "format" "--list" "--verbose" "--version" "--help" "--data-only" "--clean" "--create" "--exit-on-error" "--index" "index" "--jobs" "jobs" "--use-list" "use_list" "--schema" "schema" "--exclude-schema" "exclude_schema" "--no-owner" "--function" "function" "--schema-only" "--superuser" "superuser" "--table" "table" "--trigger" "trigger" "--no-privileges" "--single-transaction" "--disable-triggers" "--enable-row-security" "--if-exists" "--no-comments" "--no-data-for-failed-tables" "--no-publications" "--no-security-labels" "--no-subscriptions" "--no-table-access-method" "--no-tablespaces" "--section" "section" "--strict-names" "--use-set-session-authorization" "--host" "localhost" "--port" "5432" "--username" "username" "--no-password" "--password" "--role" "role""#,
+            r#"PGDATABASE="database" PGPASSWORD="password" "pg_restore" "--dbname" "dbname" "--file" "file" "--format" "format" "--list" "--verbose" "--version" "--help" "--data-only" "--clean" "--create" "--exit-on-error" "--index" "index" "--jobs" "jobs" "--use-list" "use_list" "--schema" "schema" "--exclude-schema" "exclude_schema" "--no-owner" "--function" "function" "--schema-only" "--superuser" "superuser" "--table" "table" "--trigger" "trigger" "--no-privileges" "--single-transaction" "--disable-triggers" "--enable-row-security" "--if-exists" "--no-comments" "--no-data-for-failed-tables" "--no-publications" "--no-security-labels" "--no-subscriptions" "--no-table-access-method" "--no-tablespaces" "--section" "section" "--strict-names" "--use-set-session-authorization" "--host" "localhost" "--port" "5432" "--username" "username" "--no-password" "--password" "--role" "role""#,
             command.to_command_string()
         );
     }

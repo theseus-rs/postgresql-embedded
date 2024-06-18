@@ -3,45 +3,51 @@ use crate::Settings;
 use std::ffi::{OsStr, OsString};
 use std::path::PathBuf;
 
-/// `pg_controldata` displays control information of a PostgreSQL database cluster.
+/// `pg_controldata` displays control information of a `PostgreSQL` database cluster.
 #[derive(Clone, Debug, Default)]
 pub struct PgControlDataBuilder {
     program_dir: Option<PathBuf>,
+    envs: Vec<(OsString, OsString)>,
     pgdata: Option<PathBuf>,
     version: bool,
     help: bool,
 }
 
 impl PgControlDataBuilder {
-    /// Create a new [PgControlDataBuilder]
+    /// Create a new [`PgControlDataBuilder`]
+    #[must_use]
     pub fn new() -> Self {
         Self::default()
     }
 
-    /// Create a new [PgControlDataBuilder] from [Settings]
+    /// Create a new [`PgControlDataBuilder`] from [Settings]
     pub fn from(settings: &dyn Settings) -> Self {
         Self::new().program_dir(settings.get_binary_dir())
     }
 
     /// Location of the program binary
+    #[must_use]
     pub fn program_dir<P: Into<PathBuf>>(mut self, path: P) -> Self {
         self.program_dir = Some(path.into());
         self
     }
 
     /// Set the data directory
+    #[must_use]
     pub fn pgdata<P: Into<PathBuf>>(mut self, pgdata: P) -> Self {
         self.pgdata = Some(pgdata.into());
         self
     }
 
     /// output version information, then exit
+    #[must_use]
     pub fn version(mut self) -> Self {
         self.version = true;
         self
     }
 
     /// show help, then exit
+    #[must_use]
     pub fn help(mut self) -> Self {
         self.help = true;
         self
@@ -78,6 +84,18 @@ impl CommandBuilder for PgControlDataBuilder {
 
         args
     }
+
+    /// Get the environment variables for the command
+    fn get_envs(&self) -> Vec<(OsString, OsString)> {
+        self.envs.clone()
+    }
+
+    /// Set an environment variable for the command
+    fn env<S: AsRef<OsStr>>(mut self, key: S, value: S) -> Self {
+        self.envs
+            .push((key.as_ref().to_os_string(), value.as_ref().to_os_string()));
+        self
+    }
 }
 
 #[cfg(test)]
@@ -105,13 +123,14 @@ mod tests {
     #[test]
     fn test_builder() {
         let command = PgControlDataBuilder::new()
+            .env("PGDATABASE", "database")
             .pgdata("pgdata")
             .version()
             .help()
             .build();
 
         assert_eq!(
-            r#""pg_controldata" "--pgdata" "pgdata" "--version" "--help""#,
+            r#"PGDATABASE="database" "pg_controldata" "--pgdata" "pgdata" "--version" "--help""#,
             command.to_command_string()
         );
     }

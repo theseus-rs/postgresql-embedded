@@ -4,10 +4,11 @@ use std::convert::AsRef;
 use std::ffi::{OsStr, OsString};
 use std::path::PathBuf;
 
-/// `pg_isready` issues a connection check to a PostgreSQL database.
+/// `pg_isready` issues a connection check to a `PostgreSQL` database.
 #[derive(Clone, Debug, Default)]
 pub struct PgIsReadyBuilder {
     program_dir: Option<PathBuf>,
+    envs: Vec<(OsString, OsString)>,
     dbname: Option<OsString>,
     quiet: bool,
     version: bool,
@@ -19,12 +20,13 @@ pub struct PgIsReadyBuilder {
 }
 
 impl PgIsReadyBuilder {
-    /// Create a new [PgIsReadyBuilder]
+    /// Create a new [`PgIsReadyBuilder`]
+    #[must_use]
     pub fn new() -> Self {
         Self::default()
     }
 
-    /// Create a new [PgIsReadyBuilder] from [Settings]
+    /// Create a new [`PgIsReadyBuilder`] from [Settings]
     pub fn from(settings: &dyn Settings) -> Self {
         Self::new()
             .program_dir(settings.get_binary_dir())
@@ -34,54 +36,63 @@ impl PgIsReadyBuilder {
     }
 
     /// Location of the program binary
+    #[must_use]
     pub fn program_dir<P: Into<PathBuf>>(mut self, path: P) -> Self {
         self.program_dir = Some(path.into());
         self
     }
 
     /// Set the database name
+    #[must_use]
     pub fn dbname<S: AsRef<OsStr>>(mut self, dbname: S) -> Self {
         self.dbname = Some(dbname.as_ref().to_os_string());
         self
     }
 
     /// Run quietly
+    #[must_use]
     pub fn quiet(mut self) -> Self {
         self.quiet = true;
         self
     }
 
     /// Output version information, then exit
+    #[must_use]
     pub fn version(mut self) -> Self {
         self.version = true;
         self
     }
 
     /// Show help, then exit
+    #[must_use]
     pub fn help(mut self) -> Self {
         self.help = true;
         self
     }
 
     /// Set the database server host or socket directory
+    #[must_use]
     pub fn host<S: AsRef<OsStr>>(mut self, host: S) -> Self {
         self.host = Some(host.as_ref().to_os_string());
         self
     }
 
     /// Set the database server port
+    #[must_use]
     pub fn port(mut self, port: u16) -> Self {
         self.port = Some(port);
         self
     }
 
     /// Set the seconds to wait when attempting connection, 0 disables (default: 3)
+    #[must_use]
     pub fn timeout(mut self, timeout: u16) -> Self {
         self.timeout = Some(timeout);
         self
     }
 
     /// Set the user name to connect as
+    #[must_use]
     pub fn username<S: AsRef<OsStr>>(mut self, username: S) -> Self {
         self.username = Some(username.as_ref().to_os_string());
         self
@@ -142,6 +153,18 @@ impl CommandBuilder for PgIsReadyBuilder {
 
         args
     }
+
+    /// Get the environment variables for the command
+    fn get_envs(&self) -> Vec<(OsString, OsString)> {
+        self.envs.clone()
+    }
+
+    /// Set an environment variable for the command
+    fn env<S: AsRef<OsStr>>(mut self, key: S, value: S) -> Self {
+        self.envs
+            .push((key.as_ref().to_os_string(), value.as_ref().to_os_string()));
+        self
+    }
 }
 
 #[cfg(test)]
@@ -172,6 +195,7 @@ mod tests {
     #[test]
     fn test_builder() {
         let command = PgIsReadyBuilder::new()
+            .env("PGDATABASE", "database")
             .dbname("postgres")
             .quiet()
             .version()
@@ -183,7 +207,7 @@ mod tests {
             .build();
 
         assert_eq!(
-            r#""pg_isready" "--dbname" "postgres" "--quiet" "--version" "--help" "--host" "localhost" "--port" "5432" "--timeout" "3" "--username" "postgres""#,
+            r#"PGDATABASE="database" "pg_isready" "--dbname" "postgres" "--quiet" "--version" "--help" "--host" "localhost" "--port" "5432" "--timeout" "3" "--username" "postgres""#,
             command.to_command_string()
         );
     }

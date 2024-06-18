@@ -1,7 +1,8 @@
 #![forbid(unsafe_code)]
 #![allow(async_fn_in_trait)]
+#![deny(clippy::pedantic)]
 
-//! Command builders for interacting with PostgreSQL via CLI.
+//! Command builders for interacting with `PostgreSQL` via CLI.
 //!
 //! The commands are implemented as builders, which can be used to construct a
 //! [standard Command](std::process::Command) or [tokio Command](tokio::process::Command).

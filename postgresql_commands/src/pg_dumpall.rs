@@ -4,10 +4,12 @@ use std::convert::AsRef;
 use std::ffi::{OsStr, OsString};
 use std::path::PathBuf;
 
-/// `pg_dumpall` extracts a PostgreSQL database cluster into an SQL script file.
+/// `pg_dumpall` extracts a `PostgreSQL` database cluster into an SQL script file.
 #[derive(Clone, Debug, Default)]
+#[allow(clippy::struct_excessive_bools)]
 pub struct PgDumpAllBuilder {
     program_dir: Option<PathBuf>,
+    envs: Vec<(OsString, OsString)>,
     file: Option<OsString>,
     verbose: bool,
     version: bool,
@@ -58,12 +60,13 @@ pub struct PgDumpAllBuilder {
 }
 
 impl PgDumpAllBuilder {
-    /// Create a new [PgDumpAllBuilder]
+    /// Create a new [`PgDumpAllBuilder`]
+    #[must_use]
     pub fn new() -> Self {
         Self::default()
     }
 
-    /// Create a new [PgDumpAllBuilder] from [Settings]
+    /// Create a new [`PgDumpAllBuilder`] from [Settings]
     pub fn from(settings: &dyn Settings) -> Self {
         Self::new()
             .program_dir(settings.get_binary_dir())
@@ -74,288 +77,336 @@ impl PgDumpAllBuilder {
     }
 
     /// Location of the program binary
+    #[must_use]
     pub fn program_dir<P: Into<PathBuf>>(mut self, path: P) -> Self {
         self.program_dir = Some(path.into());
         self
     }
 
     /// output file name
+    #[must_use]
     pub fn file<S: AsRef<OsStr>>(mut self, file: S) -> Self {
         self.file = Some(file.as_ref().to_os_string());
         self
     }
 
     /// verbose mode
+    #[must_use]
     pub fn verbose(mut self) -> Self {
         self.verbose = true;
         self
     }
 
     /// output version information, then exit
+    #[must_use]
     pub fn version(mut self) -> Self {
         self.version = true;
         self
     }
 
     /// fail after waiting TIMEOUT for a table lock
+    #[must_use]
     pub fn lock_wait_timeout(mut self, lock_wait_timeout: u16) -> Self {
         self.lock_wait_timeout = Some(lock_wait_timeout);
         self
     }
 
     /// show help, then exit
+    #[must_use]
     pub fn help(mut self) -> Self {
         self.help = true;
         self
     }
 
     /// dump only the data, not the schema
+    #[must_use]
     pub fn data_only(mut self) -> Self {
         self.data_only = true;
         self
     }
 
     /// clean (drop) database objects before recreating them
+    #[must_use]
     pub fn clean(mut self) -> Self {
         self.clean = true;
         self
     }
 
     /// encoding for the dump
+    #[must_use]
     pub fn encoding<S: AsRef<OsStr>>(mut self, encoding: S) -> Self {
         self.encoding = Some(encoding.as_ref().to_os_string());
         self
     }
 
     /// dump only global objects, not database-specific objects
+    #[must_use]
     pub fn globals_only(mut self) -> Self {
         self.globals_only = true;
         self
     }
 
     /// do not output commands to set object ownership
+    #[must_use]
     pub fn no_owner(mut self) -> Self {
         self.no_owner = true;
         self
     }
 
     /// dump only the roles, not the role memberships or privileges
+    #[must_use]
     pub fn roles_only(mut self) -> Self {
         self.roles_only = true;
         self
     }
 
     /// dump only the object definitions (schema), not data
+    #[must_use]
     pub fn schema_only(mut self) -> Self {
         self.schema_only = true;
         self
     }
 
     /// superuser user name to use in the dump
+    #[must_use]
     pub fn superuser<S: AsRef<OsStr>>(mut self, superuser: S) -> Self {
         self.superuser = Some(superuser.as_ref().to_os_string());
         self
     }
 
     /// dump only the tablespace definitions
+    #[must_use]
     pub fn tablespaces_only(mut self) -> Self {
         self.tablespaces_only = true;
         self
     }
 
     /// do not dump object privileges (grant/revoke commands)
+    #[must_use]
     pub fn no_privileges(mut self) -> Self {
         self.no_privileges = true;
         self
     }
 
     /// dump in a format suitable for binary upgrade
+    #[must_use]
     pub fn binary_upgrade(mut self) -> Self {
         self.binary_upgrade = true;
         self
     }
 
     /// dump data as INSERT commands with column names
+    #[must_use]
     pub fn column_inserts(mut self) -> Self {
         self.column_inserts = true;
         self
     }
 
     /// disable dollar quoting, use SQL standard quoting
+    #[must_use]
     pub fn disable_dollar_quoting(mut self) -> Self {
         self.disable_dollar_quoting = true;
         self
     }
 
     /// disable triggers during data-only restore
+    #[must_use]
     pub fn disable_triggers(mut self) -> Self {
         self.disable_triggers = true;
         self
     }
 
     /// exclude the named database from the dump
+    #[must_use]
     pub fn exclude_database<S: AsRef<OsStr>>(mut self, exclude_database: S) -> Self {
         self.exclude_database = Some(exclude_database.as_ref().to_os_string());
         self
     }
 
     /// set the number of digits displayed for floating-point values
+    #[must_use]
     pub fn extra_float_digits<S: AsRef<OsStr>>(mut self, extra_float_digits: S) -> Self {
         self.extra_float_digits = Some(extra_float_digits.as_ref().to_os_string());
         self
     }
 
     /// use IF EXISTS when dropping objects
+    #[must_use]
     pub fn if_exists(mut self) -> Self {
         self.if_exists = true;
         self
     }
 
     /// dump data as proper INSERT commands
+    #[must_use]
     pub fn inserts(mut self) -> Self {
         self.inserts = true;
         self
     }
 
     /// load data via the partition root table
+    #[must_use]
     pub fn load_via_partition_root(mut self) -> Self {
         self.load_via_partition_root = true;
         self
     }
 
     /// do not dump comments
+    #[must_use]
     pub fn no_comments(mut self) -> Self {
         self.no_comments = true;
         self
     }
 
     /// do not dump publications
+    #[must_use]
     pub fn no_publications(mut self) -> Self {
         self.no_publications = true;
         self
     }
 
     /// do not dump passwords for roles
+    #[must_use]
     pub fn no_role_passwords(mut self) -> Self {
         self.no_role_passwords = true;
         self
     }
 
     /// do not dump security labels
+    #[must_use]
     pub fn no_security_labels(mut self) -> Self {
         self.no_security_labels = true;
         self
     }
 
     /// do not dump subscriptions
+    #[must_use]
     pub fn no_subscriptions(mut self) -> Self {
         self.no_subscriptions = true;
         self
     }
 
     /// do not wait for changes to be written safely to disk
+    #[must_use]
     pub fn no_sync(mut self) -> Self {
         self.no_sync = true;
         self
     }
 
     /// do not dump table access method information
+    #[must_use]
     pub fn no_table_access_method(mut self) -> Self {
         self.no_table_access_method = true;
         self
     }
 
     /// do not dump tablespace assignments
+    #[must_use]
     pub fn no_tablespaces(mut self) -> Self {
         self.no_tablespaces = true;
         self
     }
 
     /// do not dump TOAST compression information
+    #[must_use]
     pub fn no_toast_compression(mut self) -> Self {
         self.no_toast_compression = true;
         self
     }
 
     /// do not dump unlogged table data
+    #[must_use]
     pub fn no_unlogged_table_data(mut self) -> Self {
         self.no_unlogged_table_data = true;
         self
     }
 
     /// use ON CONFLICT DO NOTHING for INSERTs
+    #[must_use]
     pub fn on_conflict_do_nothing(mut self) -> Self {
         self.on_conflict_do_nothing = true;
         self
     }
 
     /// quote all identifiers, even if not key words
+    #[must_use]
     pub fn quote_all_identifiers(mut self) -> Self {
         self.quote_all_identifiers = true;
         self
     }
 
     /// set the number of rows per INSERT command
+    #[must_use]
     pub fn rows_per_insert<S: AsRef<OsStr>>(mut self, rows_per_insert: S) -> Self {
         self.rows_per_insert = Some(rows_per_insert.as_ref().to_os_string());
         self
     }
 
     /// use SET SESSION AUTHORIZATION commands instead of ALTER OWNER
+    #[must_use]
     pub fn use_set_session_authorization(mut self) -> Self {
         self.use_set_session_authorization = true;
         self
     }
 
     /// database name to connect to
+    #[must_use]
     pub fn dbname<S: AsRef<OsStr>>(mut self, dbname: S) -> Self {
         self.dbname = Some(dbname.as_ref().to_os_string());
         self
     }
 
     /// database server host or socket directory
+    #[must_use]
     pub fn host<S: AsRef<OsStr>>(mut self, host: S) -> Self {
         self.host = Some(host.as_ref().to_os_string());
         self
     }
 
     /// database name to connect to
+    #[must_use]
     pub fn database<S: AsRef<OsStr>>(mut self, database: S) -> Self {
         self.database = Some(database.as_ref().to_os_string());
         self
     }
 
     /// database server port number
+    #[must_use]
     pub fn port(mut self, port: u16) -> Self {
         self.port = Some(port);
         self
     }
 
     /// user name to connect as
+    #[must_use]
     pub fn username<S: AsRef<OsStr>>(mut self, username: S) -> Self {
         self.username = Some(username.as_ref().to_os_string());
         self
     }
 
     /// never prompt for password
+    #[must_use]
     pub fn no_password(mut self) -> Self {
         self.no_password = true;
         self
     }
 
     /// force password prompt
+    #[must_use]
     pub fn password(mut self) -> Self {
         self.password = true;
         self
     }
 
     /// user password
+    #[must_use]
     pub fn pg_password<S: AsRef<OsStr>>(mut self, pg_password: S) -> Self {
         self.pg_password = Some(pg_password.as_ref().to_os_string());
         self
     }
 
     /// role name to use in the dump
+    #[must_use]
     pub fn role<S: AsRef<OsStr>>(mut self, role: S) -> Self {
         self.role = Some(role.as_ref().to_os_string());
         self
@@ -374,6 +425,7 @@ impl CommandBuilder for PgDumpAllBuilder {
     }
 
     /// Get the arguments for the command
+    #[allow(clippy::too_many_lines)]
     fn get_args(&self) -> Vec<OsString> {
         let mut args: Vec<OsString> = Vec::new();
 
@@ -579,13 +631,20 @@ impl CommandBuilder for PgDumpAllBuilder {
 
     /// Get the environment variables for the command
     fn get_envs(&self) -> Vec<(OsString, OsString)> {
-        let mut envs: Vec<(OsString, OsString)> = Vec::new();
+        let mut envs: Vec<(OsString, OsString)> = self.envs.clone();
 
         if let Some(password) = &self.pg_password {
             envs.push(("PGPASSWORD".into(), password.into()));
         }
 
         envs
+    }
+
+    /// Set an environment variable for the command
+    fn env<S: AsRef<OsStr>>(mut self, key: S, value: S) -> Self {
+        self.envs
+            .push((key.as_ref().to_os_string(), value.as_ref().to_os_string()));
+        self
     }
 }
 
@@ -617,6 +676,7 @@ mod tests {
     #[test]
     fn test_builder() {
         let command = PgDumpAllBuilder::new()
+            .env("PGDATABASE", "database")
             .file("dump.sql")
             .verbose()
             .version()
@@ -667,7 +727,7 @@ mod tests {
             .build();
 
         assert_eq!(
-            r#"PGPASSWORD="password" "pg_dumpall" "--file" "dump.sql" "--verbose" "--version" "--lock-wait-timeout" "10" "--help" "--data-only" "--clean" "--encoding" "UTF8" "--globals-only" "--no-owner" "--roles-only" "--schema-only" "--superuser" "postgres" "--tablespaces-only" "--no-privileges" "--binary-upgrade" "--column-inserts" "--disable-dollar-quoting" "--disable-triggers" "--exclude-database" "exclude" "--extra-float-digits" "2" "--if-exists" "--inserts" "--load-via-partition-root" "--no-comments" "--no-publications" "--no-role-passwords" "--no-security-labels" "--no-subscriptions" "--no-sync" "--no-table-access-method" "--no-tablespaces" "--no-toast-compression" "--no-unlogged-table-data" "--on-conflict-do-nothing" "--quote-all-identifiers" "--rows-per-insert" "1000" "--use-set-session-authorization" "--dbname" "postgres" "--host" "localhost" "--database" "postgres" "--port" "5432" "--username" "postgres" "--no-password" "--password" "--role" "postgres""#,
+            r#"PGDATABASE="database" PGPASSWORD="password" "pg_dumpall" "--file" "dump.sql" "--verbose" "--version" "--lock-wait-timeout" "10" "--help" "--data-only" "--clean" "--encoding" "UTF8" "--globals-only" "--no-owner" "--roles-only" "--schema-only" "--superuser" "postgres" "--tablespaces-only" "--no-privileges" "--binary-upgrade" "--column-inserts" "--disable-dollar-quoting" "--disable-triggers" "--exclude-database" "exclude" "--extra-float-digits" "2" "--if-exists" "--inserts" "--load-via-partition-root" "--no-comments" "--no-publications" "--no-role-passwords" "--no-security-labels" "--no-subscriptions" "--no-sync" "--no-table-access-method" "--no-tablespaces" "--no-toast-compression" "--no-unlogged-table-data" "--on-conflict-do-nothing" "--quote-all-identifiers" "--rows-per-insert" "1000" "--use-set-session-authorization" "--dbname" "postgres" "--host" "localhost" "--database" "postgres" "--port" "5432" "--username" "postgres" "--no-password" "--password" "--role" "postgres""#,
             command.to_command_string()
         );
     }

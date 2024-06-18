@@ -1,7 +1,7 @@
-/// PostgreSQL command result type
+/// `PostgreSQL` command result type
 pub type Result<T, E = Error> = core::result::Result<T, E>;
 
-/// PostgreSQL command errors
+/// `PostgreSQL` command errors
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
     /// Error when a command fails

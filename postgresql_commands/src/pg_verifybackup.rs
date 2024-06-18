@@ -6,8 +6,10 @@ use std::path::PathBuf;
 
 /// `pg_verifybackup` verifies a backup against the backup manifest.
 #[derive(Clone, Debug, Default)]
+#[allow(clippy::struct_excessive_bools)]
 pub struct PgVerifyBackupBuilder {
     program_dir: Option<PathBuf>,
+    envs: Vec<(OsString, OsString)>,
     exit_on_error: bool,
     ignore: Option<OsString>,
     manifest_path: Option<OsString>,
@@ -21,77 +23,89 @@ pub struct PgVerifyBackupBuilder {
 }
 
 impl PgVerifyBackupBuilder {
-    /// Create a new [PgVerifyBackupBuilder]
+    /// Create a new [`PgVerifyBackupBuilder`]
+    #[must_use]
     pub fn new() -> Self {
         Self::default()
     }
 
-    /// Create a new [PgVerifyBackupBuilder] from [Settings]
+    /// Create a new [`PgVerifyBackupBuilder`] from [Settings]
     pub fn from(settings: &dyn Settings) -> Self {
         Self::new().program_dir(settings.get_binary_dir())
     }
 
     /// Location of the program binary
+    #[must_use]
     pub fn program_dir<P: Into<PathBuf>>(mut self, path: P) -> Self {
         self.program_dir = Some(path.into());
         self
     }
 
     /// exit immediately on error
+    #[must_use]
     pub fn exit_on_error(mut self) -> Self {
         self.exit_on_error = true;
         self
     }
 
     /// ignore indicated path
+    #[must_use]
     pub fn ignore<S: AsRef<OsStr>>(mut self, ignore: S) -> Self {
         self.ignore = Some(ignore.as_ref().to_os_string());
         self
     }
 
     /// use specified path for manifest
+    #[must_use]
     pub fn manifest_path<S: AsRef<OsStr>>(mut self, manifest_path: S) -> Self {
         self.manifest_path = Some(manifest_path.as_ref().to_os_string());
         self
     }
 
     /// do not try to parse WAL files
+    #[must_use]
     pub fn no_parse_wal(mut self) -> Self {
         self.no_parse_wal = true;
         self
     }
 
     /// show progress information
+    #[must_use]
     pub fn progress(mut self) -> Self {
         self.progress = true;
         self
     }
 
     /// do not print any output, except for errors
+    #[must_use]
     pub fn quiet(mut self) -> Self {
         self.quiet = true;
         self
     }
 
     /// skip checksum verification
+    #[must_use]
     pub fn skip_checksums(mut self) -> Self {
         self.skip_checksums = true;
         self
     }
 
     /// use specified path for WAL files
+    #[must_use]
     pub fn wal_directory<S: AsRef<OsStr>>(mut self, wal_directory: S) -> Self {
         self.wal_directory = Some(wal_directory.as_ref().to_os_string());
         self
     }
 
     /// output version information, then exit
+    #[must_use]
     pub fn version(mut self) -> Self {
         self.version = true;
         self
     }
 
     /// show help, then exit
+    #[must_use]
     pub fn help(mut self) -> Self {
         self.help = true;
         self
@@ -158,6 +172,18 @@ impl CommandBuilder for PgVerifyBackupBuilder {
 
         args
     }
+
+    /// Get the environment variables for the command
+    fn get_envs(&self) -> Vec<(OsString, OsString)> {
+        self.envs.clone()
+    }
+
+    /// Set an environment variable for the command
+    fn env<S: AsRef<OsStr>>(mut self, key: S, value: S) -> Self {
+        self.envs
+            .push((key.as_ref().to_os_string(), value.as_ref().to_os_string()));
+        self
+    }
 }
 
 #[cfg(test)]
@@ -185,6 +211,7 @@ mod tests {
     #[test]
     fn test_builder() {
         let command = PgVerifyBackupBuilder::new()
+            .env("PGDATABASE", "database")
             .exit_on_error()
             .ignore("ignore")
             .manifest_path("manifest-path")
@@ -198,7 +225,7 @@ mod tests {
             .build();
 
         assert_eq!(
-            r#""pg_verifybackup" "--exit-on-error" "--ignore" "ignore" "--manifest-path" "manifest-path" "--no-parse-wal" "--progress" "--quiet" "--skip-checksums" "--wal-directory" "wal_directory" "--version" "--help""#,
+            r#"PGDATABASE="database" "pg_verifybackup" "--exit-on-error" "--ignore" "ignore" "--manifest-path" "manifest-path" "--no-parse-wal" "--progress" "--quiet" "--skip-checksums" "--wal-directory" "wal_directory" "--version" "--help""#,
             command.to_command_string()
         );
     }

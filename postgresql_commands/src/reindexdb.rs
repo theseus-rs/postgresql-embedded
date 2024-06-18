@@ -3,10 +3,12 @@ use crate::Settings;
 use std::ffi::{OsStr, OsString};
 use std::path::PathBuf;
 
-/// `reindexdb` reindexes a PostgreSQL database.
+/// `reindexdb` reindexes a `PostgreSQL` database.
 #[derive(Clone, Debug, Default)]
+#[allow(clippy::struct_excessive_bools)]
 pub struct ReindexDbBuilder {
     program_dir: Option<PathBuf>,
+    envs: Vec<(OsString, OsString)>,
     all: bool,
     concurrently: bool,
     dbname: Option<OsString>,
@@ -31,12 +33,13 @@ pub struct ReindexDbBuilder {
 }
 
 impl ReindexDbBuilder {
-    /// Create a new [ReindexDbBuilder]
+    /// Create a new [`ReindexDbBuilder`]
+    #[must_use]
     pub fn new() -> Self {
         Self::default()
     }
 
-    /// Create a new [ReindexDbBuilder] from [Settings]
+    /// Create a new [`ReindexDbBuilder`] from [Settings]
     pub fn from(settings: &dyn Settings) -> Self {
         Self::new()
             .program_dir(settings.get_binary_dir())
@@ -47,132 +50,154 @@ impl ReindexDbBuilder {
     }
 
     /// Location of the program binary
+    #[must_use]
     pub fn program_dir<P: Into<PathBuf>>(mut self, path: P) -> Self {
         self.program_dir = Some(path.into());
         self
     }
 
     /// reindex all databases
+    #[must_use]
     pub fn all(mut self) -> Self {
         self.all = true;
         self
     }
 
     /// reindex concurrently
+    #[must_use]
     pub fn concurrently(mut self) -> Self {
         self.concurrently = true;
         self
     }
 
     /// database to reindex
+    #[must_use]
     pub fn dbname<S: AsRef<OsStr>>(mut self, dbname: S) -> Self {
         self.dbname = Some(dbname.as_ref().to_os_string());
         self
     }
 
     /// show the commands being sent to the server
+    #[must_use]
     pub fn echo(mut self) -> Self {
         self.echo = true;
         self
     }
 
     /// recreate specific index(es) only
+    #[must_use]
     pub fn index<S: AsRef<OsStr>>(mut self, index: S) -> Self {
         self.index = Some(index.as_ref().to_os_string());
         self
     }
 
     /// use this many concurrent connections to reindex
+    #[must_use]
     pub fn jobs(mut self, jobs: u32) -> Self {
         self.jobs = Some(jobs);
         self
     }
 
     /// don't write any messages
+    #[must_use]
     pub fn quiet(mut self) -> Self {
         self.quiet = true;
         self
     }
 
     /// reindex system catalogs only
+    #[must_use]
     pub fn system(mut self) -> Self {
         self.system = true;
         self
     }
 
     /// reindex specific schema(s) only
+    #[must_use]
     pub fn schema<S: AsRef<OsStr>>(mut self, schema: S) -> Self {
         self.schema = Some(schema.as_ref().to_os_string());
         self
     }
 
     /// reindex specific table(s) only
+    #[must_use]
     pub fn table<S: AsRef<OsStr>>(mut self, table: S) -> Self {
         self.table = Some(table.as_ref().to_os_string());
         self
     }
 
     /// tablespace where indexes are rebuilt
+    #[must_use]
     pub fn tablespace<S: AsRef<OsStr>>(mut self, tablespace: S) -> Self {
         self.tablespace = Some(tablespace.as_ref().to_os_string());
         self
     }
 
     /// write a lot of output
+    #[must_use]
     pub fn verbose(mut self) -> Self {
         self.verbose = true;
         self
     }
 
     /// output version information, then exit
+    #[must_use]
     pub fn version(mut self) -> Self {
         self.version = true;
         self
     }
 
     /// show help, then exit
+    #[must_use]
     pub fn help(mut self) -> Self {
         self.help = true;
         self
     }
 
     /// database server host or socket directory
+    #[must_use]
     pub fn host<S: AsRef<OsStr>>(mut self, host: S) -> Self {
         self.host = Some(host.as_ref().to_os_string());
         self
     }
 
     /// database server port
+    #[must_use]
     pub fn port(mut self, port: u16) -> Self {
         self.port = Some(port);
         self
     }
 
     /// user name to connect as
+    #[must_use]
     pub fn username<S: AsRef<OsStr>>(mut self, username: S) -> Self {
         self.username = Some(username.as_ref().to_os_string());
         self
     }
 
     /// never prompt for password
+    #[must_use]
     pub fn no_password(mut self) -> Self {
         self.no_password = true;
         self
     }
 
     /// force password prompt
+    #[must_use]
     pub fn password(mut self) -> Self {
         self.password = true;
         self
     }
 
     /// user password
+    #[must_use]
     pub fn pg_password<S: AsRef<OsStr>>(mut self, pg_password: S) -> Self {
         self.pg_password = Some(pg_password.as_ref().to_os_string());
         self
     }
 
     /// alternate maintenance database
+    #[must_use]
     pub fn maintenance_db<S: AsRef<OsStr>>(mut self, maintenance_db: S) -> Self {
         self.maintenance_db = Some(maintenance_db.as_ref().to_os_string());
         self
@@ -289,13 +314,20 @@ impl CommandBuilder for ReindexDbBuilder {
 
     /// Get the environment variables for the command
     fn get_envs(&self) -> Vec<(OsString, OsString)> {
-        let mut envs: Vec<(OsString, OsString)> = Vec::new();
+        let mut envs: Vec<(OsString, OsString)> = self.envs.clone();
 
         if let Some(password) = &self.pg_password {
             envs.push(("PGPASSWORD".into(), password.into()));
         }
 
         envs
+    }
+
+    /// Set an environment variable for the command
+    fn env<S: AsRef<OsStr>>(mut self, key: S, value: S) -> Self {
+        self.envs
+            .push((key.as_ref().to_os_string(), value.as_ref().to_os_string()));
+        self
     }
 }
 
@@ -327,6 +359,7 @@ mod tests {
     #[test]
     fn test_builder() {
         let command = ReindexDbBuilder::new()
+            .env("PGDATABASE", "database")
             .all()
             .concurrently()
             .dbname("dbname")
@@ -351,7 +384,7 @@ mod tests {
             .build();
 
         assert_eq!(
-            r#"PGPASSWORD="password" "reindexdb" "--all" "--concurrently" "--dbname" "dbname" "--echo" "--index" "index" "--jobs" "1" "--quiet" "--system" "--schema" "schema" "--table" "table" "--tablespace" "tablespace" "--verbose" "--version" "--help" "--host" "localhost" "--port" "5432" "--username" "username" "--no-password" "--password" "--maintenance-db" "maintenance-db""#,
+            r#"PGDATABASE="database" PGPASSWORD="password" "reindexdb" "--all" "--concurrently" "--dbname" "dbname" "--echo" "--index" "index" "--jobs" "1" "--quiet" "--system" "--schema" "schema" "--table" "table" "--tablespace" "tablespace" "--verbose" "--version" "--help" "--host" "localhost" "--port" "5432" "--username" "username" "--no-password" "--password" "--maintenance-db" "maintenance-db""#,
             command.to_command_string()
         );
     }

@@ -4,10 +4,12 @@ use std::convert::AsRef;
 use std::ffi::{OsStr, OsString};
 use std::path::PathBuf;
 
-/// `pgbench` is a benchmarking tool for PostgreSQL.
+/// `pgbench` is a benchmarking tool for `PostgreSQL`.
 #[derive(Clone, Debug, Default)]
+#[allow(clippy::struct_excessive_bools)]
 pub struct PgBenchBuilder {
     program_dir: Option<PathBuf>,
+    envs: Vec<(OsString, OsString)>,
     initialize: bool,
     init_steps: Option<OsString>,
     fill_factor: Option<usize>,
@@ -57,12 +59,13 @@ pub struct PgBenchBuilder {
 }
 
 impl PgBenchBuilder {
-    /// Create a new [PgBenchBuilder]
+    /// Create a new [`PgBenchBuilder`]
+    #[must_use]
     pub fn new() -> Self {
         Self::default()
     }
 
-    /// Create a new [PgBenchBuilder] from [Settings]
+    /// Create a new [`PgBenchBuilder`] from [Settings]
     pub fn from(settings: &dyn Settings) -> Self {
         Self::new()
             .program_dir(settings.get_binary_dir())
@@ -72,282 +75,329 @@ impl PgBenchBuilder {
     }
 
     /// Location of the program binary
+    #[must_use]
     pub fn program_dir<P: Into<PathBuf>>(mut self, path: P) -> Self {
         self.program_dir = Some(path.into());
         self
     }
 
     /// invokes initialization mode
+    #[must_use]
     pub fn initialize(mut self) -> Self {
         self.initialize = true;
         self
     }
 
     /// run selected initialization steps
+    #[must_use]
     pub fn init_steps<S: AsRef<OsStr>>(mut self, steps: S) -> Self {
         self.init_steps = Some(steps.as_ref().to_os_string());
         self
     }
 
     /// set fill factor
+    #[must_use]
     pub fn fill_factor(mut self, factor: usize) -> Self {
         self.fill_factor = Some(factor);
         self
     }
 
     /// do not run VACUUM during initialization
+    #[must_use]
     pub fn no_vacuum(mut self) -> Self {
         self.no_vacuum = true;
         self
     }
 
     /// quiet logging (one message each 5 seconds)
+    #[must_use]
     pub fn quiet(mut self) -> Self {
         self.quiet = true;
         self
     }
 
     /// scaling factor
+    #[must_use]
     pub fn scale(mut self, scale: usize) -> Self {
         self.scale = Some(scale);
         self
     }
 
     /// create foreign key constraints between tables
+    #[must_use]
     pub fn foreign_keys(mut self) -> Self {
         self.foreign_keys = true;
         self
     }
 
     /// create indexes in the specified tablespace
+    #[must_use]
     pub fn index_tablespace<S: AsRef<OsStr>>(mut self, tablespace: S) -> Self {
         self.index_tablespace = Some(tablespace.as_ref().to_os_string());
         self
     }
 
-    /// partition pgbench_accounts with this method (default: range)
+    /// partition `pgbench_accounts` with this method (default: range)
+    #[must_use]
     pub fn partition_method<S: AsRef<OsStr>>(mut self, method: S) -> Self {
         self.partition_method = Some(method.as_ref().to_os_string());
         self
     }
 
-    /// partition pgbench_accounts into NUM parts (default: 0)
+    /// partition `pgbench_accounts` into NUM parts (default: 0)
+    #[must_use]
     pub fn partitions(mut self, num: usize) -> Self {
         self.partitions = Some(num);
         self
     }
 
     /// create tables in the specified tablespace
+    #[must_use]
     pub fn tablespace<S: AsRef<OsStr>>(mut self, tablespace: S) -> Self {
         self.tablespace = Some(tablespace.as_ref().to_os_string());
         self
     }
 
     /// create tables as unlogged tables
+    #[must_use]
     pub fn unlogged_tables(mut self) -> Self {
         self.unlogged_tables = true;
         self
     }
 
     /// add builtin script NAME weighted at W (default: 1)
+    #[must_use]
     pub fn builtin<S: AsRef<OsStr>>(mut self, name: S) -> Self {
         self.builtin = Some(name.as_ref().to_os_string());
         self
     }
 
     /// add script FILENAME weighted at W (default: 1)
+    #[must_use]
     pub fn file<S: AsRef<OsStr>>(mut self, filename: S) -> Self {
         self.file = Some(filename.as_ref().to_os_string());
         self
     }
 
-    /// skip updates of pgbench_tellers and pgbench_branches
+    /// skip some updates
+    #[must_use]
     pub fn skip_some_updates(mut self) -> Self {
         self.skip_some_updates = true;
         self
     }
 
     /// perform SELECT-only transactions
+    #[must_use]
     pub fn select_only(mut self) -> Self {
         self.select_only = true;
         self
     }
 
     /// number of concurrent database clients (default: 1)
+    #[must_use]
     pub fn client(mut self, num: usize) -> Self {
         self.client = Some(num);
         self
     }
 
     /// establish new connection for each transaction
+    #[must_use]
     pub fn connect(mut self) -> Self {
         self.connect = true;
         self
     }
 
     /// define variable for use by custom script
+    #[must_use]
     pub fn define<S: AsRef<OsStr>>(mut self, var: S) -> Self {
         self.define = Some(var.as_ref().to_os_string());
         self
     }
 
     /// number of threads (default: 1)
+    #[must_use]
     pub fn jobs(mut self, num: usize) -> Self {
         self.jobs = Some(num);
         self
     }
 
     /// write transaction times to log file
+    #[must_use]
     pub fn log(mut self) -> Self {
         self.log = true;
         self
     }
 
     /// count transactions lasting more than NUM ms as late
+    #[must_use]
     pub fn latency_limit(mut self, num: usize) -> Self {
         self.latency_limit = Some(num);
         self
     }
 
     /// protocol for submitting queries (default: simple)
+    #[must_use]
     pub fn protocol<S: AsRef<OsStr>>(mut self, protocol: S) -> Self {
         self.protocol = Some(protocol.as_ref().to_os_string());
         self
     }
 
     /// do not run VACUUM before tests
+    #[must_use]
     pub fn no_vacuum_bench(mut self) -> Self {
         self.no_vacuum_bench = true;
         self
     }
 
     /// show thread progress report every NUM seconds
+    #[must_use]
     pub fn progress(mut self, num: usize) -> Self {
         self.progress = Some(num);
         self
     }
 
     /// report latencies, failures, and retries per command
+    #[must_use]
     pub fn report_per_command(mut self) -> Self {
         self.report_per_command = true;
         self
     }
 
     /// target rate in transactions per second
+    #[must_use]
     pub fn rate(mut self, num: usize) -> Self {
         self.rate = Some(num);
         self
     }
 
     /// report this scale factor in output
+    #[must_use]
     pub fn scale_bench(mut self, scale: usize) -> Self {
         self.scale_bench = Some(scale);
         self
     }
 
     /// number of transactions each client runs (default: 10)
+    #[must_use]
     pub fn transactions(mut self, num: usize) -> Self {
         self.transactions = Some(num);
         self
     }
 
     /// duration of benchmark test in seconds
+    #[must_use]
     pub fn time(mut self, num: usize) -> Self {
         self.time = Some(num);
         self
     }
 
     /// vacuum all four standard tables before tests
+    #[must_use]
     pub fn vacuum_all(mut self) -> Self {
         self.vacuum_all = true;
         self
     }
 
     /// aggregate data over NUM seconds
+    #[must_use]
     pub fn aggregate_interval(mut self, num: usize) -> Self {
         self.aggregate_interval = Some(num);
         self
     }
 
     /// report the failures grouped by basic types
+    #[must_use]
     pub fn failures_detailed(mut self) -> Self {
         self.failures_detailed = true;
         self
     }
 
     /// prefix for transaction time log file
+    #[must_use]
     pub fn log_prefix<S: AsRef<OsStr>>(mut self, prefix: S) -> Self {
         self.log_prefix = Some(prefix.as_ref().to_os_string());
         self
     }
 
     /// max number of tries to run transaction (default: 1)
+    #[must_use]
     pub fn max_tries(mut self, num: usize) -> Self {
         self.max_tries = Some(num);
         self
     }
 
     /// use Unix epoch timestamps for progress
+    #[must_use]
     pub fn progress_timestamp(mut self) -> Self {
         self.progress_timestamp = true;
         self
     }
 
     /// set random seed ("time", "rand", integer)
+    #[must_use]
     pub fn random_seed<S: AsRef<OsStr>>(mut self, seed: S) -> Self {
         self.random_seed = Some(seed.as_ref().to_os_string());
         self
     }
 
     /// fraction of transactions to log (e.g., 0.01 for 1%)
+    #[must_use]
     pub fn sampling_rate(mut self, rate: f64) -> Self {
         self.sampling_rate = Some(rate);
         self
     }
 
     /// show builtin script code, then exit
+    #[must_use]
     pub fn show_script<S: AsRef<OsStr>>(mut self, name: S) -> Self {
         self.show_script = Some(name.as_ref().to_os_string());
         self
     }
 
     /// print messages of all errors
+    #[must_use]
     pub fn verbose_errors(mut self) -> Self {
         self.verbose_errors = true;
         self
     }
 
     /// print debugging output
+    #[must_use]
     pub fn debug(mut self) -> Self {
         self.debug = true;
         self
     }
 
     /// database server host or socket directory
+    #[must_use]
     pub fn host<S: AsRef<OsStr>>(mut self, hostname: S) -> Self {
         self.host = Some(hostname.as_ref().to_os_string());
         self
     }
 
     /// database server port number
+    #[must_use]
     pub fn port(mut self, port: u16) -> Self {
         self.port = Some(port);
         self
     }
 
     /// connect as specified database user
+    #[must_use]
     pub fn username<S: AsRef<OsStr>>(mut self, username: S) -> Self {
         self.username = Some(username.as_ref().to_os_string());
         self
     }
 
     /// output version information, then exit
+    #[must_use]
     pub fn version(mut self) -> Self {
         self.version = true;
         self
     }
 
     /// show help, then exit
+    #[must_use]
     pub fn help(mut self) -> Self {
         self.help = true;
         self
@@ -366,6 +416,7 @@ impl CommandBuilder for PgBenchBuilder {
     }
 
     /// Get the arguments for the command
+    #[allow(clippy::too_many_lines)]
     fn get_args(&self) -> Vec<OsString> {
         let mut args: Vec<OsString> = Vec::new();
 
@@ -583,6 +634,18 @@ impl CommandBuilder for PgBenchBuilder {
 
         args
     }
+
+    /// Get the environment variables for the command
+    fn get_envs(&self) -> Vec<(OsString, OsString)> {
+        self.envs.clone()
+    }
+
+    /// Set an environment variable for the command
+    fn env<S: AsRef<OsStr>>(mut self, key: S, value: S) -> Self {
+        self.envs
+            .push((key.as_ref().to_os_string(), value.as_ref().to_os_string()));
+        self
+    }
 }
 
 #[cfg(test)]
@@ -613,6 +676,7 @@ mod tests {
     #[test]
     fn test_builder() {
         let command = PgBenchBuilder::new()
+            .env("PGDATABASE", "database")
             .initialize()
             .init_steps("steps")
             .fill_factor(10)
@@ -662,7 +726,7 @@ mod tests {
             .build();
 
         assert_eq!(
-            r#""pgbench" "--initialize" "--init-steps" "steps" "--fillfactor" "10" "--no-vacuum" "--quiet" "--scale" "10" "--foreign-keys" "--index-tablespace" "tablespace" "--partition-method" "method" "--partitions" "10" "--tablespace" "tablespace" "--unlogged-tables" "--builtin" "name" "--file" "filename" "--skip-some-updates" "--select-only" "--client" "10" "--connect" "--define" "var" "--jobs" "10" "--log" "--latency-limit" "10" "--protocol" "protocol" "--no-vacuum" "--progress" "10" "--report-per-command" "--rate" "10" "--scale" "10" "--transactions" "10" "--time" "10" "--vacuum-all" "--aggregate-interval" "10" "--failures-detailed" "--log-prefix" "prefix" "--max-tries" "10" "--progress-timestamp" "--random-seed" "seed" "--sampling-rate" "10" "--show-script" "name" "--verbose-errors" "--debug" "--host" "localhost" "--port" "5432" "--username" "username" "--version" "--help""#,
+            r#"PGDATABASE="database" "pgbench" "--initialize" "--init-steps" "steps" "--fillfactor" "10" "--no-vacuum" "--quiet" "--scale" "10" "--foreign-keys" "--index-tablespace" "tablespace" "--partition-method" "method" "--partitions" "10" "--tablespace" "tablespace" "--unlogged-tables" "--builtin" "name" "--file" "filename" "--skip-some-updates" "--select-only" "--client" "10" "--connect" "--define" "var" "--jobs" "10" "--log" "--latency-limit" "10" "--protocol" "protocol" "--no-vacuum" "--progress" "10" "--report-per-command" "--rate" "10" "--scale" "10" "--transactions" "10" "--time" "10" "--vacuum-all" "--aggregate-interval" "10" "--failures-detailed" "--log-prefix" "prefix" "--max-tries" "10" "--progress-timestamp" "--random-seed" "seed" "--sampling-rate" "10" "--show-script" "name" "--verbose-errors" "--debug" "--host" "localhost" "--port" "5432" "--username" "username" "--version" "--help""#,
             command.to_command_string()
         );
     }

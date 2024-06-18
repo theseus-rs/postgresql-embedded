@@ -6,8 +6,10 @@ use std::path::PathBuf;
 
 /// `vacuumlo` removes unreferenced large objects from databases.
 #[derive(Clone, Debug, Default)]
+#[allow(clippy::struct_excessive_bools)]
 pub struct VacuumLoBuilder {
     program_dir: Option<PathBuf>,
+    envs: Vec<(OsString, OsString)>,
     limit: Option<usize>,
     dry_run: bool,
     verbose: bool,
@@ -22,12 +24,13 @@ pub struct VacuumLoBuilder {
 }
 
 impl VacuumLoBuilder {
-    /// Create a new [VacuumLoBuilder]
+    /// Create a new [`VacuumLoBuilder`]
+    #[must_use]
     pub fn new() -> Self {
         Self::default()
     }
 
-    /// Create a new [VacuumLoBuilder] from [Settings]
+    /// Create a new [`VacuumLoBuilder`] from [Settings]
     pub fn from(settings: &dyn Settings) -> Self {
         Self::new()
             .program_dir(settings.get_binary_dir())
@@ -38,72 +41,84 @@ impl VacuumLoBuilder {
     }
 
     /// Location of the program binary
+    #[must_use]
     pub fn program_dir<P: Into<PathBuf>>(mut self, path: P) -> Self {
         self.program_dir = Some(path.into());
         self
     }
 
     /// commit after removing each LIMIT large objects
+    #[must_use]
     pub fn limit(mut self, limit: usize) -> Self {
         self.limit = Some(limit);
         self
     }
 
     /// don't remove large objects, just show what would be done
+    #[must_use]
     pub fn dry_run(mut self) -> Self {
         self.dry_run = true;
         self
     }
 
     /// write a lot of progress messages
+    #[must_use]
     pub fn verbose(mut self) -> Self {
         self.verbose = true;
         self
     }
 
     /// output version information, then exit
+    #[must_use]
     pub fn version(mut self) -> Self {
         self.version = true;
         self
     }
 
     /// show help, then exit
+    #[must_use]
     pub fn help(mut self) -> Self {
         self.help = true;
         self
     }
 
     /// database server host or socket directory
+    #[must_use]
     pub fn host<S: AsRef<OsStr>>(mut self, host: S) -> Self {
         self.host = Some(host.as_ref().to_os_string());
         self
     }
 
     /// database server port
+    #[must_use]
     pub fn port(mut self, port: u16) -> Self {
         self.port = Some(port);
         self
     }
 
     /// user name to connect as
+    #[must_use]
     pub fn username<S: AsRef<OsStr>>(mut self, username: S) -> Self {
         self.username = Some(username.as_ref().to_os_string());
         self
     }
 
     /// never prompt for password
+    #[must_use]
     pub fn no_password(mut self) -> Self {
         self.no_password = true;
         self
     }
 
     /// force password prompt
+    #[must_use]
     pub fn password(mut self) -> Self {
         self.password = true;
         self
     }
 
     /// user password
+    #[must_use]
     pub fn pg_password<S: AsRef<OsStr>>(mut self, pg_password: S) -> Self {
         self.pg_password = Some(pg_password.as_ref().to_os_string());
         self
@@ -174,13 +189,20 @@ impl CommandBuilder for VacuumLoBuilder {
 
     /// Get the environment variables for the command
     fn get_envs(&self) -> Vec<(OsString, OsString)> {
-        let mut envs: Vec<(OsString, OsString)> = Vec::new();
+        let mut envs: Vec<(OsString, OsString)> = self.envs.clone();
 
         if let Some(password) = &self.pg_password {
             envs.push(("PGPASSWORD".into(), password.into()));
         }
 
         envs
+    }
+
+    /// Set an environment variable for the command
+    fn env<S: AsRef<OsStr>>(mut self, key: S, value: S) -> Self {
+        self.envs
+            .push((key.as_ref().to_os_string(), value.as_ref().to_os_string()));
+        self
     }
 }
 
@@ -212,6 +234,7 @@ mod tests {
     #[test]
     fn test_builder() {
         let command = VacuumLoBuilder::new()
+            .env("PGDATABASE", "database")
             .limit(100)
             .dry_run()
             .verbose()
@@ -226,7 +249,7 @@ mod tests {
             .build();
 
         assert_eq!(
-            r#"PGPASSWORD="password" "vacuumlo" "--limit" "100" "--dry-run" "--verbose" "--version" "--help" "--host" "localhost" "--port" "5432" "--username" "postgres" "--no-password" "--password""#,
+            r#"PGDATABASE="database" PGPASSWORD="password" "vacuumlo" "--limit" "100" "--dry-run" "--verbose" "--version" "--help" "--host" "localhost" "--port" "5432" "--username" "postgres" "--no-password" "--password""#,
             command.to_command_string()
         );
     }

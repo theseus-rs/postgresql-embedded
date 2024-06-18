@@ -4,10 +4,13 @@ use std::convert::AsRef;
 use std::ffi::{OsStr, OsString};
 use std::path::PathBuf;
 
-/// `ecpg` is the PostgreSQL embedded SQL preprocessor for C programs.
+/// `ecpg` is the `PostgreSQL` embedded SQL preprocessor for C programs.
 #[derive(Clone, Debug, Default)]
+#[allow(clippy::module_name_repetitions)]
+#[allow(clippy::struct_excessive_bools)]
 pub struct EcpgBuilder {
     program_dir: Option<PathBuf>,
+    envs: Vec<(OsString, OsString)>,
     c: bool,
     compatibility_mode: Option<OsString>,
     symbol: Option<OsString>,
@@ -23,89 +26,103 @@ pub struct EcpgBuilder {
 }
 
 impl EcpgBuilder {
-    /// Create a new [EcpgBuilder]
+    /// Create a new [`EcpgBuilder`]
+    #[must_use]
     pub fn new() -> Self {
         Self::default()
     }
 
-    /// Create a new [EcpgBuilder] from [Settings]
+    /// Create a new [`EcpgBuilder`] from [Settings]
     pub fn from(settings: &dyn Settings) -> Self {
         Self::new().program_dir(settings.get_binary_dir())
     }
 
     /// Location of the program binary
+    #[must_use]
     pub fn program_dir<P: Into<PathBuf>>(mut self, path: P) -> Self {
         self.program_dir = Some(path.into());
         self
     }
 
     /// Automatically generate C code from embedded SQL code
+    #[must_use]
     pub fn c(mut self) -> Self {
         self.c = true;
         self
     }
 
     /// Set compatibility mode
+    #[must_use]
     pub fn compatibility_mode<S: AsRef<OsStr>>(mut self, compatibility_mode: S) -> Self {
         self.compatibility_mode = Some(compatibility_mode.as_ref().to_os_string());
         self
     }
 
     /// Define SYMBOL
+    #[must_use]
     pub fn symbol<S: AsRef<OsStr>>(mut self, symbol: S) -> Self {
         self.symbol = Some(symbol.as_ref().to_os_string());
         self
     }
 
     /// Parse a header file
+    #[must_use]
     pub fn header_file(mut self) -> Self {
         self.header_file = true;
         self.c()
     }
 
     /// Parse system include files as well
+    #[must_use]
     pub fn system_include_files(mut self) -> Self {
         self.system_include_files = true;
         self
     }
 
     /// Search DIRECTORY for include files
+    #[must_use]
     pub fn directory<S: AsRef<OsStr>>(mut self, directory: S) -> Self {
         self.directory = Some(directory.as_ref().to_os_string());
         self
     }
 
     /// Write result to OUTFILE
+    #[must_use]
     pub fn outfile<S: AsRef<OsStr>>(mut self, outfile: S) -> Self {
         self.outfile = Some(outfile.as_ref().to_os_string());
         self
     }
 
     /// Specify run-time behavior
+    #[must_use]
     pub fn runtime_behavior<S: AsRef<OsStr>>(mut self, runtime_behavior: S) -> Self {
         self.runtime_behavior = Some(runtime_behavior.as_ref().to_os_string());
         self
     }
 
     /// Run in regression testing mode
+    #[must_use]
     pub fn regression(mut self) -> Self {
         self.regression = true;
         self
     }
 
     /// Turn on autocommit of transactions
+    #[must_use]
     pub fn autocommit(mut self) -> Self {
         self.autocommit = true;
         self
     }
 
     /// Output version information, then exit
+    #[must_use]
     pub fn version(mut self) -> Self {
         self.version = true;
         self
     }
 
     /// Show help, then exit
+    #[must_use]
     pub fn help(mut self) -> Self {
         self.help = true;
         self
@@ -182,6 +199,18 @@ impl CommandBuilder for EcpgBuilder {
 
         args
     }
+
+    /// Get the environment variables for the command
+    fn get_envs(&self) -> Vec<(OsString, OsString)> {
+        self.envs.clone()
+    }
+
+    /// Set an environment variable for the command
+    fn env<S: AsRef<OsStr>>(mut self, key: S, value: S) -> Self {
+        self.envs
+            .push((key.as_ref().to_os_string(), value.as_ref().to_os_string()));
+        self
+    }
 }
 
 #[cfg(test)]
@@ -209,6 +238,7 @@ mod tests {
     #[test]
     fn test_builder() {
         let command = EcpgBuilder::new()
+            .env("PGDATABASE", "database")
             .c()
             .compatibility_mode("mode")
             .symbol("symbol")
@@ -224,7 +254,7 @@ mod tests {
             .build();
 
         assert_eq!(
-            r#""ecpg" "-c" "-C" "mode" "-D" "symbol" "-h" "-i" "-I" "directory" "-o" "outfile" "-r" "behavior" "--regression" "-t" "--version" "--help""#,
+            r#"PGDATABASE="database" "ecpg" "-c" "-C" "mode" "-D" "symbol" "-h" "-i" "-I" "directory" "-o" "outfile" "-r" "behavior" "--regression" "-t" "--version" "--help""#,
             command.to_command_string()
         );
     }
