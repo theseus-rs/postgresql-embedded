@@ -17,8 +17,6 @@ use std::fs::{remove_dir_all, remove_file};
 use std::io::prelude::*;
 use std::net::TcpListener;
 #[cfg(feature = "bundled")]
-use std::ops::Deref;
-#[cfg(feature = "bundled")]
 use std::str::FromStr;
 use tracing::{debug, instrument};
 
@@ -39,7 +37,7 @@ pub(crate) const ARCHIVE: &[u8] = include_bytes!(concat!(env!("OUT_DIR"), "/post
 
 const PGDATABASE: &str = "PGDATABASE";
 
-/// PostgreSQL status
+/// `PostgreSQL` status
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Status {
     /// Archive not installed
@@ -52,16 +50,17 @@ pub enum Status {
     Stopped,
 }
 
-/// PostgreSQL server
+/// `PostgreSQL` server
 #[derive(Clone, Debug)]
 pub struct PostgreSQL {
     version: Version,
     settings: Settings,
 }
 
-/// PostgreSQL server methods
+/// `PostgreSQL` server methods
 impl PostgreSQL {
     /// Create a new [`PostgreSQL`] instance
+    #[must_use]
     pub fn new(version: Version, settings: Settings) -> Self {
         let mut postgresql = PostgreSQL { version, settings };
 
@@ -83,6 +82,7 @@ impl PostgreSQL {
     }
 
     /// Get the default version used if not otherwise specified
+    #[must_use]
     pub fn default_version() -> Version {
         #[cfg(feature = "bundled")]
         {
@@ -109,17 +109,19 @@ impl PostgreSQL {
         }
     }
 
-    /// Get the [version](Version) of the PostgreSQL server
+    /// Get the [version](Version) of the `PostgreSQL` server
+    #[must_use]
     pub fn version(&self) -> &Version {
         &self.version
     }
 
-    /// Get the [settings](Settings) of the PostgreSQL server
+    /// Get the [settings](Settings) of the `PostgreSQL` server
+    #[must_use]
     pub fn settings(&self) -> &Settings {
         &self.settings
     }
 
-    /// Check if the PostgreSQL server is installed
+    /// Check if the `PostgreSQL` server is installed
     fn is_installed(&self) -> bool {
         if self.version.minor.is_none() || self.version.release.is_none() {
             return false;
@@ -129,12 +131,12 @@ impl PostgreSQL {
         path.ends_with(self.version.to_string()) && path.exists()
     }
 
-    /// Check if the PostgreSQL server is initialized
+    /// Check if the `PostgreSQL` server is initialized
     fn is_initialized(&self) -> bool {
         self.settings.data_dir.join("postgresql.conf").exists()
     }
 
-    /// Check if the PostgreSQL server is running
+    /// Check if the `PostgreSQL` server is running
     fn is_running(&self) -> bool {
         let pid_file = self.settings.data_dir.join("postmaster.pid");
         pid_file.exists()
@@ -186,7 +188,7 @@ impl PostgreSQL {
         // If the requested version is the same as the version of the bundled archive, use the bundled
         // archive. This avoids downloading the archive in environments where internet access is
         // restricted or undesirable.
-        let (version, bytes) = if ARCHIVE_VERSION.deref() == &self.version {
+        let (version, bytes) = if *ARCHIVE_VERSION == self.version {
             debug!("Using bundled installation archive");
             (self.version, bytes::Bytes::copy_from_slice(ARCHIVE))
         } else {
@@ -427,7 +429,7 @@ impl PostgreSQL {
     }
 }
 
-/// Default PostgreSQL server
+/// Default `PostgreSQL` server
 impl Default for PostgreSQL {
     fn default() -> Self {
         let version = PostgreSQL::default_version();
@@ -436,7 +438,7 @@ impl Default for PostgreSQL {
     }
 }
 
-/// Stop the PostgreSQL server and remove the data directory if it is marked as temporary.
+/// Stop the `PostgreSQL` server and remove the data directory if it is marked as temporary.
 impl Drop for PostgreSQL {
     fn drop(&mut self) {
         if self.status() == Status::Started {

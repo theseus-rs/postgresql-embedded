@@ -1,12 +1,12 @@
 use std::string::FromUtf8Error;
 
-/// PostgreSQL embedded result type
+/// `PostgreSQL` embedded result type
 pub type Result<T, E = Error> = core::result::Result<T, E>;
 
-/// Errors that can occur when using PostgreSQL embedded
+/// Errors that can occur when using `PostgreSQL` embedded
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
-    /// Error when PostgreSQL archive operations fail
+    /// Error when `PostgreSQL` archive operations fail
     #[error(transparent)]
     ArchiveError(postgresql_archive::Error),
     /// Error when a command fails
@@ -38,7 +38,7 @@ pub enum Error {
     IoError(anyhow::Error),
 }
 
-/// Convert PostgreSQL [archive errors](postgresql_archive::Error) to an [embedded errors](Error::ArchiveError)
+/// Convert `PostgreSQL` [archive errors](postgresql_archive::Error) to an [embedded errors](Error::ArchiveError)
 impl From<postgresql_archive::Error> for Error {
     fn from(error: postgresql_archive::Error) -> Self {
         Error::ArchiveError(error)

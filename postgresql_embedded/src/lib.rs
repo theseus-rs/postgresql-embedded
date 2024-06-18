@@ -107,7 +107,9 @@
 //! Uses PostgreSQL binaries from [theseus-rs/postgresql-binaries](https://github.com/theseus-rs/postgresql-binaries).
 
 #![forbid(unsafe_code)]
+#![deny(clippy::pedantic)]
 #![allow(dead_code)]
+#![allow(clippy::doc_markdown)]
 
 #[cfg(feature = "blocking")]
 pub mod blocking;

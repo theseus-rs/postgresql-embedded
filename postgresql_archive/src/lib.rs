@@ -104,6 +104,9 @@
 //! Uses PostgreSQL binaries from [theseus-rs/postgresql-binaries](https://github.com/theseus-rs/postgresql-binaries).
 
 #![forbid(unsafe_code)]
+#![deny(clippy::pedantic)]
+#![allow(clippy::doc_markdown)]
+
 #[macro_use]
 extern crate lazy_static;
 

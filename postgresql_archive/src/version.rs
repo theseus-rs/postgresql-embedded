@@ -43,6 +43,7 @@ pub const V13: Version = Version::new(13, None, None);
 pub const V12: Version = Version::new(12, None, None);
 
 impl Version {
+    #[must_use]
     pub const fn new(major: u64, minor: Option<u64>, release: Option<u64>) -> Self {
         Self {
             major,
@@ -67,6 +68,7 @@ impl Version {
     /// 4. `15` does not match `16.1.0`
     /// 5. `16.0` does not match `16.1.0`
     /// 6. `16.1.0` does not match `16.1.1`
+    #[must_use]
     pub fn matches(&self, version: &Version) -> bool {
         if self.major != version.major {
             return false;
@@ -87,12 +89,10 @@ impl fmt::Display for Version {
         let major = self.major.to_string();
         let minor = self
             .minor
-            .map(|minor| format!(".{minor}"))
-            .unwrap_or("".to_string());
+            .map_or(String::new(), |minor| format!(".{minor}"));
         let release = self
             .release
-            .map(|release| format!(".{release}"))
-            .unwrap_or("".to_string());
+            .map_or(String::new(), |release| format!(".{release}"));
         write!(formatter, "{major}{minor}{release}")
     }
 }
