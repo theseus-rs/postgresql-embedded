@@ -11,25 +11,25 @@ use std::str::FromStr;
 use std::time::Duration;
 use url::Url;
 
-/// PostgreSQL's superuser
+/// `PostgreSQL` superuser
 pub const BOOTSTRAP_SUPERUSER: &str = "postgres";
 
 /// Database settings
 #[derive(Clone, Debug, PartialEq)]
 pub struct Settings {
-    /// PostgreSQL's installation directory
+    /// `PostgreSQL` installation directory
     pub installation_dir: PathBuf,
-    /// PostgreSQL password file
+    /// `PostgreSQL` password file
     pub password_file: PathBuf,
-    /// PostgreSQL data directory
+    /// `PostgreSQL` data directory
     pub data_dir: PathBuf,
-    /// PostgreSQL host
+    /// `PostgreSQL` host
     pub host: String,
-    /// PostgreSQL port
+    /// `PostgreSQL` port
     pub port: u16,
-    /// PostgreSQL user name
+    /// `PostgreSQL` user name
     pub username: String,
-    /// PostgreSQL password
+    /// `PostgreSQL` password
     pub password: String,
     /// Temporary database
     pub temporary: bool,
@@ -45,26 +45,25 @@ impl Settings {
     pub fn new() -> Self {
         let home_dir = home_dir().unwrap_or_else(|| env::current_dir().unwrap_or_default());
         let passwword_file_name = ".pgpass";
-        let password_file = match tempfile::tempdir() {
-            Ok(dir) => dir.into_path().join(passwword_file_name),
-            Err(_) => {
-                let current_dir = current_dir().unwrap_or(PathBuf::from("."));
-                current_dir.join(passwword_file_name)
-            }
+        let password_file = if let Ok(dir) = tempfile::tempdir() {
+            dir.into_path().join(passwword_file_name)
+        } else {
+            let current_dir = current_dir().unwrap_or(PathBuf::from("."));
+            current_dir.join(passwword_file_name)
         };
-        let data_dir = match tempfile::tempdir() {
-            Ok(dir) => dir.into_path(),
-            Err(_) => {
-                let temp_dir: String = rand::thread_rng()
-                    .sample_iter(&Alphanumeric)
-                    .take(16)
-                    .map(char::from)
-                    .collect();
+        let data_dir = if let Ok(dir) = tempfile::tempdir() {
+            dir.into_path()
+        } else {
+            let temp_dir: String = rand::thread_rng()
+                .sample_iter(&Alphanumeric)
+                .take(16)
+                .map(char::from)
+                .collect();
 
-                let data_dir = current_dir().unwrap_or(PathBuf::from("."));
-                data_dir.join(temp_dir)
-            }
+            let data_dir = current_dir().unwrap_or(PathBuf::from("."));
+            data_dir.join(temp_dir)
         };
+
         let password = rand::thread_rng()
             .sample_iter(&Alphanumeric)
             .take(16)
@@ -85,12 +84,13 @@ impl Settings {
         }
     }
 
-    /// Returns the binary directory for the configured PostgreSQL installation.
+    /// Returns the binary directory for the configured `PostgreSQL` installation.
+    #[must_use]
     pub fn binary_dir(&self) -> PathBuf {
         self.installation_dir.join("bin")
     }
 
-    /// Return the PostgreSQL URL for the given database name.
+    /// Return the `PostgreSQL` URL for the given database name.
     pub fn url<S: AsRef<str>>(&self, database_name: S) -> String {
         format!(
             "postgresql://{}:{}@{}:{}/{}",
@@ -103,6 +103,10 @@ impl Settings {
     }
 
     /// Create a new instance of [`Settings`] from the given URL.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the URL is invalid.
     pub fn from_url<S: AsRef<str>>(url: S) -> Result<Self> {
         let parsed_url = match Url::parse(url.as_ref()) {
             Ok(parsed_url) => parsed_url,
@@ -159,7 +163,7 @@ impl Settings {
             };
         }
         let configuration_prefix = "configuration.";
-        for (key, value) in query_parameters.iter() {
+        for (key, value) in &query_parameters {
             if key.starts_with(configuration_prefix) {
                 if let Some(configuration_key) = key.strip_prefix(configuration_prefix) {
                     settings
@@ -209,7 +213,7 @@ mod tests {
     use test_log::test;
 
     #[test]
-    fn test_settings_new() -> Result<()> {
+    fn test_settings_new() {
         let settings = Settings::new();
         assert!(!settings
             .installation_dir
@@ -231,7 +235,6 @@ mod tests {
         );
         assert_eq!(Some(Duration::from_secs(5)), settings.timeout);
         assert!(settings.configuration.is_empty());
-        Ok(())
     }
 
     #[test]

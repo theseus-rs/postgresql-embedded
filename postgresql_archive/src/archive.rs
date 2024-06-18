@@ -54,7 +54,8 @@ lazy_static! {
 struct GithubMiddleware;
 
 impl GithubMiddleware {
-    fn add_github_headers(&self, request: &mut Request) -> Result<()> {
+    #[allow(clippy::unnecessary_wraps)]
+    fn add_github_headers(request: &mut Request) -> Result<()> {
         let headers = request.headers_mut();
 
         headers.append(
@@ -82,8 +83,8 @@ impl Middleware for GithubMiddleware {
         extensions: &mut Extensions,
         next: Next<'_>,
     ) -> reqwest_middleware::Result<Response> {
-        match self.add_github_headers(&mut request) {
-            Ok(_) => next.run(request, extensions).await,
+        match GithubMiddleware::add_github_headers(&mut request) {
+            Ok(()) => next.run(request, extensions).await,
             Err(error) => Err(reqwest_middleware::Error::Middleware(error.into())),
         }
     }
@@ -131,12 +132,9 @@ async fn get_release(version: &Version) -> Result<Release> {
         }
 
         for release in response_releases {
-            let release_version = match Version::from_str(&release.tag_name) {
-                Ok(release_version) => release_version,
-                Err(_) => {
-                    warn!("Failed to parse release version {}", release.tag_name);
-                    continue;
-                }
+            let Ok(release_version) = Version::from_str(&release.tag_name) else {
+                warn!("Failed to parse release version {}", release.tag_name);
+                continue;
             };
 
             if version.matches(&release_version) {
@@ -205,8 +203,7 @@ async fn get_asset<S: AsRef<str>>(version: &Version, target: S) -> Result<(Versi
 
     match (asset, asset_hash) {
         (Some(asset), Some(asset_hash)) => Ok((asset_version, asset, asset_hash)),
-        (None, _) => Err(AssetNotFound(asset_name.to_string())),
-        (_, None) => Err(AssetNotFound(asset_name.to_string())),
+        (_, None) | (None, _) => Err(AssetNotFound(asset_name.to_string())),
     }
 }
 
@@ -226,6 +223,7 @@ pub async fn get_archive(version: &Version) -> Result<(Version, Bytes)> {
 /// is not found, then an [error](crate::error::Error) is returned.
 ///
 /// Returns the archive version and bytes.
+#[allow(clippy::cast_precision_loss)]
 #[instrument(level = "debug", skip(target))]
 pub async fn get_archive_for_target<S: AsRef<str>>(
     version: &Version,
@@ -320,6 +318,7 @@ fn acquire_lock(out_dir: &Path) -> Result<PathBuf> {
 }
 
 /// Extracts the compressed tar [bytes](Bytes) to the [out_dir](Path).
+#[allow(clippy::cast_precision_loss)]
 #[instrument(skip(bytes))]
 pub async fn extract(bytes: &Bytes, out_dir: &Path) -> Result<()> {
     let input = BufReader::new(Cursor::new(bytes));
@@ -328,13 +327,13 @@ pub async fn extract(bytes: &Bytes, out_dir: &Path) -> Result<()> {
     let mut files = 0;
     let mut extracted_bytes = 0;
 
-    let parent_dir = match out_dir.parent() {
-        Some(parent) => parent,
-        None => {
-            debug!("No parent directory for {}", out_dir.to_string_lossy());
-            out_dir
-        }
+    let parent_dir = if let Some(parent) = out_dir.parent() {
+        parent
+    } else {
+        debug!("No parent directory for {}", out_dir.to_string_lossy());
+        out_dir
     };
+
     create_dir_all(parent_dir)?;
 
     let lock_file = acquire_lock(parent_dir)?;
@@ -370,7 +369,7 @@ pub async fn extract(bytes: &Bytes, out_dir: &Path) -> Result<()> {
             }
         };
         let stripped_entry_header_path = entry_header_path.strip_prefix(prefix)?.to_path_buf();
-        let mut entry_name = extract_dir.to_path_buf();
+        let mut entry_name = extract_dir.clone();
         entry_name.push(stripped_entry_header_path);
 
         if entry_type.is_dir() || entry_name.is_dir() {

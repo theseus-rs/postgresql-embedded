@@ -10,6 +10,10 @@ lazy_static! {
 /// Gets the version of PostgreSQL for the specified [version](Version).  If the version minor or release is not
 /// specified, then the latest version is returned. If a release for the [version](Version) is not found, then a
 /// [ReleaseNotFound](crate::Error::ReleaseNotFound) error is returned.
+///
+/// # Errors
+///
+/// Returns an error if the version is not found.
 pub fn get_version(version: &Version) -> crate::Result<Version> {
     RUNTIME
         .handle()
@@ -21,6 +25,10 @@ pub fn get_version(version: &Version) -> crate::Result<Version> {
 /// [error](crate::Error) is returned.
 ///
 /// Returns the archive version and bytes.
+///
+/// # Errors
+///
+/// Returns an error if the version is not found.
 pub fn get_archive(version: &Version) -> crate::Result<(Version, Bytes)> {
     RUNTIME
         .handle()
@@ -33,6 +41,10 @@ pub fn get_archive(version: &Version) -> crate::Result<(Version, Bytes)> {
 /// is not found, then an [error](crate::error::Error) is returned.
 ///
 /// Returns the archive version and bytes.
+///
+/// # Errors
+///
+/// Returns an error if the version or target is not found.
 pub fn get_archive_for_target<S: AsRef<str>>(
     version: &Version,
     target: S,
@@ -43,6 +55,10 @@ pub fn get_archive_for_target<S: AsRef<str>>(
 }
 
 /// Extracts the compressed tar [bytes](Bytes) to the [out_dir](Path).
+///
+/// # Errors
+///
+/// Returns an error if the extraction fails.
 pub fn extract(bytes: &Bytes, out_dir: &Path) -> crate::Result<()> {
     RUNTIME
         .handle()
