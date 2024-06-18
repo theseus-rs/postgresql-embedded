@@ -3,10 +3,13 @@ use crate::Settings;
 use std::ffi::{OsStr, OsString};
 use std::path::PathBuf;
 
-/// `postgres` is the PostgreSQL server.
+/// `postgres` is the `PostgreSQL` server.
 #[derive(Clone, Debug, Default)]
+#[allow(clippy::module_name_repetitions)]
+#[allow(clippy::struct_excessive_bools)]
 pub struct PostgresBuilder {
     program_dir: Option<PathBuf>,
+    envs: Vec<(OsString, OsString)>,
     n_buffers: Option<u32>,
     runtime_param: Option<(OsString, OsString)>,
     print_runtime_param: Option<OsString>,
@@ -41,12 +44,13 @@ pub struct PostgresBuilder {
 }
 
 impl PostgresBuilder {
-    /// Create a new [PostgresBuilder]
+    /// Create a new [`PostgresBuilder`]
+    #[must_use]
     pub fn new() -> Self {
         Self::default()
     }
 
-    /// Create a new [PostgresBuilder] from [Settings]
+    /// Create a new [`PostgresBuilder`] from [Settings]
     pub fn from(settings: &dyn Settings) -> Self {
         Self::new()
             .program_dir(settings.get_binary_dir())
@@ -55,192 +59,224 @@ impl PostgresBuilder {
     }
 
     /// Location of the program binary
+    #[must_use]
     pub fn program_dir<P: Into<PathBuf>>(mut self, path: P) -> Self {
         self.program_dir = Some(path.into());
         self
     }
 
     /// number of shared buffers
+    #[must_use]
     pub fn n_buffers(mut self, n_buffers: u32) -> Self {
         self.n_buffers = Some(n_buffers);
         self
     }
 
     /// set run-time parameter
+    #[must_use]
     pub fn runtime_param<S: AsRef<OsStr>>(mut self, name: S, value: S) -> Self {
         self.runtime_param = Some((name.as_ref().into(), value.as_ref().into()));
         self
     }
 
     /// print value of run-time parameter, then exit
+    #[must_use]
     pub fn print_runtime_param<S: AsRef<OsStr>>(mut self, name: S) -> Self {
         self.print_runtime_param = Some(name.as_ref().to_os_string());
         self
     }
 
     /// debugging level
+    #[must_use]
     pub fn debugging_level(mut self, level: u8) -> Self {
         self.debugging_level = Some(level);
         self
     }
 
     /// database directory
+    #[must_use]
     pub fn data_dir<P: Into<PathBuf>>(mut self, dir: P) -> Self {
         self.data_dir = Some(dir.into());
         self
     }
 
     /// use European date input format (DMY)
+    #[must_use]
     pub fn european_date_format(mut self) -> Self {
         self.european_date_format = true;
         self
     }
 
     /// turn fsync off
+    #[must_use]
     pub fn fsync_off(mut self) -> Self {
         self.fsync_off = true;
         self
     }
 
     /// host name or IP address to listen on
+    #[must_use]
     pub fn host<S: AsRef<OsStr>>(mut self, host: S) -> Self {
         self.host = Some(host.as_ref().to_os_string());
         self
     }
 
     /// enable TCP/IP connections (deprecated)
+    #[must_use]
     pub fn tcp_ip_connections(mut self) -> Self {
         self.tcp_ip_connections = true;
         self
     }
 
     /// Unix-domain socket location
+    #[must_use]
     pub fn socket_location<P: Into<PathBuf>>(mut self, dir: P) -> Self {
         self.socket_location = Some(dir.into());
         self
     }
 
     /// maximum number of allowed connections
+    #[must_use]
     pub fn max_connections(mut self, max: u32) -> Self {
         self.max_connections = Some(max);
         self
     }
 
     /// port number to listen on
+    #[must_use]
     pub fn port(mut self, port: u16) -> Self {
         self.port = Some(port);
         self
     }
 
     /// show statistics after each query
+    #[must_use]
     pub fn show_stats(mut self) -> Self {
         self.show_stats = true;
         self
     }
 
     /// set amount of memory for sorts (in kB)
+    #[must_use]
     pub fn work_mem(mut self, mem: u32) -> Self {
         self.work_mem = Some(mem);
         self
     }
 
     /// output version information, then exit
+    #[must_use]
     pub fn version(mut self) -> Self {
         self.version = true;
         self
     }
 
     /// describe configuration parameters, then exit
+    #[must_use]
     pub fn describe_config(mut self) -> Self {
         self.describe_config = true;
         self
     }
 
     /// show help, then exit
+    #[must_use]
     pub fn help(mut self) -> Self {
         self.help = true;
         self
     }
 
     /// forbid use of some plan types
+    #[must_use]
     pub fn forbidden_plan_types<S: AsRef<OsStr>>(mut self, types: S) -> Self {
         self.forbidden_plan_types = Some(types.as_ref().to_os_string());
         self
     }
 
     /// allow system table structure changes
+    #[must_use]
     pub fn allow_system_table_changes(mut self) -> Self {
         self.allow_system_table_changes = true;
         self
     }
 
     /// disable system indexes
+    #[must_use]
     pub fn disable_system_indexes(mut self) -> Self {
         self.disable_system_indexes = true;
         self
     }
 
     /// show timings after each query
+    #[must_use]
     pub fn show_timings<S: AsRef<OsStr>>(mut self, timings: S) -> Self {
         self.show_timings = Some(timings.as_ref().to_os_string());
         self
     }
 
     /// send SIGABRT to all backend processes if one dies
+    #[must_use]
     pub fn send_sigabrt(mut self) -> Self {
         self.send_sigabrt = true;
         self
     }
 
     /// wait NUM seconds to allow attach from a debugger
+    #[must_use]
     pub fn wait_seconds(mut self, seconds: u32) -> Self {
         self.wait_seconds = Some(seconds);
         self
     }
 
     /// selects single-user mode (must be first argument)
+    #[must_use]
     pub fn single_user_mode(mut self) -> Self {
         self.single_user_mode = true;
         self
     }
 
     /// database name (defaults to user name)
+    #[must_use]
     pub fn dbname<S: AsRef<OsStr>>(mut self, dbname: S) -> Self {
         self.dbname = Some(dbname.as_ref().to_os_string());
         self
     }
 
     /// override debugging level
+    #[must_use]
     pub fn override_debugging_level(mut self, level: u8) -> Self {
         self.override_debugging_level = Some(level);
         self
     }
 
     /// echo statement before execution
+    #[must_use]
     pub fn echo_statement(mut self) -> Self {
         self.echo_statement = true;
         self
     }
 
     /// do not use newline as interactive query delimiter
+    #[must_use]
     pub fn no_newline_delimiter(mut self) -> Self {
         self.no_newline_delimiter = true;
         self
     }
 
     /// send stdout and stderr to given file
+    #[must_use]
     pub fn output_file<P: Into<PathBuf>>(mut self, file: P) -> Self {
         self.output_file = Some(file.into());
         self
     }
 
     /// selects bootstrapping mode (must be first argument)
+    #[must_use]
     pub fn bootstrapping_mode(mut self) -> Self {
         self.bootstrapping_mode = true;
         self
     }
 
     /// selects check mode (must be first argument)
+    #[must_use]
     pub fn check_mode(mut self) -> Self {
         self.check_mode = true;
         self
@@ -259,6 +295,7 @@ impl CommandBuilder for PostgresBuilder {
     }
 
     /// Get the arguments for the command
+    #[allow(clippy::too_many_lines)]
     fn get_args(&self) -> Vec<OsString> {
         let mut args: Vec<OsString> = Vec::new();
 
@@ -403,6 +440,18 @@ impl CommandBuilder for PostgresBuilder {
 
         args
     }
+
+    /// Get the environment variables for the command
+    fn get_envs(&self) -> Vec<(OsString, OsString)> {
+        self.envs.clone()
+    }
+
+    /// Set an environment variable for the command
+    fn env<S: AsRef<OsStr>>(mut self, key: S, value: S) -> Self {
+        self.envs
+            .push((key.as_ref().to_os_string(), value.as_ref().to_os_string()));
+        self
+    }
 }
 
 #[cfg(test)]
@@ -433,6 +482,7 @@ mod tests {
     #[test]
     fn test_builder() {
         let command = PostgresBuilder::new()
+            .env("PGDATABASE", "database")
             .n_buffers(100)
             .runtime_param("name", "value")
             .print_runtime_param("name")
@@ -467,7 +517,7 @@ mod tests {
             .build();
 
         assert_eq!(
-            r#""postgres" "-B" "100" "-c" "name=value" "-C" "name" "-d" "3" "-D" "data_dir" "-e" "-F" "-h" "localhost" "-i" "-k" "socket_location" "-N" "100" "-p" "5432" "-s" "-S" "100" "--version" "--describe-config" "--help" "-f" "type" "-O" "-P" "-t" "timings" "-T" "-W" "10" "--single" "dbname" "-d" "3" "-E" "-j" "-r" "output_file" "--boot" "--check""#,
+            r#"PGDATABASE="database" "postgres" "-B" "100" "-c" "name=value" "-C" "name" "-d" "3" "-D" "data_dir" "-e" "-F" "-h" "localhost" "-i" "-k" "socket_location" "-N" "100" "-p" "5432" "-s" "-S" "100" "--version" "--describe-config" "--help" "-f" "type" "-O" "-P" "-t" "timings" "-T" "-W" "10" "--single" "dbname" "-d" "3" "-E" "-j" "-r" "output_file" "--boot" "--check""#,
             command.to_command_string()
         );
     }

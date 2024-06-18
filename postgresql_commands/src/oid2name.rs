@@ -4,10 +4,12 @@ use std::convert::AsRef;
 use std::ffi::{OsStr, OsString};
 use std::path::PathBuf;
 
-/// `oid2name` helps to examine the file structure used by PostgreSQL.
+/// `oid2name` helps to examine the file structure used by `PostgreSQL`.
 #[derive(Clone, Debug, Default)]
+#[allow(clippy::struct_excessive_bools)]
 pub struct Oid2NameBuilder {
     program_dir: Option<PathBuf>,
+    envs: Vec<(OsString, OsString)>,
     filenode: Option<OsString>,
     indexes: bool,
     oid: Option<OsString>,
@@ -25,12 +27,13 @@ pub struct Oid2NameBuilder {
 }
 
 impl Oid2NameBuilder {
-    /// Create a new [Oid2NameBuilder]
+    /// Create a new [`Oid2NameBuilder`]
+    #[must_use]
     pub fn new() -> Self {
         Self::default()
     }
 
-    /// Create a new [Oid2NameBuilder] from [Settings]
+    /// Create a new [`Oid2NameBuilder`] from [Settings]
     pub fn from(settings: &dyn Settings) -> Self {
         Self::new()
             .program_dir(settings.get_binary_dir())
@@ -40,90 +43,105 @@ impl Oid2NameBuilder {
     }
 
     /// Location of the program binary
+    #[must_use]
     pub fn program_dir<P: Into<PathBuf>>(mut self, path: P) -> Self {
         self.program_dir = Some(path.into());
         self
     }
 
     /// show info for table with given file node
+    #[must_use]
     pub fn filenode<S: AsRef<OsStr>>(mut self, filenode: S) -> Self {
         self.filenode = Some(filenode.as_ref().to_os_string());
         self
     }
 
     /// show indexes and sequences too
+    #[must_use]
     pub fn indexes(mut self) -> Self {
         self.indexes = true;
         self
     }
 
     /// show info for table with given OID
+    #[must_use]
     pub fn oid<S: AsRef<OsStr>>(mut self, oid: S) -> Self {
         self.oid = Some(oid.as_ref().to_os_string());
         self
     }
 
     /// quiet (don't show headers)
+    #[must_use]
     pub fn quiet(mut self) -> Self {
         self.quiet = true;
         self
     }
 
     /// show all tablespaces
+    #[must_use]
     pub fn tablespaces(mut self) -> Self {
         self.tablespaces = true;
         self
     }
 
     /// show system objects too
+    #[must_use]
     pub fn system_objects(mut self) -> Self {
         self.system_objects = true;
         self
     }
 
     /// show info for named table
+    #[must_use]
     pub fn table<S: AsRef<OsStr>>(mut self, table: S) -> Self {
         self.table = Some(table.as_ref().to_os_string());
         self
     }
 
     /// output version information, then exit
+    #[must_use]
     pub fn version(mut self) -> Self {
         self.version = true;
         self
     }
 
     /// extended (show additional columns)
+    #[must_use]
     pub fn extended(mut self) -> Self {
         self.extended = true;
         self
     }
 
     /// show help, then exit
+    #[must_use]
     pub fn help(mut self) -> Self {
         self.help = true;
         self
     }
 
     /// database to connect to
+    #[must_use]
     pub fn dbname<S: AsRef<OsStr>>(mut self, dbname: S) -> Self {
         self.dbname = Some(dbname.as_ref().to_os_string());
         self
     }
 
     /// database server host or socket directory
+    #[must_use]
     pub fn host<S: AsRef<OsStr>>(mut self, host: S) -> Self {
         self.host = Some(host.as_ref().to_os_string());
         self
     }
 
     /// database server port number
+    #[must_use]
     pub fn port(mut self, port: u16) -> Self {
         self.port = Some(port);
         self
     }
 
     /// connect as specified database user
+    #[must_use]
     pub fn username<S: AsRef<OsStr>>(mut self, username: S) -> Self {
         self.username = Some(username.as_ref().to_os_string());
         self
@@ -210,6 +228,18 @@ impl CommandBuilder for Oid2NameBuilder {
 
         args
     }
+
+    /// Get the environment variables for the command
+    fn get_envs(&self) -> Vec<(OsString, OsString)> {
+        self.envs.clone()
+    }
+
+    /// Set an environment variable for the command
+    fn env<S: AsRef<OsStr>>(mut self, key: S, value: S) -> Self {
+        self.envs
+            .push((key.as_ref().to_os_string(), value.as_ref().to_os_string()));
+        self
+    }
 }
 
 #[cfg(test)]
@@ -240,6 +270,7 @@ mod tests {
     #[test]
     fn test_builder() {
         let command = Oid2NameBuilder::new()
+            .env("PGDATABASE", "database")
             .filenode("filenode")
             .indexes()
             .oid("oid")
@@ -257,7 +288,7 @@ mod tests {
             .build();
 
         assert_eq!(
-            r#""oid2name" "--filenode" "filenode" "--indexes" "--oid" "oid" "--quiet" "--tablespaces" "--system-objects" "--table" "table" "--version" "--extended" "--help" "--dbname" "dbname" "--host" "localhost" "--port" "5432" "--username" "username""#,
+            r#"PGDATABASE="database" "oid2name" "--filenode" "filenode" "--indexes" "--oid" "oid" "--quiet" "--tablespaces" "--system-objects" "--table" "table" "--version" "--extended" "--help" "--dbname" "dbname" "--host" "localhost" "--port" "5432" "--username" "username""#,
             command.to_command_string()
         );
     }

@@ -4,10 +4,12 @@ use std::convert::AsRef;
 use std::ffi::{OsStr, OsString};
 use std::path::PathBuf;
 
-/// `initdb` initializes a PostgreSQL database cluster.
+/// `initdb` initializes a `PostgreSQL` database cluster.
 #[derive(Clone, Debug, Default)]
+#[allow(clippy::struct_excessive_bools)]
 pub struct InitDbBuilder {
     program_dir: Option<PathBuf>,
+    envs: Vec<(OsString, OsString)>,
     auth: Option<OsString>,
     auth_host: Option<OsString>,
     auth_local: Option<OsString>,
@@ -46,12 +48,13 @@ pub struct InitDbBuilder {
 }
 
 impl InitDbBuilder {
-    /// Create a new [InitDbBuilder]
+    /// Create a new [`InitDbBuilder`]
+    #[must_use]
     pub fn new() -> Self {
         Self::default()
     }
 
-    /// Create a new [InitDbBuilder] from [Settings]
+    /// Create a new [`InitDbBuilder`] from [Settings]
     pub fn from(settings: &dyn Settings) -> Self {
         Self::new()
             .program_dir(settings.get_binary_dir())
@@ -59,216 +62,252 @@ impl InitDbBuilder {
     }
 
     /// Location of the program binary
+    #[must_use]
     pub fn program_dir<P: Into<PathBuf>>(mut self, path: P) -> Self {
         self.program_dir = Some(path.into());
         self
     }
 
     /// Set the default authentication method for local connections
+    #[must_use]
     pub fn auth<S: AsRef<OsStr>>(mut self, auth: S) -> Self {
         self.auth = Some(auth.as_ref().to_os_string());
         self
     }
 
     /// Set the default authentication method for local TCP/IP connections
+    #[must_use]
     pub fn auth_host<S: AsRef<OsStr>>(mut self, auth_host: S) -> Self {
         self.auth_host = Some(auth_host.as_ref().to_os_string());
         self
     }
 
     /// Set the default authentication method for local-socket connections
+    #[must_use]
     pub fn auth_local<S: AsRef<OsStr>>(mut self, auth_local: S) -> Self {
         self.auth_local = Some(auth_local.as_ref().to_os_string());
         self
     }
 
     /// Set the location for this database cluster
+    #[must_use]
     pub fn pgdata<P: Into<PathBuf>>(mut self, pgdata: P) -> Self {
         self.pgdata = Some(pgdata.into());
         self
     }
 
     /// Set the default encoding for new databases
+    #[must_use]
     pub fn encoding<S: AsRef<OsStr>>(mut self, encoding: S) -> Self {
         self.encoding = Some(encoding.as_ref().to_os_string());
         self
     }
 
     /// Allow group read/execute on data directory
+    #[must_use]
     pub fn allow_group_access(mut self) -> Self {
         self.allow_group_access = true;
         self
     }
 
     /// Set the ICU locale ID for new databases
+    #[must_use]
     pub fn icu_locale<S: AsRef<OsStr>>(mut self, icu_locale: S) -> Self {
         self.icu_locale = Some(icu_locale.as_ref().to_os_string());
         self
     }
 
     /// Set additional ICU collation rules for new databases
+    #[must_use]
     pub fn icu_rules<S: AsRef<OsStr>>(mut self, icu_rules: S) -> Self {
         self.icu_rules = Some(icu_rules.as_ref().to_os_string());
         self
     }
 
     /// Use data page checksums
+    #[must_use]
     pub fn data_checksums(mut self) -> Self {
         self.data_checksums = true;
         self
     }
 
     /// Set the default locale for new databases
+    #[must_use]
     pub fn locale<S: AsRef<OsStr>>(mut self, locale: S) -> Self {
         self.locale = Some(locale.as_ref().to_os_string());
         self
     }
 
     /// Set the default locale in the respective category for new databases
+    #[must_use]
     pub fn lc_collate<S: AsRef<OsStr>>(mut self, lc_collate: S) -> Self {
         self.lc_collate = Some(lc_collate.as_ref().to_os_string());
         self
     }
 
     /// Set the default locale in the respective category for new databases
+    #[must_use]
     pub fn lc_ctype<S: AsRef<OsStr>>(mut self, lc_ctype: S) -> Self {
         self.lc_ctype = Some(lc_ctype.as_ref().to_os_string());
         self
     }
 
     /// Set the default locale in the respective category for new databases
+    #[must_use]
     pub fn lc_messages<S: AsRef<OsStr>>(mut self, lc_messages: S) -> Self {
         self.lc_messages = Some(lc_messages.as_ref().to_os_string());
         self
     }
 
     /// Set the default locale in the respective category for new databases
+    #[must_use]
     pub fn lc_monetary<S: AsRef<OsStr>>(mut self, lc_monetary: S) -> Self {
         self.lc_monetary = Some(lc_monetary.as_ref().to_os_string());
         self
     }
 
     /// Set the default locale in the respective category for new databases
+    #[must_use]
     pub fn lc_numeric<S: AsRef<OsStr>>(mut self, lc_numeric: S) -> Self {
         self.lc_numeric = Some(lc_numeric.as_ref().to_os_string());
         self
     }
 
     /// Set the default locale in the respective category for new databases
+    #[must_use]
     pub fn lc_time<S: AsRef<OsStr>>(mut self, lc_time: S) -> Self {
         self.lc_time = Some(lc_time.as_ref().to_os_string());
         self
     }
 
     /// Equivalent to --locale=C
+    #[must_use]
     pub fn no_locale(mut self) -> Self {
         self.no_locale = true;
         self
     }
 
     /// Set the default locale provider for new databases
+    #[must_use]
     pub fn locale_provider<S: AsRef<OsStr>>(mut self, locale_provider: S) -> Self {
         self.locale_provider = Some(locale_provider.as_ref().to_os_string());
         self
     }
 
     /// Read password for the new superuser from file
+    #[must_use]
     pub fn pwfile<P: Into<PathBuf>>(mut self, pwfile: P) -> Self {
         self.pwfile = Some(pwfile.into());
         self
     }
 
     /// Set the default text search configuration
+    #[must_use]
     pub fn text_search_config<S: AsRef<OsStr>>(mut self, text_search_config: S) -> Self {
         self.text_search_config = Some(text_search_config.as_ref().to_os_string());
         self
     }
 
     /// Set the database superuser name
+    #[must_use]
     pub fn username<S: AsRef<OsStr>>(mut self, username: S) -> Self {
         self.username = Some(username.as_ref().to_os_string());
         self
     }
 
     /// Prompt for a password for the new superuser
+    #[must_use]
     pub fn pwprompt(mut self) -> Self {
         self.pwprompt = true;
         self
     }
 
     /// Set the location for the write-ahead log directory
+    #[must_use]
     pub fn waldir<S: AsRef<OsStr>>(mut self, waldir: S) -> Self {
         self.waldir = Some(waldir.as_ref().to_os_string());
         self
     }
 
     /// Set the size of WAL segments, in megabytes
+    #[must_use]
     pub fn wal_segsize<S: AsRef<OsStr>>(mut self, wal_segsize: S) -> Self {
         self.wal_segsize = Some(wal_segsize.as_ref().to_os_string());
         self
     }
 
     /// Override default setting for server parameter
+    #[must_use]
     pub fn set<S: AsRef<OsStr>>(mut self, set: S) -> Self {
         self.set = Some(set.as_ref().to_os_string());
         self
     }
 
     /// Generate lots of debugging output
+    #[must_use]
     pub fn debug(mut self) -> Self {
         self.debug = true;
         self
     }
 
-    /// Set debug_discard_caches=1
+    /// Set `debug_discard_caches=1`
+    #[must_use]
     pub fn discard_caches(mut self) -> Self {
         self.discard_caches = true;
         self
     }
 
     /// Set where to find the input files
+    #[must_use]
     pub fn directory<S: AsRef<OsStr>>(mut self, directory: S) -> Self {
         self.directory = Some(directory.as_ref().to_os_string());
         self
     }
 
     /// Do not clean up after errors
+    #[must_use]
     pub fn no_clean(mut self) -> Self {
         self.no_clean = true;
         self
     }
 
     /// Do not wait for changes to be written safely to disk
+    #[must_use]
     pub fn no_sync(mut self) -> Self {
         self.no_sync = true;
         self
     }
 
     /// Do not print instructions for next steps
+    #[must_use]
     pub fn no_instructions(mut self) -> Self {
         self.no_instructions = true;
         self
     }
 
     /// Show internal settings
+    #[must_use]
     pub fn show(mut self) -> Self {
         self.show = true;
         self
     }
 
     /// Only sync database files to disk, then exit
+    #[must_use]
     pub fn sync_only(mut self) -> Self {
         self.sync_only = true;
         self
     }
 
     /// Output version information, then exit
+    #[must_use]
     pub fn version(mut self) -> Self {
         self.version = true;
         self
     }
 
     /// Show help, then exit
+    #[must_use]
     pub fn help(mut self) -> Self {
         self.help = true;
         self
@@ -287,6 +326,7 @@ impl CommandBuilder for InitDbBuilder {
     }
 
     /// Get the arguments for the command
+    #[allow(clippy::too_many_lines)]
     fn get_args(&self) -> Vec<OsString> {
         let mut args: Vec<OsString> = Vec::new();
 
@@ -454,6 +494,18 @@ impl CommandBuilder for InitDbBuilder {
 
         args
     }
+
+    /// Get the environment variables for the command
+    fn get_envs(&self) -> Vec<(OsString, OsString)> {
+        self.envs.clone()
+    }
+
+    /// Set an environment variable for the command
+    fn env<S: AsRef<OsStr>>(mut self, key: S, value: S) -> Self {
+        self.envs
+            .push((key.as_ref().to_os_string(), value.as_ref().to_os_string()));
+        self
+    }
 }
 
 #[cfg(test)]
@@ -484,6 +536,7 @@ mod tests {
     #[test]
     fn test_builder() {
         let command = InitDbBuilder::new()
+            .env("PGDATABASE", "database")
             .auth("md5")
             .auth_host("md5")
             .auth_local("md5")
@@ -522,7 +575,7 @@ mod tests {
             .build();
 
         assert_eq!(
-            r#""initdb" "--auth" "md5" "--auth-host" "md5" "--auth-local" "md5" "--pgdata" "pgdata" "--encoding" "UTF8" "--allow-group-access" "--icu-locale" "en_US" "--icu-rules" "phonebook" "--data-checksums" "--locale" "en_US" "--lc-collate" "en_US" "--lc-ctype" "en_US" "--lc-messages" "en_US" "--lc-monetary" "en_US" "--lc-numeric" "en_US" "--lc-time" "en_US" "--no-locale" "--locale-provider" "icu" "--pwfile" ".pwfile" "--text-search-config" "english" "--username" "postgres" "--pwprompt" "--waldir" "waldir" "--wal-segsize" "1" "--set" "timezone=UTC" "--debug" "--discard-caches" "--directory" "directory" "--no-clean" "--no-sync" "--no-instructions" "--show" "--sync-only" "--version" "--help""#,
+            r#"PGDATABASE="database" "initdb" "--auth" "md5" "--auth-host" "md5" "--auth-local" "md5" "--pgdata" "pgdata" "--encoding" "UTF8" "--allow-group-access" "--icu-locale" "en_US" "--icu-rules" "phonebook" "--data-checksums" "--locale" "en_US" "--lc-collate" "en_US" "--lc-ctype" "en_US" "--lc-messages" "en_US" "--lc-monetary" "en_US" "--lc-numeric" "en_US" "--lc-time" "en_US" "--no-locale" "--locale-provider" "icu" "--pwfile" ".pwfile" "--text-search-config" "english" "--username" "postgres" "--pwprompt" "--waldir" "waldir" "--wal-segsize" "1" "--set" "timezone=UTC" "--debug" "--discard-caches" "--directory" "directory" "--no-clean" "--no-sync" "--no-instructions" "--show" "--sync-only" "--version" "--help""#,
             command.to_command_string()
         );
     }

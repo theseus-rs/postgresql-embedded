@@ -4,10 +4,13 @@ use std::convert::AsRef;
 use std::ffi::{OsStr, OsString};
 use std::path::PathBuf;
 
-/// `pg_config` provides information about the installed version of PostgreSQL.
+/// `pg_config` provides information about the installed version of `PostgreSQL`.
 #[derive(Clone, Debug, Default)]
+#[allow(clippy::module_name_repetitions)]
+#[allow(clippy::struct_excessive_bools)]
 pub struct PgConfigBuilder {
     program_dir: Option<PathBuf>,
+    envs: Vec<(OsString, OsString)>,
     bindir: Option<OsString>,
     docdir: Option<OsString>,
     htmldir: Option<OsString>,
@@ -35,161 +38,187 @@ pub struct PgConfigBuilder {
 }
 
 impl PgConfigBuilder {
-    /// Create a new [PgConfigBuilder]
+    /// Create a new [`PgConfigBuilder`]
+    #[must_use]
     pub fn new() -> Self {
         Self::default()
     }
 
-    /// Create a new [PgConfigBuilder] from [Settings]
+    /// Create a new [`PgConfigBuilder`] from [Settings]
     pub fn from(settings: &dyn Settings) -> Self {
         Self::new().program_dir(settings.get_binary_dir())
     }
 
     /// Location of the program binary
+    #[must_use]
     pub fn program_dir<P: Into<PathBuf>>(mut self, path: P) -> Self {
         self.program_dir = Some(path.into());
         self
     }
 
     /// Set the bindir
+    #[must_use]
     pub fn bindir<S: AsRef<OsStr>>(mut self, bindir: S) -> Self {
         self.bindir = Some(bindir.as_ref().to_os_string());
         self
     }
 
     /// Set the docdir
+    #[must_use]
     pub fn docdir<S: AsRef<OsStr>>(mut self, docdir: S) -> Self {
         self.docdir = Some(docdir.as_ref().to_os_string());
         self
     }
 
     /// Set the htmldir
+    #[must_use]
     pub fn htmldir<S: AsRef<OsStr>>(mut self, htmldir: S) -> Self {
         self.htmldir = Some(htmldir.as_ref().to_os_string());
         self
     }
 
     /// Set the includedir
+    #[must_use]
     pub fn includedir<S: AsRef<OsStr>>(mut self, includedir: S) -> Self {
         self.includedir = Some(includedir.as_ref().to_os_string());
         self
     }
 
     /// Set the pkgincludedir
+    #[must_use]
     pub fn pkgincludedir<S: AsRef<OsStr>>(mut self, pkgincludedir: S) -> Self {
         self.pkgincludedir = Some(pkgincludedir.as_ref().to_os_string());
         self
     }
 
-    /// Set the includedir_server
+    /// Set the `includedir_server`
+    #[must_use]
     pub fn includedir_server<S: AsRef<OsStr>>(mut self, includedir_server: S) -> Self {
         self.includedir_server = Some(includedir_server.as_ref().to_os_string());
         self
     }
 
     /// Set the libdir
+    #[must_use]
     pub fn libdir<S: AsRef<OsStr>>(mut self, libdir: S) -> Self {
         self.libdir = Some(libdir.as_ref().to_os_string());
         self
     }
 
     /// Set the pkglibdir
+    #[must_use]
     pub fn pkglibdir<S: AsRef<OsStr>>(mut self, pkglibdir: S) -> Self {
         self.pkglibdir = Some(pkglibdir.as_ref().to_os_string());
         self
     }
 
     /// Set the localedir
+    #[must_use]
     pub fn localedir<S: AsRef<OsStr>>(mut self, localedir: S) -> Self {
         self.localedir = Some(localedir.as_ref().to_os_string());
         self
     }
 
     /// Set the mandir
+    #[must_use]
     pub fn mandir<S: AsRef<OsStr>>(mut self, mandir: S) -> Self {
         self.mandir = Some(mandir.as_ref().to_os_string());
         self
     }
 
     /// Set the sharedir
+    #[must_use]
     pub fn sharedir<S: AsRef<OsStr>>(mut self, sharedir: S) -> Self {
         self.sharedir = Some(sharedir.as_ref().to_os_string());
         self
     }
 
     /// Set the sysconfdir
+    #[must_use]
     pub fn sysconfdir<S: AsRef<OsStr>>(mut self, sysconfdir: S) -> Self {
         self.sysconfdir = Some(sysconfdir.as_ref().to_os_string());
         self
     }
 
     /// Set the pgxs
+    #[must_use]
     pub fn pgxs<S: AsRef<OsStr>>(mut self, pgxs: S) -> Self {
         self.pgxs = Some(pgxs.as_ref().to_os_string());
         self
     }
 
     /// Set the configure flag
+    #[must_use]
     pub fn configure(mut self) -> Self {
         self.configure = true;
         self
     }
 
     /// Set the cc flag
+    #[must_use]
     pub fn cc(mut self) -> Self {
         self.cc = true;
         self
     }
 
     /// Set the cppflags flag
+    #[must_use]
     pub fn cppflags(mut self) -> Self {
         self.cppflags = true;
         self
     }
 
     /// Set the cflags flag
+    #[must_use]
     pub fn cflags(mut self) -> Self {
         self.cflags = true;
         self
     }
 
-    /// Set the cflags_sl flag
+    /// Set the `cflags_sl` flag
+    #[must_use]
     pub fn cflags_sl(mut self) -> Self {
         self.cflags_sl = true;
         self
     }
 
     /// Set the ldflags flag
+    #[must_use]
     pub fn ldflags(mut self) -> Self {
         self.ldflags = true;
         self
     }
 
-    /// Set the ldflags_ex flag
+    /// Set the `ldflags_ex` flag
+    #[must_use]
     pub fn ldflags_ex(mut self) -> Self {
         self.ldflags_ex = true;
         self
     }
 
-    /// Set the ldflags_sl flag
+    /// Set the `ldflags_sl` flag
+    #[must_use]
     pub fn ldflags_sl(mut self) -> Self {
         self.ldflags_sl = true;
         self
     }
 
     /// Set the libs flag
+    #[must_use]
     pub fn libs(mut self) -> Self {
         self.libs = true;
         self
     }
 
     /// output version information, then exit
+    #[must_use]
     pub fn version(mut self) -> Self {
         self.version = true;
         self
     }
 
     /// show help, then exit
+    #[must_use]
     pub fn help(mut self) -> Self {
         self.help = true;
         self
@@ -322,6 +351,18 @@ impl CommandBuilder for PgConfigBuilder {
 
         args
     }
+
+    /// Get the environment variables for the command
+    fn get_envs(&self) -> Vec<(OsString, OsString)> {
+        self.envs.clone()
+    }
+
+    /// Set an environment variable for the command
+    fn env<S: AsRef<OsStr>>(mut self, key: S, value: S) -> Self {
+        self.envs
+            .push((key.as_ref().to_os_string(), value.as_ref().to_os_string()));
+        self
+    }
 }
 
 #[cfg(test)]
@@ -349,6 +390,7 @@ mod tests {
     #[test]
     fn test_builder() {
         let command = PgConfigBuilder::new()
+            .env("PGDATABASE", "database")
             .bindir("bindir")
             .docdir("docdir")
             .htmldir("htmldir")
@@ -376,7 +418,7 @@ mod tests {
             .build();
 
         assert_eq!(
-            r#""pg_config" "--bindir" "bindir" "--docdir" "docdir" "--htmldir" "htmldir" "--includedir" "includedir" "--pkgincludedir" "pkgincludedir" "--includedir-server" "includedir_server" "--libdir" "libdir" "--pkglibdir" "pkglibdir" "--localedir" "localedir" "--mandir" "mandir" "--sharedir" "sharedir" "--sysconfdir" "sysconfdir" "--pgxs" "pgxs" "--configure" "--cc" "--cppflags" "--cflags" "--cflags_sl" "--ldflags" "--ldflags_ex" "--ldflags_sl" "--libs" "--version" "--help""#,
+            r#"PGDATABASE="database" "pg_config" "--bindir" "bindir" "--docdir" "docdir" "--htmldir" "htmldir" "--includedir" "includedir" "--pkgincludedir" "pkgincludedir" "--includedir-server" "includedir_server" "--libdir" "libdir" "--pkglibdir" "pkglibdir" "--localedir" "localedir" "--mandir" "mandir" "--sharedir" "sharedir" "--sysconfdir" "sysconfdir" "--pgxs" "pgxs" "--configure" "--cc" "--cppflags" "--cflags" "--cflags_sl" "--ldflags" "--ldflags_ex" "--ldflags_sl" "--libs" "--version" "--help""#,
             command.to_command_string()
         );
     }

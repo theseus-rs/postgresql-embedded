@@ -37,6 +37,8 @@ lazy_static::lazy_static! {
 #[cfg(feature = "bundled")]
 pub(crate) const ARCHIVE: &[u8] = include_bytes!(concat!(env!("OUT_DIR"), "/postgresql.tar.gz"));
 
+const PGDATABASE: &str = "PGDATABASE";
+
 /// PostgreSQL status
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Status {
@@ -260,10 +262,11 @@ impl PostgreSQL {
             options.push(format!("-c {key}={value}"));
         }
         let pg_ctl = PgCtlBuilder::from(&self.settings)
+            .env(PGDATABASE, "")
             .mode(Start)
             .pgdata(&self.settings.data_dir)
             .log(start_log)
-            .options(options)
+            .options(options.as_slice())
             .wait();
 
         match self.execute_command(pg_ctl).await {
@@ -317,6 +320,7 @@ impl PostgreSQL {
             self.settings.port
         );
         let psql = PsqlBuilder::from(&self.settings)
+            .env(PGDATABASE, "")
             .command(format!("CREATE DATABASE \"{}\"", database_name.as_ref()))
             .username(BOOTSTRAP_SUPERUSER)
             .no_psqlrc();
@@ -348,6 +352,7 @@ impl PostgreSQL {
             self.settings.port
         );
         let psql = PsqlBuilder::from(&self.settings)
+            .env(PGDATABASE, "")
             .command(format!(
                 "SELECT 1 FROM pg_database WHERE datname='{}'",
                 database_name.as_ref()
@@ -378,6 +383,7 @@ impl PostgreSQL {
             self.settings.port
         );
         let psql = PsqlBuilder::from(&self.settings)
+            .env(PGDATABASE, "")
             .command(format!(
                 "DROP DATABASE IF EXISTS \"{}\"",
                 database_name.as_ref()

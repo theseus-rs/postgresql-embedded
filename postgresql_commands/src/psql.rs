@@ -3,10 +3,13 @@ use crate::Settings;
 use std::ffi::{OsStr, OsString};
 use std::path::PathBuf;
 
-/// `psql` is the PostgreSQL interactive terminal.
+/// `psql` is the `PostgreSQL` interactive terminal.
 #[derive(Clone, Debug, Default)]
+#[allow(clippy::module_name_repetitions)]
+#[allow(clippy::struct_excessive_bools)]
 pub struct PsqlBuilder {
     program_dir: Option<PathBuf>,
+    envs: Vec<(OsString, OsString)>,
     command: Option<OsString>,
     dbname: Option<OsString>,
     file: Option<PathBuf>,
@@ -46,12 +49,13 @@ pub struct PsqlBuilder {
 }
 
 impl PsqlBuilder {
-    /// Create a new [PsqlBuilder]
+    /// Create a new [`PsqlBuilder`]
+    #[must_use]
     pub fn new() -> Self {
         Self::default()
     }
 
-    /// Create a new [PsqlBuilder] from [Settings]
+    /// Create a new [`PsqlBuilder`] from [Settings]
     pub fn from(settings: &dyn Settings) -> Self {
         Self::new()
             .program_dir(settings.get_binary_dir())
@@ -62,36 +66,42 @@ impl PsqlBuilder {
     }
 
     /// Location of the program binary
+    #[must_use]
     pub fn program_dir<P: Into<PathBuf>>(mut self, path: P) -> Self {
         self.program_dir = Some(path.into());
         self
     }
 
     /// run only single command (SQL or internal) and exit
+    #[must_use]
     pub fn command<S: AsRef<OsStr>>(mut self, command: S) -> Self {
         self.command = Some(command.as_ref().to_os_string());
         self
     }
 
     /// database name to connect to
+    #[must_use]
     pub fn dbname<S: AsRef<OsStr>>(mut self, dbname: S) -> Self {
         self.dbname = Some(dbname.as_ref().to_os_string());
         self
     }
 
     /// execute commands from file, then exit
+    #[must_use]
     pub fn file<P: Into<PathBuf>>(mut self, file: P) -> Self {
         self.file = Some(file.into());
         self
     }
 
     /// list available databases, then exit
+    #[must_use]
     pub fn list(mut self) -> Self {
         self.list = true;
         self
     }
 
-    /// set psql variable NAME to VALUE (e.g., -v ON_ERROR_STOP=1)
+    /// set psql variable NAME to VALUE (e.g., `-v ON_ERROR_STOP=1`)
+    #[must_use]
     pub fn variable<S: AsRef<OsStr>>(mut self, variable: (S, S)) -> Self {
         let (name, value) = variable;
         self.variable = Some((name.as_ref().into(), value.as_ref().into()));
@@ -99,18 +109,21 @@ impl PsqlBuilder {
     }
 
     /// output version information, then exit
+    #[must_use]
     pub fn version(mut self) -> Self {
         self.version = true;
         self
     }
 
     /// do not read startup file (~/.psqlrc)
+    #[must_use]
     pub fn no_psqlrc(mut self) -> Self {
         self.no_psqlrc = true;
         self
     }
 
     /// execute as a single transaction (if non-interactive)
+    #[must_use]
     pub fn single_transaction(mut self) -> Self {
         self.single_transaction = true;
         self
@@ -118,96 +131,112 @@ impl PsqlBuilder {
 
     /// show help, then exit
     /// Possible values: [options, commands, variables]
+    #[must_use]
     pub fn help<S: AsRef<OsStr>>(mut self, help: S) -> Self {
         self.help = Some(help.as_ref().to_os_string());
         self
     }
 
     /// echo all input from script
+    #[must_use]
     pub fn echo_all(mut self) -> Self {
         self.echo_all = true;
         self
     }
 
     /// echo failed commands
+    #[must_use]
     pub fn echo_errors(mut self) -> Self {
         self.echo_errors = true;
         self
     }
 
     /// echo commands sent to server
+    #[must_use]
     pub fn echo_queries(mut self) -> Self {
         self.echo_queries = true;
         self
     }
 
     /// display queries that internal commands generate
+    #[must_use]
     pub fn echo_hidden(mut self) -> Self {
         self.echo_hidden = true;
         self
     }
 
     /// send session log to file
+    #[must_use]
     pub fn log_file<P: Into<PathBuf>>(mut self, log_file: P) -> Self {
         self.log_file = Some(log_file.into());
         self
     }
 
     /// disable enhanced command line editing (readline)
+    #[must_use]
     pub fn no_readline(mut self) -> Self {
         self.no_readline = true;
         self
     }
 
     /// send query results to file (or |pipe)
+    #[must_use]
     pub fn output<P: Into<PathBuf>>(mut self, output: P) -> Self {
         self.output = Some(output.into());
         self
     }
 
     /// run quietly (no messages, only query output)
+    #[must_use]
     pub fn quiet(mut self) -> Self {
         self.quiet = true;
         self
     }
 
     /// single-step mode (confirm each query)
+    #[must_use]
     pub fn single_step(mut self) -> Self {
         self.single_step = true;
         self
     }
 
     /// single-line mode (end of line terminates SQL command)
+    #[must_use]
     pub fn single_line(mut self) -> Self {
         self.single_line = true;
         self
     }
 
     /// unaligned table output mode
+    #[must_use]
     pub fn no_align(mut self) -> Self {
         self.no_align = true;
         self
     }
 
     /// CSV (Comma-Separated Values) table output mode
+    #[must_use]
     pub fn csv(mut self) -> Self {
         self.csv = true;
         self
     }
 
     /// field separator for unaligned output (default: "|")
+    #[must_use]
     pub fn field_separator<S: AsRef<OsStr>>(mut self, field_separator: S) -> Self {
         self.field_separator = Some(field_separator.as_ref().to_os_string());
         self
     }
 
     /// HTML table output mode
+    #[must_use]
     pub fn html(mut self) -> Self {
         self.html = true;
         self
     }
 
     /// set printing option VAR to ARG (see \pset command)
+    #[must_use]
     pub fn pset<S: AsRef<OsStr>>(mut self, pset: (S, S)) -> Self {
         let (var, arg) = pset;
         self.pset = Some((var.as_ref().into(), arg.as_ref().into()));
@@ -215,72 +244,84 @@ impl PsqlBuilder {
     }
 
     /// record separator for unaligned output (default: newline)
+    #[must_use]
     pub fn record_separator<S: AsRef<OsStr>>(mut self, record_separator: S) -> Self {
         self.record_separator = Some(record_separator.as_ref().to_os_string());
         self
     }
 
     /// print rows only
+    #[must_use]
     pub fn tuples_only(mut self) -> Self {
         self.tuples_only = true;
         self
     }
 
     /// set HTML table tag attributes (e.g., width, border)
+    #[must_use]
     pub fn table_attr<S: AsRef<OsStr>>(mut self, table_attr: S) -> Self {
         self.table_attr = Some(table_attr.as_ref().to_os_string());
         self
     }
 
     /// turn on expanded table output
+    #[must_use]
     pub fn expanded(mut self) -> Self {
         self.expanded = true;
         self
     }
 
     /// set field separator for unaligned output to zero byte
+    #[must_use]
     pub fn field_separator_zero(mut self) -> Self {
         self.field_separator_zero = true;
         self
     }
 
     /// set record separator for unaligned output to zero byte
+    #[must_use]
     pub fn record_separator_zero(mut self) -> Self {
         self.record_separator_zero = true;
         self
     }
 
     /// database server host or socket directory
+    #[must_use]
     pub fn host<S: AsRef<OsStr>>(mut self, host: S) -> Self {
         self.host = Some(host.as_ref().to_os_string());
         self
     }
 
     /// database server port
+    #[must_use]
     pub fn port(mut self, port: u16) -> Self {
         self.port = Some(port);
         self
     }
 
     /// database user name
+    #[must_use]
     pub fn username<S: AsRef<OsStr>>(mut self, username: S) -> Self {
         self.username = Some(username.as_ref().to_os_string());
         self
     }
 
     /// never prompt for password
+    #[must_use]
     pub fn no_password(mut self) -> Self {
         self.no_password = true;
         self
     }
 
     /// force password prompt (should happen automatically)
+    #[must_use]
     pub fn password(mut self) -> Self {
         self.password = true;
         self
     }
 
     /// user password
+    #[must_use]
     pub fn pg_password<S: AsRef<OsStr>>(mut self, pg_password: S) -> Self {
         self.pg_password = Some(pg_password.as_ref().to_os_string());
         self
@@ -299,6 +340,7 @@ impl CommandBuilder for PsqlBuilder {
     }
 
     /// Get the arguments for the command
+    #[allow(clippy::too_many_lines)]
     fn get_args(&self) -> Vec<OsString> {
         let mut args: Vec<OsString> = Vec::new();
 
@@ -461,13 +503,20 @@ impl CommandBuilder for PsqlBuilder {
 
     /// Get the environment variables for the command
     fn get_envs(&self) -> Vec<(OsString, OsString)> {
-        let mut envs: Vec<(OsString, OsString)> = Vec::new();
+        let mut envs: Vec<(OsString, OsString)> = self.envs.clone();
 
         if let Some(password) = &self.pg_password {
             envs.push(("PGPASSWORD".into(), password.into()));
         }
 
         envs
+    }
+
+    /// Set an environment variable for the command
+    fn env<S: AsRef<OsStr>>(mut self, key: S, value: S) -> Self {
+        self.envs
+            .push((key.as_ref().to_os_string(), value.as_ref().to_os_string()));
+        self
     }
 }
 
@@ -499,6 +548,7 @@ mod tests {
     #[test]
     fn test_builder() {
         let command = PsqlBuilder::new()
+            .env("PGDATABASE", "database")
             .command("SELECT * FROM test")
             .dbname("dbname")
             .file("test.sql")
@@ -538,7 +588,7 @@ mod tests {
             .build();
 
         assert_eq!(
-            r#"PGPASSWORD="password" "psql" "--command" "SELECT * FROM test" "--dbname" "dbname" "--file" "test.sql" "--list" "--variable" "ON_ERROR_STOP=1" "--version" "--no-psqlrc" "--single-transaction" "--help" "options" "--echo-all" "--echo-errors" "--echo-queries" "--echo-hidden" "--log-file" "psql.log" "--no-readline" "--output" "output.txt" "--quiet" "--single-step" "--single-line" "--no-align" "--csv" "--field-separator" "|" "--html" "--pset" "border=1" "--record-separator" "\n" "--tuples-only" "--table-attr" "width=100" "--expanded" "--field-separator-zero" "--record-separator-zero" "--host" "localhost" "--port" "5432" "--username" "postgres" "--no-password" "--password""#,
+            r#"PGDATABASE="database" PGPASSWORD="password" "psql" "--command" "SELECT * FROM test" "--dbname" "dbname" "--file" "test.sql" "--list" "--variable" "ON_ERROR_STOP=1" "--version" "--no-psqlrc" "--single-transaction" "--help" "options" "--echo-all" "--echo-errors" "--echo-queries" "--echo-hidden" "--log-file" "psql.log" "--no-readline" "--output" "output.txt" "--quiet" "--single-step" "--single-line" "--no-align" "--csv" "--field-separator" "|" "--html" "--pset" "border=1" "--record-separator" "\n" "--tuples-only" "--table-attr" "width=100" "--expanded" "--field-separator-zero" "--record-separator-zero" "--host" "localhost" "--port" "5432" "--username" "postgres" "--no-password" "--password""#,
             command.to_command_string()
         );
     }

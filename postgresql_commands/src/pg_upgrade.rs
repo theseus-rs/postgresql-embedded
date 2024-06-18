@@ -4,10 +4,13 @@ use std::convert::AsRef;
 use std::ffi::{OsStr, OsString};
 use std::path::PathBuf;
 
-/// `pg_upgrade` upgrades a PostgreSQL cluster to a different major version.
+/// `pg_upgrade` upgrades a `PostgreSQL` cluster to a different major version.
 #[derive(Clone, Debug, Default)]
+#[allow(clippy::module_name_repetitions)]
+#[allow(clippy::struct_excessive_bools)]
 pub struct PgUpgradeBuilder {
     program_dir: Option<PathBuf>,
+    envs: Vec<(OsString, OsString)>,
     old_bindir: Option<OsString>,
     new_bindir: Option<OsString>,
     check: bool,
@@ -31,137 +34,159 @@ pub struct PgUpgradeBuilder {
 }
 
 impl PgUpgradeBuilder {
-    /// Create a new [PgUpgradeBuilder]
+    /// Create a new [`PgUpgradeBuilder`]
+    #[must_use]
     pub fn new() -> Self {
         Self::default()
     }
 
-    /// Create a new [PgUpgradeBuilder] from [Settings]
+    /// Create a new [`PgUpgradeBuilder`] from [Settings]
     pub fn from(settings: &dyn Settings) -> Self {
         Self::new().program_dir(settings.get_binary_dir())
     }
 
     /// Location of the program binary
+    #[must_use]
     pub fn program_dir<P: Into<PathBuf>>(mut self, path: P) -> Self {
         self.program_dir = Some(path.into());
         self
     }
 
     /// old cluster executable directory
+    #[must_use]
     pub fn old_bindir<S: AsRef<OsStr>>(mut self, old_bindir: S) -> Self {
         self.old_bindir = Some(old_bindir.as_ref().to_os_string());
         self
     }
 
     /// new cluster executable directory
+    #[must_use]
     pub fn new_bindir<S: AsRef<OsStr>>(mut self, new_bindir: S) -> Self {
         self.new_bindir = Some(new_bindir.as_ref().to_os_string());
         self
     }
 
     /// check clusters only, don't change any data
+    #[must_use]
     pub fn check(mut self) -> Self {
         self.check = true;
         self
     }
 
     /// old cluster data directory
+    #[must_use]
     pub fn old_datadir<S: AsRef<OsStr>>(mut self, old_datadir: S) -> Self {
         self.old_datadir = Some(old_datadir.as_ref().to_os_string());
         self
     }
 
     /// new cluster data directory
+    #[must_use]
     pub fn new_datadir<S: AsRef<OsStr>>(mut self, new_datadir: S) -> Self {
         self.new_datadir = Some(new_datadir.as_ref().to_os_string());
         self
     }
 
     /// number of simultaneous processes or threads to use
+    #[must_use]
     pub fn jobs<S: AsRef<OsStr>>(mut self, jobs: S) -> Self {
         self.jobs = Some(jobs.as_ref().to_os_string());
         self
     }
 
     /// link instead of copying files to new cluster
+    #[must_use]
     pub fn link(mut self) -> Self {
         self.link = true;
         self
     }
 
     /// do not wait for changes to be written safely to disk
+    #[must_use]
     pub fn no_sync(mut self) -> Self {
         self.no_sync = true;
         self
     }
 
     /// old cluster options to pass to the server
+    #[must_use]
     pub fn old_options<S: AsRef<OsStr>>(mut self, old_options: S) -> Self {
         self.old_options = Some(old_options.as_ref().to_os_string());
         self
     }
 
     /// new cluster options to pass to the server
+    #[must_use]
     pub fn new_options<S: AsRef<OsStr>>(mut self, new_options: S) -> Self {
         self.new_options = Some(new_options.as_ref().to_os_string());
         self
     }
 
     /// old cluster port number
+    #[must_use]
     pub fn old_port(mut self, old_port: u16) -> Self {
         self.old_port = Some(old_port);
         self
     }
 
     /// new cluster port number
+    #[must_use]
     pub fn new_port(mut self, new_port: u16) -> Self {
         self.new_port = Some(new_port);
         self
     }
 
     /// retain SQL and log files after success
+    #[must_use]
     pub fn retain(mut self) -> Self {
         self.retain = true;
         self
     }
 
     /// socket directory to use
+    #[must_use]
     pub fn socketdir<S: AsRef<OsStr>>(mut self, socketdir: S) -> Self {
         self.socketdir = Some(socketdir.as_ref().to_os_string());
         self
     }
 
     /// cluster superuser
+    #[must_use]
     pub fn username<S: AsRef<OsStr>>(mut self, username: S) -> Self {
         self.username = Some(username.as_ref().to_os_string());
         self
     }
 
     /// enable verbose internal logging
+    #[must_use]
     pub fn verbose(mut self) -> Self {
         self.verbose = true;
         self
     }
 
     /// display version information, then exit
+    #[must_use]
     pub fn version(mut self) -> Self {
         self.version = true;
         self
     }
 
     /// clone instead of copying files to new cluster
+    #[must_use]
     pub fn clone(mut self) -> Self {
         self.clone = true;
         self
     }
 
     /// copy files to new cluster
+    #[must_use]
     pub fn copy(mut self) -> Self {
         self.copy = true;
         self
     }
 
     /// show help, then exit
+    #[must_use]
     pub fn help(mut self) -> Self {
         self.help = true;
         self
@@ -276,6 +301,18 @@ impl CommandBuilder for PgUpgradeBuilder {
 
         args
     }
+
+    /// Get the environment variables for the command
+    fn get_envs(&self) -> Vec<(OsString, OsString)> {
+        self.envs.clone()
+    }
+
+    /// Set an environment variable for the command
+    fn env<S: AsRef<OsStr>>(mut self, key: S, value: S) -> Self {
+        self.envs
+            .push((key.as_ref().to_os_string(), value.as_ref().to_os_string()));
+        self
+    }
 }
 
 #[cfg(test)]
@@ -303,6 +340,7 @@ mod tests {
     #[test]
     fn test_builder() {
         let command = PgUpgradeBuilder::new()
+            .env("PGDATABASE", "database")
             .old_bindir("old")
             .new_bindir("new")
             .check()
@@ -326,7 +364,7 @@ mod tests {
             .build();
 
         assert_eq!(
-            r#""pg_upgrade" "--old-bindir" "old" "--new-bindir" "new" "--check" "--old-datadir" "old_data" "--new-datadir" "new_data" "--jobs" "10" "--link" "--no-sync" "--old-options" "old" "--new-options" "new" "--old-port" "5432" "--new-port" "5433" "--retain" "--socketdir" "socket" "--username" "user" "--verbose" "--version" "--clone" "--copy" "--help""#,
+            r#"PGDATABASE="database" "pg_upgrade" "--old-bindir" "old" "--new-bindir" "new" "--check" "--old-datadir" "old_data" "--new-datadir" "new_data" "--jobs" "10" "--link" "--no-sync" "--old-options" "old" "--new-options" "new" "--old-port" "5432" "--new-port" "5433" "--retain" "--socketdir" "socket" "--username" "user" "--verbose" "--version" "--clone" "--copy" "--help""#,
             command.to_command_string()
         );
     }

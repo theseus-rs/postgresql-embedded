@@ -3,10 +3,12 @@ use crate::Settings;
 use std::ffi::{OsStr, OsString};
 use std::path::PathBuf;
 
-/// `dropdb` removes a PostgreSQL database.
+/// `dropdb` removes a `PostgreSQL` database.
 #[derive(Clone, Debug, Default)]
+#[allow(clippy::struct_excessive_bools)]
 pub struct DropDbBuilder {
     program_dir: Option<PathBuf>,
+    envs: Vec<(OsString, OsString)>,
     echo: bool,
     force: bool,
     interactive: bool,
@@ -24,12 +26,13 @@ pub struct DropDbBuilder {
 }
 
 impl DropDbBuilder {
-    /// Create a new [DropDbBuilder]
+    /// Create a new [`DropDbBuilder`]
+    #[must_use]
     pub fn new() -> Self {
         Self::default()
     }
 
-    /// Create a new [DropDbBuilder] from [Settings]
+    /// Create a new [`DropDbBuilder`] from [Settings]
     pub fn from(settings: &dyn Settings) -> Self {
         Self::new()
             .program_dir(settings.get_binary_dir())
@@ -40,90 +43,105 @@ impl DropDbBuilder {
     }
 
     /// Location of the program binary
+    #[must_use]
     pub fn program_dir<P: Into<PathBuf>>(mut self, path: P) -> Self {
         self.program_dir = Some(path.into());
         self
     }
 
     /// Show the commands being sent to the server
+    #[must_use]
     pub fn echo(mut self) -> Self {
         self.echo = true;
         self
     }
 
     /// Try to terminate other connections before dropping
+    #[must_use]
     pub fn force(mut self) -> Self {
         self.force = true;
         self
     }
 
     /// Prompt before deleting anything
+    #[must_use]
     pub fn interactive(mut self) -> Self {
         self.interactive = true;
         self
     }
 
     /// Output version information, then exit
+    #[must_use]
     pub fn version(mut self) -> Self {
         self.version = true;
         self
     }
 
     /// Don't report error if database doesn't exist
+    #[must_use]
     pub fn if_exists(mut self) -> Self {
         self.if_exists = true;
         self
     }
 
     /// Show help, then exit
+    #[must_use]
     pub fn help(mut self) -> Self {
         self.help = true;
         self
     }
 
     /// Database server host or socket directory
+    #[must_use]
     pub fn host<S: AsRef<OsStr>>(mut self, host: S) -> Self {
         self.host = Some(host.as_ref().to_os_string());
         self
     }
 
     /// Database server port
+    #[must_use]
     pub fn port(mut self, port: u16) -> Self {
         self.port = Some(port);
         self
     }
 
     /// User name to connect as
+    #[must_use]
     pub fn username<S: AsRef<OsStr>>(mut self, username: S) -> Self {
         self.username = Some(username.as_ref().to_os_string());
         self
     }
 
     /// Never prompt for password
+    #[must_use]
     pub fn no_password(mut self) -> Self {
         self.no_password = true;
         self
     }
 
     /// Force password prompt
+    #[must_use]
     pub fn password(mut self) -> Self {
         self.password = true;
         self
     }
 
     /// user password
+    #[must_use]
     pub fn pg_password<S: AsRef<OsStr>>(mut self, pg_password: S) -> Self {
         self.pg_password = Some(pg_password.as_ref().to_os_string());
         self
     }
 
     /// Alternate maintenance database
+    #[must_use]
     pub fn maintenance_db<S: AsRef<OsStr>>(mut self, db: S) -> Self {
         self.maintenance_db = Some(db.as_ref().to_os_string());
         self
     }
 
     /// Database name
+    #[must_use]
     pub fn dbname<S: AsRef<OsStr>>(mut self, dbname: S) -> Self {
         self.dbname = Some(dbname.as_ref().to_os_string());
         self
@@ -206,13 +224,20 @@ impl CommandBuilder for DropDbBuilder {
 
     /// Get the environment variables for the command
     fn get_envs(&self) -> Vec<(OsString, OsString)> {
-        let mut envs: Vec<(OsString, OsString)> = Vec::new();
+        let mut envs: Vec<(OsString, OsString)> = self.envs.clone();
 
         if let Some(password) = &self.pg_password {
             envs.push(("PGPASSWORD".into(), password.into()));
         }
 
         envs
+    }
+
+    /// Set an environment variable for the command
+    fn env<S: AsRef<OsStr>>(mut self, key: S, value: S) -> Self {
+        self.envs
+            .push((key.as_ref().to_os_string(), value.as_ref().to_os_string()));
+        self
     }
 }
 
@@ -244,6 +269,7 @@ mod tests {
     #[test]
     fn test_builder() {
         let command = DropDbBuilder::new()
+            .env("PGDATABASE", "database")
             .echo()
             .force()
             .interactive()
@@ -261,7 +287,7 @@ mod tests {
             .build();
 
         assert_eq!(
-            r#"PGPASSWORD="password" "dropdb" "--echo" "--force" "--interactive" "--version" "--if-exists" "--help" "--host" "localhost" "--port" "5432" "--username" "postgres" "--no-password" "--password" "--maintenance-db" "postgres" "dbname""#,
+            r#"PGDATABASE="database" PGPASSWORD="password" "dropdb" "--echo" "--force" "--interactive" "--version" "--if-exists" "--help" "--host" "localhost" "--port" "5432" "--username" "postgres" "--no-password" "--password" "--maintenance-db" "postgres" "dbname""#,
             command.to_command_string()
         );
     }

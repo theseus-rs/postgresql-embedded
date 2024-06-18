@@ -5,7 +5,7 @@ use std::path::PathBuf;
 use std::time::Duration;
 use tracing::debug;
 
-/// Interface for PostgreSQL settings
+/// Interface for `PostgreSQL` settings
 pub trait Settings {
     fn get_binary_dir(&self) -> PathBuf;
     fn get_host(&self) -> OsString;
@@ -63,9 +63,11 @@ pub trait CommandBuilder: Debug {
     }
 
     /// Get the environment variables for the command
-    fn get_envs(&self) -> Vec<(OsString, OsString)> {
-        vec![]
-    }
+    fn get_envs(&self) -> Vec<(OsString, OsString)>;
+
+    /// Set an environment variable for the command
+    #[must_use]
+    fn env<S: AsRef<OsStr>>(self, key: S, value: S) -> Self;
 
     /// Build a standard Command
     fn build(self) -> std::process::Command
@@ -120,6 +122,10 @@ impl CommandToString for tokio::process::Command {
 /// Interface for executing a command
 pub trait CommandExecutor {
     /// Execute the command and return the stdout and stderr
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the command fails
     fn execute(&mut self) -> Result<(String, String)>;
 }
 
@@ -157,6 +163,7 @@ impl CommandExecutor for std::process::Command {
 
 #[cfg(feature = "tokio")]
 /// Implement the [`CommandExecutor`] trait for [`Command`](tokio::process::Command)
+#[allow(clippy::items_after_statements)]
 impl AsyncCommandExecutor for tokio::process::Command {
     /// Execute the command and return the stdout and stderr
     async fn execute(&mut self, timeout: Option<Duration>) -> Result<(String, String)> {
@@ -216,7 +223,7 @@ impl AsyncCommandExecutor for tokio::process::Command {
                 let _ = exit_anyway_broadcast_sender.send(());
             }
             let (stdout, stderr) = tokio::join!(stdout, stderr);
-            std::mem::drop(exit_anyway_broadcast_sender);
+            drop(exit_anyway_broadcast_sender);
 
             let exit_status = exit_status?;
             fn debug_render(
@@ -225,8 +232,8 @@ impl AsyncCommandExecutor for tokio::process::Command {
             ) -> String {
                 match res {
                     Ok(Ok(s)) => s.into(),
-                    Ok(Err(io_err)) => format!("<failed to read {}: {:?}>", which, io_err),
-                    Err(join_err) => format!("<failed to read {}: {:?}>", which, join_err),
+                    Ok(Err(io_err)) => format!("<failed to read {which}: {io_err:?}>"),
+                    Err(join_err) => format!("<failed to read {which}: {join_err:?}>"),
                 }
             }
             debug!(
@@ -268,9 +275,10 @@ mod test {
 
     #[test]
     fn test_command_builder_defaults() {
-        #[derive(Debug)]
+        #[derive(Debug, Default)]
         struct DefaultCommandBuilder {
             program_dir: Option<PathBuf>,
+            envs: Vec<(OsString, OsString)>,
         }
 
         impl CommandBuilder for DefaultCommandBuilder {
@@ -281,9 +289,19 @@ mod test {
             fn get_program_dir(&self) -> &Option<PathBuf> {
                 &self.program_dir
             }
+
+            fn get_envs(&self) -> Vec<(OsString, OsString)> {
+                self.envs.clone()
+            }
+
+            fn env<S: AsRef<OsStr>>(mut self, key: S, value: S) -> Self {
+                self.envs
+                    .push((key.as_ref().to_os_string(), value.as_ref().to_os_string()));
+                self
+            }
         }
 
-        let builder = DefaultCommandBuilder { program_dir: None };
+        let builder = DefaultCommandBuilder::default();
         let command = builder.build();
 
         assert_eq!(r#""test""#, command.to_command_string());
@@ -311,6 +329,12 @@ mod test {
 
         fn get_envs(&self) -> Vec<(OsString, OsString)> {
             self.envs.clone()
+        }
+
+        fn env<S: AsRef<OsStr>>(mut self, key: S, value: S) -> Self {
+            self.envs
+                .push((key.as_ref().to_os_string(), value.as_ref().to_os_string()));
+            self
         }
     }
 

@@ -4,10 +4,12 @@ use std::convert::AsRef;
 use std::ffi::{OsStr, OsString};
 use std::path::PathBuf;
 
-/// `createdb` creates a PostgreSQL database.
+/// `createdb` creates a `PostgreSQL` database.
 #[derive(Clone, Debug, Default)]
+#[allow(clippy::struct_excessive_bools)]
 pub struct CreateDbBuilder {
     program_dir: Option<PathBuf>,
+    envs: Vec<(OsString, OsString)>,
     tablespace: Option<OsString>,
     echo: bool,
     encoding: Option<OsString>,
@@ -34,12 +36,13 @@ pub struct CreateDbBuilder {
 }
 
 impl CreateDbBuilder {
-    /// Create a new [CreateDbBuilder]
+    /// Create a new [`CreateDbBuilder`]
+    #[must_use]
     pub fn new() -> Self {
         Self::default()
     }
 
-    /// Create a new [CreateDbBuilder] from [Settings]
+    /// Create a new [`CreateDbBuilder`] from [Settings]
     pub fn from(settings: &dyn Settings) -> Self {
         Self::new()
             .program_dir(settings.get_binary_dir())
@@ -50,144 +53,168 @@ impl CreateDbBuilder {
     }
 
     /// Location of the program binary
+    #[must_use]
     pub fn program_dir<P: Into<PathBuf>>(mut self, path: P) -> Self {
         self.program_dir = Some(path.into());
         self
     }
 
     /// Default tablespace for the database
+    #[must_use]
     pub fn tablespace<S: AsRef<OsStr>>(mut self, tablespace: S) -> Self {
         self.tablespace = Some(tablespace.as_ref().to_os_string());
         self
     }
 
     /// Show the commands being sent to the server
+    #[must_use]
     pub fn echo(mut self) -> Self {
         self.echo = true;
         self
     }
 
     /// Encoding for the database
+    #[must_use]
     pub fn encoding<S: AsRef<OsStr>>(mut self, encoding: S) -> Self {
         self.encoding = Some(encoding.as_ref().to_os_string());
         self
     }
 
     /// Locale settings for the database
+    #[must_use]
     pub fn locale<S: AsRef<OsStr>>(mut self, locale: S) -> Self {
         self.locale = Some(locale.as_ref().to_os_string());
         self
     }
 
-    /// LC_COLLATE setting for the database
+    /// `LC_COLLATE` setting for the database
+    #[must_use]
     pub fn lc_collate<S: AsRef<OsStr>>(mut self, lc_collate: S) -> Self {
         self.lc_collate = Some(lc_collate.as_ref().to_os_string());
         self
     }
 
-    /// LC_CTYPE setting for the database
+    /// `LC_CTYPE` setting for the database
+    #[must_use]
     pub fn lc_ctype<S: AsRef<OsStr>>(mut self, lc_ctype: S) -> Self {
         self.lc_ctype = Some(lc_ctype.as_ref().to_os_string());
         self
     }
 
     /// ICU locale setting for the database
+    #[must_use]
     pub fn icu_locale<S: AsRef<OsStr>>(mut self, icu_locale: S) -> Self {
         self.icu_locale = Some(icu_locale.as_ref().to_os_string());
         self
     }
 
     /// ICU rules setting for the database
+    #[must_use]
     pub fn icu_rules<S: AsRef<OsStr>>(mut self, icu_rules: S) -> Self {
         self.icu_rules = Some(icu_rules.as_ref().to_os_string());
         self
     }
 
     /// Locale provider for the database's default collation
+    #[must_use]
     pub fn locale_provider<S: AsRef<OsStr>>(mut self, locale_provider: S) -> Self {
         self.locale_provider = Some(locale_provider.as_ref().to_os_string());
         self
     }
 
     /// Database user to own the new database
+    #[must_use]
     pub fn owner<S: AsRef<OsStr>>(mut self, owner: S) -> Self {
         self.owner = Some(owner.as_ref().to_os_string());
         self
     }
 
-    /// Database creation strategy wal_log or file_copy
+    /// Database creation strategy `wal_log` or `file_copy`
+    #[must_use]
     pub fn strategy<S: AsRef<OsStr>>(mut self, strategy: S) -> Self {
         self.strategy = Some(strategy.as_ref().to_os_string());
         self
     }
 
     /// Template database to copy
+    #[must_use]
     pub fn template<S: AsRef<OsStr>>(mut self, template: S) -> Self {
         self.template = Some(template.as_ref().to_os_string());
         self
     }
 
     /// Output version information, then exit
+    #[must_use]
     pub fn version(mut self) -> Self {
         self.version = true;
         self
     }
 
     /// Show help, then exit
+    #[must_use]
     pub fn help(mut self) -> Self {
         self.help = true;
         self
     }
 
     /// Database server host or socket directory
+    #[must_use]
     pub fn host<S: AsRef<OsStr>>(mut self, host: S) -> Self {
         self.host = Some(host.as_ref().to_os_string());
         self
     }
 
     /// Database server port
+    #[must_use]
     pub fn port(mut self, port: u16) -> Self {
         self.port = Some(port);
         self
     }
 
     /// User name to connect as
+    #[must_use]
     pub fn username<S: AsRef<OsStr>>(mut self, username: S) -> Self {
         self.username = Some(username.as_ref().to_os_string());
         self
     }
 
     /// Never prompt for password
+    #[must_use]
     pub fn no_password(mut self) -> Self {
         self.no_password = true;
         self
     }
 
     /// Force password prompt
+    #[must_use]
     pub fn password(mut self) -> Self {
         self.password = true;
         self
     }
 
     /// user password
+    #[must_use]
     pub fn pg_password<S: AsRef<OsStr>>(mut self, pg_password: S) -> Self {
         self.pg_password = Some(pg_password.as_ref().to_os_string());
         self
     }
 
     /// Alternate maintenance database
+    #[must_use]
     pub fn maintenance_db<S: AsRef<OsStr>>(mut self, db: S) -> Self {
         self.maintenance_db = Some(db.as_ref().to_os_string());
         self
     }
 
     /// Database name
+    #[must_use]
     pub fn dbname<S: AsRef<OsStr>>(mut self, dbname: S) -> Self {
         self.dbname = Some(dbname.as_ref().to_os_string());
         self
     }
 
     /// Database description
+    #[must_use]
     pub fn description<S: AsRef<OsStr>>(mut self, description: S) -> Self {
         self.description = Some(description.as_ref().to_os_string());
         self
@@ -317,13 +344,20 @@ impl CommandBuilder for CreateDbBuilder {
 
     /// Get the environment variables for the command
     fn get_envs(&self) -> Vec<(OsString, OsString)> {
-        let mut envs: Vec<(OsString, OsString)> = Vec::new();
+        let mut envs: Vec<(OsString, OsString)> = self.envs.clone();
 
         if let Some(password) = &self.pg_password {
             envs.push(("PGPASSWORD".into(), password.into()));
         }
 
         envs
+    }
+
+    /// Set an environment variable for the command
+    fn env<S: AsRef<OsStr>>(mut self, key: S, value: S) -> Self {
+        self.envs
+            .push((key.as_ref().to_os_string(), value.as_ref().to_os_string()));
+        self
     }
 }
 
@@ -355,6 +389,7 @@ mod tests {
     #[test]
     fn test_builder() {
         let command = CreateDbBuilder::new()
+            .env("PGDATABASE", "database")
             .tablespace("pg_default")
             .echo()
             .encoding("UTF8")
@@ -381,7 +416,7 @@ mod tests {
             .build();
 
         assert_eq!(
-            r#"PGPASSWORD="password" "createdb" "--tablespace" "pg_default" "--echo" "--encoding" "UTF8" "--locale" "en_US.UTF-8" "--lc-collate" "en_US.UTF-8" "--lc-ctype" "en_US.UTF-8" "--icu-locale" "en_US" "--icu-rules" "standard" "--locale-provider" "icu" "--owner" "postgres" "--strategy" "wal_log" "--template" "template0" "--version" "--help" "--host" "localhost" "--port" "5432" "--username" "postgres" "--no-password" "--password" "--maintenance-db" "postgres" "testdb" "Test Database""#,
+            r#"PGDATABASE="database" PGPASSWORD="password" "createdb" "--tablespace" "pg_default" "--echo" "--encoding" "UTF8" "--locale" "en_US.UTF-8" "--lc-collate" "en_US.UTF-8" "--lc-ctype" "en_US.UTF-8" "--icu-locale" "en_US" "--icu-rules" "standard" "--locale-provider" "icu" "--owner" "postgres" "--strategy" "wal_log" "--template" "template0" "--version" "--help" "--host" "localhost" "--port" "5432" "--username" "postgres" "--no-password" "--password" "--maintenance-db" "postgres" "testdb" "Test Database""#,
             command.to_command_string()
         );
     }
