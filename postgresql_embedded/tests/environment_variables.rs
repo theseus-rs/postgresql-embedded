@@ -4,7 +4,7 @@ use test_log::test;
 
 #[test(tokio::test)]
 async fn lifecycle() -> anyhow::Result<()> {
-    // Explicitly set PGDATABASE environment variables to verify that the library behavior
+    // Explicitly set PGDATABASE environment variable to verify that the library behavior
     // is not affected by the environment
     env::set_var("PGDATABASE", "foodb");
 
