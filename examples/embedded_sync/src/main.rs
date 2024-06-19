@@ -1,3 +1,6 @@
+#![forbid(unsafe_code)]
+#![deny(clippy::pedantic)]
+
 use postgresql_embedded::blocking::PostgreSQL;
 use postgresql_embedded::Result;
 

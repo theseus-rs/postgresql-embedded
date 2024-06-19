@@ -6,7 +6,6 @@ use std::path::PathBuf;
 
 /// `pg_archivecleanup` removes older WAL files from `PostgreSQL` archives.
 #[derive(Clone, Debug, Default)]
-#[allow(clippy::struct_excessive_bools)]
 pub struct PgArchiveCleanupBuilder {
     program_dir: Option<PathBuf>,
     envs: Vec<(OsString, OsString)>,

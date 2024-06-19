@@ -6,7 +6,6 @@ use std::path::PathBuf;
 
 /// `pg_test_timing` tests the timing of a `PostgreSQL` instance.
 #[derive(Clone, Debug, Default)]
-#[allow(clippy::module_name_repetitions)]
 pub struct PgTestTimingBuilder {
     program_dir: Option<PathBuf>,
     envs: Vec<(OsString, OsString)>,

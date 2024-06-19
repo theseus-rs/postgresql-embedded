@@ -6,7 +6,6 @@ use std::path::PathBuf;
 
 /// `pg_recvlogical` controls `PostgreSQL` logical decoding streams.
 #[derive(Clone, Debug, Default)]
-#[allow(clippy::struct_excessive_bools)]
 pub struct PgRecvLogicalBuilder {
     program_dir: Option<PathBuf>,
     envs: Vec<(OsString, OsString)>,

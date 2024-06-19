@@ -6,7 +6,6 @@ use std::path::PathBuf;
 
 /// `oid2name` helps to examine the file structure used by `PostgreSQL`.
 #[derive(Clone, Debug, Default)]
-#[allow(clippy::struct_excessive_bools)]
 pub struct Oid2NameBuilder {
     program_dir: Option<PathBuf>,
     envs: Vec<(OsString, OsString)>,

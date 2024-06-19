@@ -6,7 +6,6 @@ use std::path::PathBuf;
 
 /// `createdb` creates a `PostgreSQL` database.
 #[derive(Clone, Debug, Default)]
-#[allow(clippy::struct_excessive_bools)]
 pub struct CreateDbBuilder {
     program_dir: Option<PathBuf>,
     envs: Vec<(OsString, OsString)>,

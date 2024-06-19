@@ -6,8 +6,6 @@ use std::path::PathBuf;
 
 /// `pg_rewind` synchronizes a `PostgreSQL` data directory with another data directory.
 #[derive(Clone, Debug, Default)]
-#[allow(clippy::module_name_repetitions)]
-#[allow(clippy::struct_excessive_bools)]
 pub struct PgRewindBuilder {
     program_dir: Option<PathBuf>,
     envs: Vec<(OsString, OsString)>,

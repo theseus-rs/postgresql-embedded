@@ -7,8 +7,6 @@ use std::path::PathBuf;
 
 /// `pg_ctl` is a utility to initialize, start, stop, or control a `PostgreSQL` server.
 #[derive(Clone, Debug, Default)]
-#[allow(clippy::module_name_repetitions)]
-#[allow(clippy::struct_excessive_bools)]
 pub struct PgCtlBuilder {
     program_dir: Option<PathBuf>,
     envs: Vec<(OsString, OsString)>,

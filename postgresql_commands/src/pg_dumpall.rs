@@ -6,7 +6,6 @@ use std::path::PathBuf;
 
 /// `pg_dumpall` extracts a `PostgreSQL` database cluster into an SQL script file.
 #[derive(Clone, Debug, Default)]
-#[allow(clippy::struct_excessive_bools)]
 pub struct PgDumpAllBuilder {
     program_dir: Option<PathBuf>,
     envs: Vec<(OsString, OsString)>,

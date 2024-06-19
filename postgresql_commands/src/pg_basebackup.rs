@@ -6,7 +6,6 @@ use std::path::PathBuf;
 
 /// `pg_basebackup` takes a base backup of a running `PostgreSQL` server.
 #[derive(Clone, Debug, Default)]
-#[allow(clippy::struct_excessive_bools)]
 pub struct PgBaseBackupBuilder {
     program_dir: Option<PathBuf>,
     envs: Vec<(OsString, OsString)>,

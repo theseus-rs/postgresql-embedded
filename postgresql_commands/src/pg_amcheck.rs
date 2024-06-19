@@ -6,7 +6,6 @@ use std::path::PathBuf;
 
 /// `pg_amcheck` checks objects in a `PostgreSQL` database for corruption.
 #[derive(Clone, Debug, Default)]
-#[allow(clippy::struct_excessive_bools)]
 pub struct PgAmCheckBuilder {
     program_dir: Option<PathBuf>,
     envs: Vec<(OsString, OsString)>,

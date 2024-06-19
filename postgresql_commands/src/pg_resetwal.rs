@@ -6,7 +6,6 @@ use std::path::PathBuf;
 
 /// `pg_resetwal` resets the `PostgreSQL` write-ahead log.
 #[derive(Clone, Debug, Default)]
-#[allow(clippy::struct_excessive_bools)]
 pub struct PgResetWalBuilder {
     program_dir: Option<PathBuf>,
     envs: Vec<(OsString, OsString)>,

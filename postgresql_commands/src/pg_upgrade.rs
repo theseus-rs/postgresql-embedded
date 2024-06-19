@@ -6,8 +6,6 @@ use std::path::PathBuf;
 
 /// `pg_upgrade` upgrades a `PostgreSQL` cluster to a different major version.
 #[derive(Clone, Debug, Default)]
-#[allow(clippy::module_name_repetitions)]
-#[allow(clippy::struct_excessive_bools)]
 pub struct PgUpgradeBuilder {
     program_dir: Option<PathBuf>,
     envs: Vec<(OsString, OsString)>,

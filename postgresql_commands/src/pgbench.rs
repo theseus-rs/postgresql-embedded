@@ -6,7 +6,6 @@ use std::path::PathBuf;
 
 /// `pgbench` is a benchmarking tool for `PostgreSQL`.
 #[derive(Clone, Debug, Default)]
-#[allow(clippy::struct_excessive_bools)]
 pub struct PgBenchBuilder {
     program_dir: Option<PathBuf>,
     envs: Vec<(OsString, OsString)>,

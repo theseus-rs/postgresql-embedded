@@ -6,7 +6,6 @@ use std::path::PathBuf;
 
 /// `dropuser` removes a `PostgreSQL` role.
 #[derive(Clone, Debug, Default)]
-#[allow(clippy::struct_excessive_bools)]
 pub struct DropUserBuilder {
     program_dir: Option<PathBuf>,
     envs: Vec<(OsString, OsString)>,

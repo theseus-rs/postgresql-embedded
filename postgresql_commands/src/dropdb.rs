@@ -5,7 +5,6 @@ use std::path::PathBuf;
 
 /// `dropdb` removes a `PostgreSQL` database.
 #[derive(Clone, Debug, Default)]
-#[allow(clippy::struct_excessive_bools)]
 pub struct DropDbBuilder {
     program_dir: Option<PathBuf>,
     envs: Vec<(OsString, OsString)>,

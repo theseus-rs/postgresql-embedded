@@ -6,8 +6,6 @@ use std::path::PathBuf;
 
 /// `pg_restore` restores a `PostgreSQL` database from an archive created by `pg_dump`.
 #[derive(Clone, Debug, Default)]
-#[allow(clippy::module_name_repetitions)]
-#[allow(clippy::struct_excessive_bools)]
 pub struct PgRestoreBuilder {
     program_dir: Option<PathBuf>,
     envs: Vec<(OsString, OsString)>,

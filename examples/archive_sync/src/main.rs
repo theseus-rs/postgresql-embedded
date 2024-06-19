@@ -1,3 +1,6 @@
+#![forbid(unsafe_code)]
+#![deny(clippy::pedantic)]
+
 use postgresql_archive::blocking::{extract, get_archive};
 use postgresql_archive::{Result, LATEST};
 

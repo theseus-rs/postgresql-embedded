@@ -5,8 +5,6 @@ use std::path::PathBuf;
 
 /// `psql` is the `PostgreSQL` interactive terminal.
 #[derive(Clone, Debug, Default)]
-#[allow(clippy::module_name_repetitions)]
-#[allow(clippy::struct_excessive_bools)]
 pub struct PsqlBuilder {
     program_dir: Option<PathBuf>,
     envs: Vec<(OsString, OsString)>,

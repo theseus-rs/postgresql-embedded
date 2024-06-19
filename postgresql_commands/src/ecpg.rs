@@ -6,8 +6,6 @@ use std::path::PathBuf;
 
 /// `ecpg` is the `PostgreSQL` embedded SQL preprocessor for C programs.
 #[derive(Clone, Debug, Default)]
-#[allow(clippy::module_name_repetitions)]
-#[allow(clippy::struct_excessive_bools)]
 pub struct EcpgBuilder {
     program_dir: Option<PathBuf>,
     envs: Vec<(OsString, OsString)>,

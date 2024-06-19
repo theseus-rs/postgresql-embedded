@@ -1,6 +1,9 @@
 #![forbid(unsafe_code)]
-#![allow(async_fn_in_trait)]
 #![deny(clippy::pedantic)]
+#![deny(clippy::unwrap_used)]
+#![allow(async_fn_in_trait)]
+#![allow(clippy::module_name_repetitions)]
+#![allow(clippy::struct_excessive_bools)]
 
 //! Command builders for interacting with `PostgreSQL` via CLI.
 //!

@@ -6,8 +6,6 @@ use std::path::PathBuf;
 
 /// `pg_dump` dumps a database as a text file or to other formats.
 #[derive(Clone, Debug, Default)]
-#[allow(clippy::module_name_repetitions)]
-#[allow(clippy::struct_excessive_bools)]
 pub struct PgDumpBuilder {
     program_dir: Option<PathBuf>,
     envs: Vec<(OsString, OsString)>,

@@ -6,7 +6,6 @@ use std::path::PathBuf;
 
 /// `createuser` creates a new `PostgreSQL` role.
 #[derive(Clone, Debug, Default)]
-#[allow(clippy::struct_excessive_bools)]
 pub struct CreateUserBuilder {
     program_dir: Option<PathBuf>,
     envs: Vec<(OsString, OsString)>,
