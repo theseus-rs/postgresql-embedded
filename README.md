@@ -13,6 +13,23 @@
 Install and run a PostgreSQL database locally on Linux, MacOS or Windows. PostgreSQL can be
 bundled with your application, or downloaded on demand.
 
+This library provides an embedded-like experience for PostgreSQL similar to what you would have with
+SQLite. This is accomplished by downloading and installing PostgreSQL during runtime. There is
+also a "bundled" feature that when enabled, will download the PostgreSQL installation archive at
+compile time, include it in your binary and install from the binary version at runtime.
+In either case, PostgreSQL will run in a separate process space.
+
+## Features
+
+- installing and running PostgreSQL
+- running PostgreSQL on ephemeral ports
+- async and blocking API
+- bundling the PostgreSQL archive in an executable
+- dynamic version resolution
+- ability to configure PostgreSQL startup options
+- URL based configuration
+- choice of native-tls vs rustls
+
 ## Getting Started
 
 ### Example
