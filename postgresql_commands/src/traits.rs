@@ -302,9 +302,9 @@ mod test {
         }
 
         let builder = DefaultCommandBuilder::default();
-        let command = builder.build();
+        let command = builder.env("ENV", "foo").build();
 
-        assert_eq!(r#""test""#, command.to_command_string());
+        assert_eq!(r#"ENV="foo" "test""#, command.to_command_string());
     }
 
     #[derive(Debug)]
@@ -343,9 +343,9 @@ mod test {
         let builder = TestCommandBuilder {
             program_dir: None,
             args: vec!["--help".to_string().into()],
-            envs: vec![(OsString::from("PASSWORD"), OsString::from("foo"))],
+            envs: vec![],
         };
-        let command = builder.build();
+        let command = builder.env("PASSWORD", "foo").build();
 
         assert_eq!(
             format!(
@@ -362,9 +362,9 @@ mod test {
         let builder = TestCommandBuilder {
             program_dir: None,
             args: vec!["--help".to_string().into()],
-            envs: vec![(OsString::from("PASSWORD"), OsString::from("foo"))],
+            envs: vec![],
         };
-        let command = builder.build_tokio();
+        let command = builder.env("PASSWORD", "foo").build_tokio();
 
         assert_eq!(
             format!(
@@ -408,6 +408,12 @@ mod test {
         Ok(())
     }
 
+    #[test(tokio::test)]
+    async fn test_standard_command_execute_error() {
+        let mut command = std::process::Command::new("bogus_command");
+        assert!(command.execute().is_err());
+    }
+
     #[cfg(feature = "tokio")]
     #[test(tokio::test)]
     async fn test_tokio_command_execute() -> Result<()> {
@@ -424,6 +430,14 @@ mod test {
         let (stdout, stderr) = command.execute(None).await?;
         assert!(stdout.starts_with("foo"));
         assert!(stderr.is_empty());
+        Ok(())
+    }
+
+    #[cfg(feature = "tokio")]
+    #[test(tokio::test)]
+    async fn test_tokio_command_execute_error() -> Result<()> {
+        let mut command = tokio::process::Command::new("bogus_command");
+        assert!(command.execute(None).await.is_err());
         Ok(())
     }
 }

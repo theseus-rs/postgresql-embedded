@@ -1,3 +1,6 @@
+#![forbid(unsafe_code)]
+#![deny(clippy::pedantic)]
+
 use postgresql_archive::{extract, get_archive, Result, LATEST};
 
 #[tokio::main]

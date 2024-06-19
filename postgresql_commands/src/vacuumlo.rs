@@ -6,7 +6,6 @@ use std::path::PathBuf;
 
 /// `vacuumlo` removes unreferenced large objects from databases.
 #[derive(Clone, Debug, Default)]
-#[allow(clippy::struct_excessive_bools)]
 pub struct VacuumLoBuilder {
     program_dir: Option<PathBuf>,
     envs: Vec<(OsString, OsString)>,

@@ -6,7 +6,6 @@ use std::path::PathBuf;
 
 /// `vacuumdb` cleans and analyzes a `PostgreSQL` database.
 #[derive(Clone, Debug, Default)]
-#[allow(clippy::struct_excessive_bools)]
 pub struct VacuumDbBuilder {
     program_dir: Option<PathBuf>,
     envs: Vec<(OsString, OsString)>,

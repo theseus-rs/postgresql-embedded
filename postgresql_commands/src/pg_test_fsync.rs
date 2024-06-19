@@ -6,7 +6,6 @@ use std::path::PathBuf;
 
 /// `pg_test_fsync` command to determine fastest `wal_sync_method` for `PostgreSQL`
 #[derive(Clone, Debug, Default)]
-#[allow(clippy::module_name_repetitions)]
 pub struct PgTestFsyncBuilder {
     program_dir: Option<PathBuf>,
     envs: Vec<(OsString, OsString)>,

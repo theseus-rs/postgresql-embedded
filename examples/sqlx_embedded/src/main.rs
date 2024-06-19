@@ -1,3 +1,6 @@
+#![forbid(unsafe_code)]
+#![deny(clippy::pedantic)]
+
 use anyhow::Result;
 use postgresql_embedded::PostgreSQL;
 use sqlx::postgres::PgPool;

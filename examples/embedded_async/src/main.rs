@@ -1,3 +1,6 @@
+#![forbid(unsafe_code)]
+#![deny(clippy::pedantic)]
+
 use postgresql_embedded::{PostgreSQL, Result};
 
 #[tokio::main]

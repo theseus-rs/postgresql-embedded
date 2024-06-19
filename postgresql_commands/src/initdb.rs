@@ -6,7 +6,6 @@ use std::path::PathBuf;
 
 /// `initdb` initializes a `PostgreSQL` database cluster.
 #[derive(Clone, Debug, Default)]
-#[allow(clippy::struct_excessive_bools)]
 pub struct InitDbBuilder {
     program_dir: Option<PathBuf>,
     envs: Vec<(OsString, OsString)>,

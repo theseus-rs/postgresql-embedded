@@ -6,7 +6,6 @@ use std::path::PathBuf;
 
 /// `pg_waldump` decodes and displays `PostgreSQL` write-ahead logs for debugging.
 #[derive(Clone, Debug, Default)]
-#[allow(clippy::struct_excessive_bools)]
 pub struct PgWalDumpBuilder {
     program_dir: Option<PathBuf>,
     envs: Vec<(OsString, OsString)>,

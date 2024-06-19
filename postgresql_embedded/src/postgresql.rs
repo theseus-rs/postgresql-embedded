@@ -24,6 +24,7 @@ use crate::Error::{CreateDatabaseError, DatabaseExistsError, DropDatabaseError};
 
 #[cfg(feature = "bundled")]
 lazy_static::lazy_static! {
+    #[allow(clippy::unwrap_used)]
     pub(crate) static ref ARCHIVE_VERSION: Version = {
         let version_string = include_str!(concat!(std::env!("OUT_DIR"), "/postgresql.version"));
         let version = Version::from_str(version_string).unwrap();

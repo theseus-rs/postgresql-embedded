@@ -6,7 +6,6 @@ use std::path::PathBuf;
 
 /// `clusterdb` clusters all previously clustered tables in a database.
 #[derive(Clone, Debug, Default)]
-#[allow(clippy::struct_excessive_bools)]
 pub struct ClusterDbBuilder {
     program_dir: Option<PathBuf>,
     envs: Vec<(OsString, OsString)>,

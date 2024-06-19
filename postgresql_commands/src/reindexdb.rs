@@ -5,7 +5,6 @@ use std::path::PathBuf;
 
 /// `reindexdb` reindexes a `PostgreSQL` database.
 #[derive(Clone, Debug, Default)]
-#[allow(clippy::struct_excessive_bools)]
 pub struct ReindexDbBuilder {
     program_dir: Option<PathBuf>,
     envs: Vec<(OsString, OsString)>,

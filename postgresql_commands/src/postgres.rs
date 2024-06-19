@@ -5,8 +5,6 @@ use std::path::PathBuf;
 
 /// `postgres` is the `PostgreSQL` server.
 #[derive(Clone, Debug, Default)]
-#[allow(clippy::module_name_repetitions)]
-#[allow(clippy::struct_excessive_bools)]
 pub struct PostgresBuilder {
     program_dir: Option<PathBuf>,
     envs: Vec<(OsString, OsString)>,

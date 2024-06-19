@@ -6,7 +6,6 @@ use std::path::PathBuf;
 
 /// `pg_verifybackup` verifies a backup against the backup manifest.
 #[derive(Clone, Debug, Default)]
-#[allow(clippy::struct_excessive_bools)]
 pub struct PgVerifyBackupBuilder {
     program_dir: Option<PathBuf>,
     envs: Vec<(OsString, OsString)>,

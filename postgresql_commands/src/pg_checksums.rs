@@ -6,8 +6,6 @@ use std::path::PathBuf;
 
 /// `pg_checksums` enables, disables, or verifies data checksums in a `PostgreSQL` database cluster.
 #[derive(Clone, Debug, Default)]
-#[allow(clippy::module_name_repetitions)]
-#[allow(clippy::struct_excessive_bools)]
 pub struct PgChecksumsBuilder {
     program_dir: Option<PathBuf>,
     envs: Vec<(OsString, OsString)>,

@@ -1,3 +1,6 @@
+#![forbid(unsafe_code)]
+#![deny(clippy::pedantic)]
+
 use anyhow::Result;
 use postgres::{Client, NoTls};
 use postgresql_embedded::blocking::PostgreSQL;
