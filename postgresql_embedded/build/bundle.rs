@@ -14,6 +14,8 @@ use std::{env, fs};
 /// self-contained binary that does not require the PostgreSQL archive to be
 /// downloaded at runtime.
 pub(crate) async fn stage_postgresql_archive() -> Result<()> {
+    let releases_url = env::var("POSTGRESQL_RELEASES_URL").unwrap_or(DEFAULT_RELEASES_URL.to_string());
+    println!("PostgreSQL releases URL: {releases_url}");
     let postgres_version = env::var("POSTGRESQL_VERSION").unwrap_or(LATEST.to_string());
     let version = Version::from_str(postgres_version.as_str())?;
     println!("PostgreSQL version: {postgres_version}");
@@ -31,7 +33,7 @@ pub(crate) async fn stage_postgresql_archive() -> Result<()> {
         return Ok(());
     }
 
-    let (asset_version, archive) = get_archive(DEFAULT_RELEASES_URL, &version).await?;
+    let (asset_version, archive) = get_archive(&releases_url, &version).await?;
 
     fs::write(archive_version_file.clone(), asset_version.to_string())?;
     let mut file = File::create(archive_file.clone())?;
