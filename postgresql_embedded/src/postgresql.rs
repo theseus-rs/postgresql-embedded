@@ -193,7 +193,7 @@ impl PostgreSQL {
             debug!("Using bundled installation archive");
             (self.version, bytes::Bytes::copy_from_slice(ARCHIVE))
         } else {
-            get_archive(&self.settings().releases_url, &self.version).await?
+            get_archive(&self.settings.releases_url, &self.version).await?
         };
 
         #[cfg(not(feature = "bundled"))]
