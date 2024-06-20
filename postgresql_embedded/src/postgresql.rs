@@ -197,7 +197,7 @@ impl PostgreSQL {
         };
 
         #[cfg(not(feature = "bundled"))]
-        let (version, bytes) = { get_archive(&self.version).await? };
+        let (version, bytes) = { get_archive(&self.settings.releases_url, &self.version).await? };
 
         self.version = version;
         extract(&bytes, &self.settings.installation_dir).await?;
