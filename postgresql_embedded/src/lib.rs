@@ -119,4 +119,5 @@ mod settings;
 
 pub use error::{Error, Result};
 pub use postgresql::{PostgreSQL, Status};
+pub use postgresql_archive::Version;
 pub use settings::Settings;
