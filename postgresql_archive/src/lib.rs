@@ -21,11 +21,11 @@
 //! ### Asynchronous API
 //!
 //! ```no_run
-//! use postgresql_archive::{extract, get_archive, Result, LATEST};
+//! use postgresql_archive::{extract, get_archive, Result, DEFAULT_RELEASES_URL, LATEST};
 //!
 //! #[tokio::main]
 //! async fn main() -> Result<()> {
-//!     let (archive_version, archive) = get_archive(&LATEST).await?;
+//!     let (archive_version, archive) = get_archive(DEFAULT_RELEASES_URL, &LATEST).await?;
 //!     let out_dir = std::env::temp_dir();
 //!     extract(&archive, &out_dir).await
 //! }
@@ -34,10 +34,10 @@
 //! ### Synchronous API
 //! ```no_run
 //! #[cfg(feature = "blocking")] {
-//! use postgresql_archive::LATEST;
+//! use postgresql_archive::{DEFAULT_RELEASES_URL, LATEST};
 //! use postgresql_archive::blocking::{extract, get_archive};
 //!
-//! let (archive_version, archive) = get_archive(&LATEST).unwrap();
+//! let (archive_version, archive) = get_archive(DEFAULT_RELEASES_URL, &LATEST).unwrap();
 //! let out_dir = std::env::temp_dir();
 //! let result = extract(&archive, &out_dir).unwrap();
 //! }
@@ -106,6 +106,7 @@
 #![forbid(unsafe_code)]
 #![deny(clippy::pedantic)]
 #![allow(clippy::doc_markdown)]
+#![allow(clippy::module_name_repetitions)]
 
 #[macro_use]
 extern crate lazy_static;
@@ -117,6 +118,7 @@ mod error;
 mod github;
 mod version;
 
+pub use archive::DEFAULT_RELEASES_URL;
 pub use archive::{extract, get_archive, get_archive_for_target, get_version};
 pub use error::{Error, Result};
 #[allow(deprecated)]

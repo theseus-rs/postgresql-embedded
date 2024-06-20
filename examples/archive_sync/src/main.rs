@@ -2,10 +2,10 @@
 #![deny(clippy::pedantic)]
 
 use postgresql_archive::blocking::{extract, get_archive};
-use postgresql_archive::{Result, LATEST};
+use postgresql_archive::{Result, DEFAULT_RELEASES_URL, LATEST};
 
 fn main() -> Result<()> {
-    let (archive_version, archive) = get_archive(&LATEST)?;
+    let (archive_version, archive) = get_archive(DEFAULT_RELEASES_URL, &LATEST)?;
     let out_dir = tempfile::tempdir()?.into_path();
     extract(&archive, &out_dir)?;
     println!(

@@ -1,5 +1,6 @@
 use crate::error::{Error, Result};
 use home::home_dir;
+use postgresql_archive::DEFAULT_RELEASES_URL;
 use rand::distributions::Alphanumeric;
 use rand::Rng;
 use std::collections::HashMap;
@@ -17,6 +18,8 @@ pub const BOOTSTRAP_SUPERUSER: &str = "postgres";
 /// Database settings
 #[derive(Clone, Debug, PartialEq)]
 pub struct Settings {
+    /// URL for the releases location of the `PostgreSQL` installation archives
+    pub releases_url: String,
     /// `PostgreSQL` installation directory
     pub installation_dir: PathBuf,
     /// `PostgreSQL` password file
@@ -71,6 +74,7 @@ impl Settings {
             .collect();
 
         Self {
+            releases_url: DEFAULT_RELEASES_URL.to_string(),
             installation_dir: home_dir.join(".theseus").join("postgresql"),
             password_file,
             data_dir,
@@ -121,17 +125,8 @@ impl Settings {
             parsed_url.query_pairs().into_owned().collect();
         let mut settings = Self::default();
 
-        if !parsed_url.username().is_empty() {
-            settings.username = parsed_url.username().to_string();
-        }
-        if let Some(password) = parsed_url.password() {
-            settings.password = password.to_string();
-        }
-        if let Some(host) = parsed_url.host() {
-            settings.host = host.to_string();
-        }
-        if let Some(port) = parsed_url.port() {
-            settings.port = port;
+        if let Some(releases_url) = query_parameters.get("releases_url") {
+            settings.releases_url = releases_url.to_string();
         }
         if let Some(installation_dir) = query_parameters.get("installation_dir") {
             if let Ok(path) = PathBuf::from_str(installation_dir) {
@@ -147,6 +142,18 @@ impl Settings {
             if let Ok(path) = PathBuf::from_str(data_dir) {
                 settings.data_dir = path;
             }
+        }
+        if let Some(host) = parsed_url.host() {
+            settings.host = host.to_string();
+        }
+        if let Some(port) = parsed_url.port() {
+            settings.port = port;
+        }
+        if !parsed_url.username().is_empty() {
+            settings.username = parsed_url.username().to_string();
+        }
+        if let Some(password) = parsed_url.password() {
+            settings.password = password.to_string();
         }
         if let Some(temporary) = query_parameters.get("temporary") {
             settings.temporary = temporary == "true";
@@ -240,28 +247,30 @@ mod tests {
     #[test]
     fn test_settings_from_url() -> Result<()> {
         let base_url = "postgresql://postgres:password@localhost:5432/test";
+        let releases_url = "releases_url=https%3A%2F%2Fgithub.com";
         let installation_dir = "installation_dir=/tmp/postgresql";
         let password_file = "password_file=/tmp/.pgpass";
         let data_dir = "data_dir=/tmp/data";
         let temporary = "temporary=false";
         let timeout = "timeout=10";
         let configuration = "configuration.max_connections=42";
-        let url = format!("{base_url}?{installation_dir}&{password_file}&{data_dir}&{temporary}&{temporary}&{timeout}&{configuration}");
+        let url = format!("{base_url}?{releases_url}&{installation_dir}&{password_file}&{data_dir}&{temporary}&{temporary}&{timeout}&{configuration}");
 
         let settings = Settings::from_url(url)?;
 
-        assert_eq!(BOOTSTRAP_SUPERUSER, settings.username);
-        assert_eq!("password", settings.password);
-        assert_eq!("localhost", settings.host);
-        assert_eq!(5432, settings.port);
-        assert_eq!(base_url, settings.url("test"));
+        assert_eq!("https://github.com", settings.releases_url);
         assert_eq!(PathBuf::from("/tmp/postgresql"), settings.installation_dir);
         assert_eq!(PathBuf::from("/tmp/.pgpass"), settings.password_file);
         assert_eq!(PathBuf::from("/tmp/data"), settings.data_dir);
+        assert_eq!("localhost", settings.host);
+        assert_eq!(5432, settings.port);
+        assert_eq!(BOOTSTRAP_SUPERUSER, settings.username);
+        assert_eq!("password", settings.password);
         assert!(!settings.temporary);
         assert_eq!(Some(Duration::from_secs(10)), settings.timeout);
         let configuration = HashMap::from([("max_connections".to_string(), "42".to_string())]);
         assert_eq!(configuration, settings.configuration);
+        assert_eq!(base_url, settings.url("test"));
 
         Ok(())
     }
