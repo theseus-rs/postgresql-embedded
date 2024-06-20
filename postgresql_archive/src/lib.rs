@@ -106,6 +106,7 @@
 #![forbid(unsafe_code)]
 #![deny(clippy::pedantic)]
 #![allow(clippy::doc_markdown)]
+#![allow(clippy::module_name_repetitions)]
 
 #[macro_use]
 extern crate lazy_static;
@@ -117,6 +118,7 @@ mod error;
 mod github;
 mod version;
 
+pub use archive::DEFAULT_RELEASES_URL;
 pub use archive::{extract, get_archive, get_archive_for_target, get_version};
 pub use error::{Error, Result};
 #[allow(deprecated)]

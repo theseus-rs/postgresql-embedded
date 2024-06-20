@@ -29,6 +29,8 @@ use tracing::{debug, instrument, warn};
 
 const GITHUB_API_VERSION_HEADER: &str = "X-GitHub-Api-Version";
 const GITHUB_API_VERSION: &str = "2022-11-28";
+pub const DEFAULT_RELEASES_URL: &str =
+    "https://api.github.com/repos/theseus-rs/postgresql-binaries/releases";
 
 lazy_static! {
     static ref GITHUB_TOKEN: Option<String> = match std::env::var("GITHUB_TOKEN") {
@@ -103,14 +105,13 @@ fn reqwest_client() -> ClientWithMiddleware {
 /// Gets a release from GitHub for a given [version](Version) of PostgreSQL. If a release for the
 /// [version](Version) is not found, then a [ReleaseNotFound] error is returned.
 #[instrument(level = "debug")]
-async fn get_release(version: &Version) -> Result<Release> {
-    let url = "https://api.github.com/repos/theseus-rs/postgresql-binaries/releases";
+async fn get_release(releases_url: &str, version: &Version) -> Result<Release> {
     let client = reqwest_client();
 
     debug!("Attempting to locate release for version {version}");
 
     if version.minor.is_some() && version.release.is_some() {
-        let request = client.get(format!("{url}/tags/{version}"));
+        let request = client.get(format!("{releases_url}/tags/{version}"));
         let response = request.send().await?.error_for_status()?;
         let release = response.json::<Release>().await?;
 
@@ -123,7 +124,7 @@ async fn get_release(version: &Version) -> Result<Release> {
 
     loop {
         let request = client
-            .get(url)
+            .get(releases_url)
             .query(&[("page", page.to_string().as_str()), ("per_page", "100")]);
         let response = request.send().await?.error_for_status()?;
         let response_releases = response.json::<Vec<Release>>().await?;
@@ -169,8 +170,8 @@ async fn get_release(version: &Version) -> Result<Release> {
 /// specified, then the latest version is returned. If a release for the [version](Version) is not found, then a
 /// [ReleaseNotFound] error is returned.
 #[instrument(level = "debug")]
-pub async fn get_version(version: &Version) -> Result<Version> {
-    let release = get_release(version).await?;
+pub async fn get_version(releases_url: &str, version: &Version) -> Result<Version> {
+    let release = get_release(releases_url, version).await?;
     Version::from_str(&release.tag_name)
 }
 
@@ -181,8 +182,12 @@ pub async fn get_version(version: &Version) -> Result<Version> {
 ///
 /// Two assets are returned. The first [asset](Asset) is the archive, and the second [asset](Asset) is the archive hash.
 #[instrument(level = "debug", skip(target))]
-async fn get_asset<S: AsRef<str>>(version: &Version, target: S) -> Result<(Version, Asset, Asset)> {
-    let release = get_release(version).await?;
+async fn get_asset<S: AsRef<str>>(
+    releases_url: &str,
+    version: &Version,
+    target: S,
+) -> Result<(Version, Asset, Asset)> {
+    let release = get_release(releases_url, version).await?;
     let asset_version = Version::from_str(&release.tag_name)?;
     let mut asset: Option<Asset> = None;
     let mut asset_hash: Option<Asset> = None;
@@ -213,8 +218,8 @@ async fn get_asset<S: AsRef<str>>(version: &Version, target: S) -> Result<(Versi
 ///
 /// Returns the archive version and bytes.
 #[instrument]
-pub async fn get_archive(version: &Version) -> Result<(Version, Bytes)> {
-    get_archive_for_target(version, target_triple::TARGET).await
+pub async fn get_archive(releases_url: &str, version: &Version) -> Result<(Version, Bytes)> {
+    get_archive_for_target(releases_url, version, target_triple::TARGET).await
 }
 
 /// Gets the archive for a given [version](Version) of PostgreSQL and
@@ -226,10 +231,11 @@ pub async fn get_archive(version: &Version) -> Result<(Version, Bytes)> {
 #[allow(clippy::cast_precision_loss)]
 #[instrument(level = "debug", skip(target))]
 pub async fn get_archive_for_target<S: AsRef<str>>(
+    releases_url: &str,
     version: &Version,
     target: S,
 ) -> Result<(Version, Bytes)> {
-    let (asset_version, asset, asset_hash) = get_asset(version, target).await?;
+    let (asset_version, asset, asset_hash) = get_asset(releases_url, version, target).await?;
 
     debug!(
         "Downloading archive hash {}",
@@ -436,13 +442,13 @@ mod tests {
 
     #[test(tokio::test)]
     async fn test_get_release() -> Result<()> {
-        let _ = get_release(&VERSION).await?;
+        let _ = get_release(DEFAULT_RELEASES_URL, &VERSION).await?;
         Ok(())
     }
 
     #[test(tokio::test)]
     async fn test_get_release_version_not_found() -> Result<()> {
-        let release = get_release(&INVALID_VERSION).await;
+        let release = get_release(DEFAULT_RELEASES_URL, &INVALID_VERSION).await;
         assert!(release.is_err());
         Ok(())
     }
@@ -450,7 +456,8 @@ mod tests {
     #[test(tokio::test)]
     async fn test_get_asset() -> Result<()> {
         let target_triple = "x86_64-unknown-linux-musl".to_string();
-        let (asset_version, asset, asset_hash) = get_asset(&VERSION, &target_triple).await?;
+        let (asset_version, asset, asset_hash) =
+            get_asset(DEFAULT_RELEASES_URL, &VERSION, &target_triple).await?;
         assert!(asset_version.matches(&VERSION));
         assert!(asset.name.contains(&target_triple));
         assert!(asset_hash.name.contains(&target_triple));
@@ -462,7 +469,7 @@ mod tests {
     #[test(tokio::test)]
     async fn test_get_asset_version_not_found() -> Result<()> {
         let target_triple = "x86_64-unknown-linux-musl".to_string();
-        let result = get_asset(&INVALID_VERSION, &target_triple).await;
+        let result = get_asset(DEFAULT_RELEASES_URL, &INVALID_VERSION, &target_triple).await;
         assert!(result.is_err());
         Ok(())
     }
@@ -470,7 +477,7 @@ mod tests {
     #[test(tokio::test)]
     async fn test_get_asset_target_not_found() -> Result<()> {
         let target_triple = "wasm64-unknown-unknown".to_string();
-        let result = get_asset(&VERSION, &target_triple).await;
+        let result = get_asset(DEFAULT_RELEASES_URL, &VERSION, &target_triple).await;
         assert!(result.is_err());
         Ok(())
     }

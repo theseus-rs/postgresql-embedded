@@ -1,7 +1,7 @@
 #![allow(dead_code)]
 
 use anyhow::Result;
-use postgresql_archive::get_archive;
+use postgresql_archive::{get_archive, DEFAULT_RELEASES_URL};
 use postgresql_archive::{Version, LATEST};
 use std::fs::File;
 use std::io::Write;
@@ -31,7 +31,7 @@ pub(crate) async fn stage_postgresql_archive() -> Result<()> {
         return Ok(());
     }
 
-    let (asset_version, archive) = get_archive(&version).await?;
+    let (asset_version, archive) = get_archive(DEFAULT_RELEASES_URL, &version).await?;
 
     fs::write(archive_version_file.clone(), asset_version.to_string())?;
     let mut file = File::create(archive_file.clone())?;

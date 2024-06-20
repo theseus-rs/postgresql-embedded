@@ -172,7 +172,7 @@ impl PostgreSQL {
         // version and installation directory accordingly. This is an optimization to avoid downloading
         // the archive if the latest version is already installed.
         if self.version.minor.is_none() || self.version.release.is_none() {
-            let version = get_version(&self.version).await?;
+            let version = get_version(&self.settings.releases_url, &self.version).await?;
             self.version = version;
             self.settings.installation_dir = self
                 .settings
@@ -193,7 +193,7 @@ impl PostgreSQL {
             debug!("Using bundled installation archive");
             (self.version, bytes::Bytes::copy_from_slice(ARCHIVE))
         } else {
-            get_archive(&self.version).await?
+            get_archive(&self.settings().releases_url, &self.version).await?
         };
 
         #[cfg(not(feature = "bundled"))]
