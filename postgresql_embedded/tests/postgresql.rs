@@ -1,5 +1,4 @@
 use anyhow::bail;
-use postgresql_archive::LATEST;
 use postgresql_commands::psql::PsqlBuilder;
 use postgresql_commands::CommandBuilder;
 use postgresql_embedded::{PostgreSQL, Result, Settings, Status};
@@ -49,7 +48,7 @@ async fn test_temporary_database() -> Result<()> {
     assert!(settings.temporary);
 
     {
-        let mut postgresql = PostgreSQL::new(LATEST, settings);
+        let mut postgresql = PostgreSQL::new(settings);
         postgresql.setup().await?;
         postgresql.start().await?;
         assert!(data_dir.exists());
@@ -71,7 +70,7 @@ async fn test_persistent_database() -> Result<()> {
     settings.temporary = false;
 
     {
-        let mut postgresql = PostgreSQL::new(LATEST, settings);
+        let mut postgresql = PostgreSQL::new(settings);
         postgresql.setup().await?;
         postgresql.start().await?;
         assert!(data_dir.exists());
@@ -90,7 +89,6 @@ async fn test_persistent_database() -> Result<()> {
 
 #[test(tokio::test)]
 async fn test_persistent_database_reuse() -> Result<()> {
-    let version = LATEST;
     let database_name = "test";
     let mut settings = Settings::default();
     let data_dir = settings.data_dir.clone();
@@ -100,7 +98,7 @@ async fn test_persistent_database_reuse() -> Result<()> {
     settings.temporary = false;
 
     {
-        let mut postgresql = PostgreSQL::new(version, settings);
+        let mut postgresql = PostgreSQL::new(settings);
         postgresql.setup().await?;
         postgresql.start().await?;
         postgresql.create_database(database_name).await?;
@@ -121,7 +119,7 @@ async fn test_persistent_database_reuse() -> Result<()> {
     };
 
     {
-        let mut postgresql = PostgreSQL::new(version, settings);
+        let mut postgresql = PostgreSQL::new(settings);
         postgresql.setup().await?;
         postgresql.start().await?;
         assert!(postgresql.database_exists(database_name).await?);
@@ -207,7 +205,7 @@ async fn test_username_setting() -> Result<()> {
         username: "admin".to_string(),
         ..Default::default()
     };
-    let mut postgresql = PostgreSQL::new(LATEST, settings);
+    let mut postgresql = PostgreSQL::new(settings);
     postgresql.setup().await?;
     postgresql.start().await?;
 
