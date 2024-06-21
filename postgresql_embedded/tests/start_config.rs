@@ -1,4 +1,3 @@
-use postgresql_archive::LATEST;
 use postgresql_commands::psql::PsqlBuilder;
 use postgresql_commands::{CommandBuilder, CommandExecutor};
 use postgresql_embedded::{PostgreSQL, Settings};
@@ -12,7 +11,7 @@ async fn start_config() -> anyhow::Result<()> {
         configuration,
         ..Default::default()
     };
-    let mut postgresql = PostgreSQL::new(LATEST, settings);
+    let mut postgresql = PostgreSQL::new(settings);
 
     postgresql.setup().await?;
     postgresql.start().await?;

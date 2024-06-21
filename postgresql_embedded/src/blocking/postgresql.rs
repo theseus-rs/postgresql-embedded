@@ -1,6 +1,5 @@
 use crate::{Result, Settings, Status};
 use lazy_static::lazy_static;
-use postgresql_archive::Version;
 use tokio::runtime::Runtime;
 
 lazy_static! {
@@ -17,9 +16,9 @@ pub struct PostgreSQL {
 impl PostgreSQL {
     /// Create a new [`crate::postgresql::PostgreSQL`] instance
     #[must_use]
-    pub fn new(version: Version, settings: Settings) -> Self {
+    pub fn new(settings: Settings) -> Self {
         Self {
-            inner: crate::postgresql::PostgreSQL::new(version, settings),
+            inner: crate::postgresql::PostgreSQL::new(settings),
         }
     }
 
@@ -27,12 +26,6 @@ impl PostgreSQL {
     #[must_use]
     pub fn status(&self) -> Status {
         self.inner.status()
-    }
-
-    /// Get the [version](Version) of the `PostgreSQL` server
-    #[must_use]
-    pub fn version(&self) -> &Version {
-        self.inner.version()
     }
 
     /// Get the [settings](Settings) of the `PostgreSQL` server
@@ -123,13 +116,17 @@ impl PostgreSQL {
 #[cfg(test)]
 mod test {
     use super::*;
+    use postgresql_archive::Version;
 
     #[test]
     fn test_postgresql() {
-        let version = Version::new(16, Some(2), Some(0));
-        let postgresql = PostgreSQL::new(version, Settings::default());
+        let version = Version::new(16, Some(3), Some(0));
+        let settings = Settings {
+            version,
+            ..Settings::default()
+        };
+        let postgresql = PostgreSQL::new(settings);
         let initial_statuses = [Status::NotInstalled, Status::Installed, Status::Stopped];
         assert!(initial_statuses.contains(&postgresql.status()));
-        assert_eq!(postgresql.version(), &version);
     }
 }

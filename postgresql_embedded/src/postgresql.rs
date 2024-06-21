@@ -1,8 +1,8 @@
 use crate::error::Error::{DatabaseInitializationError, DatabaseStartError, DatabaseStopError};
 use crate::error::Result;
 use crate::settings::{Settings, BOOTSTRAP_SUPERUSER};
+use postgresql_archive::get_version;
 use postgresql_archive::{extract, get_archive};
-use postgresql_archive::{get_version, Version};
 use postgresql_commands::initdb::InitDbBuilder;
 use postgresql_commands::pg_ctl::Mode::{Start, Stop};
 use postgresql_commands::pg_ctl::PgCtlBuilder;
@@ -16,25 +16,9 @@ use postgresql_commands::CommandExecutor;
 use std::fs::{remove_dir_all, remove_file};
 use std::io::prelude::*;
 use std::net::TcpListener;
-#[cfg(feature = "bundled")]
-use std::str::FromStr;
 use tracing::{debug, instrument};
 
 use crate::Error::{CreateDatabaseError, DatabaseExistsError, DropDatabaseError};
-
-#[cfg(feature = "bundled")]
-lazy_static::lazy_static! {
-    #[allow(clippy::unwrap_used)]
-    pub(crate) static ref ARCHIVE_VERSION: Version = {
-        let version_string = include_str!(concat!(std::env!("OUT_DIR"), "/postgresql.version"));
-        let version = Version::from_str(version_string).unwrap();
-        debug!("Bundled installation archive version {version}");
-        version
-    };
-}
-
-#[cfg(feature = "bundled")]
-pub(crate) const ARCHIVE: &[u8] = include_bytes!(concat!(env!("OUT_DIR"), "/postgresql.tar.gz"));
 
 const PGDATABASE: &str = "PGDATABASE";
 
@@ -54,7 +38,6 @@ pub enum Status {
 /// `PostgreSQL` server
 #[derive(Clone, Debug)]
 pub struct PostgreSQL {
-    version: Version,
     settings: Settings,
 }
 
@@ -62,13 +45,14 @@ pub struct PostgreSQL {
 impl PostgreSQL {
     /// Create a new [`PostgreSQL`] instance
     #[must_use]
-    pub fn new(version: Version, settings: Settings) -> Self {
-        let mut postgresql = PostgreSQL { version, settings };
+    pub fn new(settings: Settings) -> Self {
+        let mut postgresql = PostgreSQL { settings };
 
         // If the minor and release version are set, append the version to the installation directory
         // to avoid conflicts with other versions.  This will also facilitate setting the status
         // of the server to the correct initial value.  If the minor and release version are not set,
         // the installation directory will be determined dynamically during the installation process.
+        let version = postgresql.settings.version;
         if version.minor.is_some() && version.release.is_some() {
             let path = &postgresql.settings.installation_dir;
             let version_string = version.to_string();
@@ -80,20 +64,6 @@ impl PostgreSQL {
         }
 
         postgresql
-    }
-
-    /// Get the default version used if not otherwise specified
-    #[must_use]
-    pub fn default_version() -> Version {
-        #[cfg(feature = "bundled")]
-        {
-            *ARCHIVE_VERSION
-        }
-
-        #[cfg(not(feature = "bundled"))]
-        {
-            postgresql_archive::LATEST
-        }
     }
 
     /// Get the [status](Status) of the PostgreSQL server
@@ -110,12 +80,6 @@ impl PostgreSQL {
         }
     }
 
-    /// Get the [version](Version) of the `PostgreSQL` server
-    #[must_use]
-    pub fn version(&self) -> &Version {
-        &self.version
-    }
-
     /// Get the [settings](Settings) of the `PostgreSQL` server
     #[must_use]
     pub fn settings(&self) -> &Settings {
@@ -124,12 +88,13 @@ impl PostgreSQL {
 
     /// Check if the `PostgreSQL` server is installed
     fn is_installed(&self) -> bool {
-        if self.version.minor.is_none() || self.version.release.is_none() {
+        let version = self.settings.version;
+        if version.minor.is_none() || version.release.is_none() {
             return false;
         }
 
         let path = &self.settings.installation_dir;
-        path.ends_with(self.version.to_string()) && path.exists()
+        path.ends_with(version.to_string()) && path.exists()
     }
 
     /// Check if the `PostgreSQL` server is initialized
@@ -166,18 +131,21 @@ impl PostgreSQL {
     /// returned.
     #[instrument(skip(self))]
     async fn install(&mut self) -> Result<()> {
-        debug!("Starting installation process for version {}", self.version);
+        debug!(
+            "Starting installation process for version {}",
+            self.settings.version
+        );
 
         // If the minor and release version are not set, determine the latest version and update the
         // version and installation directory accordingly. This is an optimization to avoid downloading
         // the archive if the latest version is already installed.
-        if self.version.minor.is_none() || self.version.release.is_none() {
-            let version = get_version(&self.settings.releases_url, &self.version).await?;
-            self.version = version;
+        if self.settings.version.minor.is_none() || self.settings.version.release.is_none() {
+            self.settings.version =
+                get_version(&self.settings.releases_url, &self.settings.version).await?;
             self.settings.installation_dir = self
                 .settings
                 .installation_dir
-                .join(self.version.to_string());
+                .join(self.settings.version.to_string());
         }
 
         if self.settings.installation_dir.exists() {
@@ -189,22 +157,26 @@ impl PostgreSQL {
         // If the requested version is the same as the version of the bundled archive, use the bundled
         // archive. This avoids downloading the archive in environments where internet access is
         // restricted or undesirable.
-        let (version, bytes) = if *ARCHIVE_VERSION == self.version {
+        let (version, bytes) = if *crate::settings::ARCHIVE_VERSION == self.settings.version {
             debug!("Using bundled installation archive");
-            (self.version, bytes::Bytes::copy_from_slice(ARCHIVE))
+            (
+                self.settings.version,
+                bytes::Bytes::copy_from_slice(crate::settings::ARCHIVE),
+            )
         } else {
-            get_archive(&self.settings.releases_url, &self.version).await?
+            get_archive(&self.settings.releases_url, &self.settings.version).await?
         };
 
         #[cfg(not(feature = "bundled"))]
-        let (version, bytes) = { get_archive(&self.settings.releases_url, &self.version).await? };
+        let (version, bytes) =
+            { get_archive(&self.settings.releases_url, &self.settings.version).await? };
 
-        self.version = version;
+        self.settings.version = version;
         extract(&bytes, &self.settings.installation_dir).await?;
 
         debug!(
             "Installed PostgreSQL version {} to {}",
-            self.version,
+            self.settings.version,
             self.settings.installation_dir.to_string_lossy()
         );
 
@@ -433,9 +405,7 @@ impl PostgreSQL {
 /// Default `PostgreSQL` server
 impl Default for PostgreSQL {
     fn default() -> Self {
-        let version = PostgreSQL::default_version();
-        let settings = Settings::default();
-        Self::new(version, settings)
+        Self::new(Settings::default())
     }
 }
 
@@ -457,14 +427,5 @@ impl Drop for PostgreSQL {
             let _ = remove_dir_all(&self.settings.data_dir);
             let _ = remove_file(&self.settings.password_file);
         }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    #[test]
-    #[cfg(feature = "bundled")]
-    fn test_archive_version() {
-        assert!(!super::ARCHIVE_VERSION.to_string().is_empty());
     }
 }
