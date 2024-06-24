@@ -1,7 +1,7 @@
 #[cfg(feature = "blocking")]
 use postgresql_archive::blocking::{extract, get_archive, get_archive_for_target, get_version};
 #[cfg(feature = "blocking")]
-use postgresql_archive::LATEST;
+use postgresql_archive::{DEFAULT_RELEASES_URL, LATEST};
 #[cfg(feature = "blocking")]
 use std::fs::{create_dir_all, remove_dir_all};
 #[cfg(feature = "blocking")]
@@ -15,7 +15,7 @@ fn test_get_version() -> anyhow::Result<()> {
     assert!(version.minor.is_none());
     assert!(version.release.is_none());
 
-    let latest_version = get_version(postgresql_archive::DEFAULT_RELEASES_URL, version)?;
+    let latest_version = get_version(DEFAULT_RELEASES_URL, version)?;
 
     assert_eq!(version.major, latest_version.major);
     assert!(latest_version.minor.is_some());
