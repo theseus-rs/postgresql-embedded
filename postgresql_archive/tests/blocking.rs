@@ -1,6 +1,5 @@
 #[cfg(feature = "blocking")]
 use postgresql_archive::blocking::{extract, get_archive, get_archive_for_target, get_version};
-use postgresql_archive::DEFAULT_RELEASES_URL;
 #[cfg(feature = "blocking")]
 use postgresql_archive::LATEST;
 #[cfg(feature = "blocking")]
@@ -16,7 +15,7 @@ fn test_get_version() -> anyhow::Result<()> {
     assert!(version.minor.is_none());
     assert!(version.release.is_none());
 
-    let latest_version = get_version(DEFAULT_RELEASES_URL, version)?;
+    let latest_version = get_version(postgresql_archive::DEFAULT_RELEASES_URL, version)?;
 
     assert_eq!(version.major, latest_version.major);
     assert!(latest_version.minor.is_some());
