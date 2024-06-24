@@ -1,8 +1,7 @@
 #[cfg(feature = "blocking")]
 use postgresql_archive::blocking::{extract, get_archive, get_archive_for_target, get_version};
-use postgresql_archive::DEFAULT_RELEASES_URL;
 #[cfg(feature = "blocking")]
-use postgresql_archive::LATEST;
+use postgresql_archive::{DEFAULT_RELEASES_URL, LATEST};
 #[cfg(feature = "blocking")]
 use std::fs::{create_dir_all, remove_dir_all};
 #[cfg(feature = "blocking")]

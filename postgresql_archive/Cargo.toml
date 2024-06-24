@@ -29,7 +29,6 @@ serde_json = { workspace = true }
 sha2 = { workspace = true }
 tar = { workspace = true }
 target-triple = { workspace = true }
-task-local-extensions = { workspace = true }
 tempfile = { workspace = true }
 thiserror = { workspace = true }
 tokio = { workspace = true, features = ["full"], optional = true }
