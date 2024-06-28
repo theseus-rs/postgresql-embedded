@@ -20,7 +20,7 @@ use tracing::{debug, instrument, warn};
 pub const DEFAULT_POSTGRESQL_URL: &str = "https://github.com/theseus-rs/postgresql-binaries";
 
 /// Gets the version for the specified [version requirement](VersionReq). If a version for the
-/// [version requirement](VersionReq) is not found, then a [ReleaseNotFound] error is returned.
+/// [version requirement](VersionReq) is not found, then an error is returned.
 ///
 /// # Arguments
 /// * `url` - The URL to released archives.

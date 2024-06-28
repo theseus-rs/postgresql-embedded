@@ -1,7 +1,7 @@
 use crate::repository::github::models::{Asset, Release};
 use crate::repository::model::Repository;
 use crate::Error::{
-    ArchiveHashMismatch, AssetHashNotFound, AssetNotFound, ReleaseNotFound, RepositoryFailure,
+    ArchiveHashMismatch, AssetHashNotFound, AssetNotFound, RepositoryFailure, VersionNotFound,
 };
 use crate::{Archive, Result};
 use async_trait::async_trait;
@@ -45,8 +45,8 @@ lazy_static! {
 /// GitHub repository.
 ///
 /// This repository is used to interact with GitHub. The configuration url should be
-/// in the format "https://github.com/<owner>/<repository>"
-/// (e.g. https://github.com/theseus-rs/postgresql-binaries).
+/// in the format <https://github.com/owner/repository>
+/// (e.g. <https://github.com/theseus-rs/postgresql-binaries>).
 #[derive(Debug)]
 pub(crate) struct GitHub {
     url: String,
@@ -56,7 +56,7 @@ impl GitHub {
     /// Creates a new GitHub repository from the specified URL.
     ///
     /// # Arguments
-    /// * `url` - The URL to the GitHub repository in the format "https://github.com/<owner>/<repository>"
+    /// * `url` - The URL to the GitHub repository in the format <https://github.com/owner/repository>
     ///
     /// # Returns
     /// * The GitHub repository.
@@ -124,7 +124,7 @@ impl GitHub {
     }
 
     /// Gets the release for the specified [version requirement](VersionReq). If a release for the
-    /// [version requirement](VersionReq) is not found, then a [ReleaseNotFound] error is returned.
+    /// [version requirement](VersionReq) is not found, then an error is returned.
     ///
     /// # Arguments
     /// * `version_req` - The version requirement.
@@ -180,7 +180,7 @@ impl GitHub {
                 debug!("Release {release_version} found for version requirement {version_req}");
                 Ok(release)
             }
-            None => Err(ReleaseNotFound(version_req.to_string())),
+            None => Err(VersionNotFound(version_req.to_string())),
         }
     }
 

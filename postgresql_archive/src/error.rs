@@ -22,9 +22,6 @@ pub enum Error {
     /// Parse error
     #[error(transparent)]
     ParseError(anyhow::Error),
-    /// Release not found
-    #[error("release not found for '{0}'")]
-    ReleaseNotFound(String),
     /// Repository failure
     #[error("{0}")]
     RepositoryFailure(String),
@@ -34,6 +31,9 @@ pub enum Error {
     /// Unsupported repository
     #[error("unsupported repository for '{0}'")]
     UnsupportedRepository(String),
+    /// Version not found
+    #[error("version not found for '{0}'")]
+    VersionNotFound(String),
 }
 
 /// Converts a [`regex::Error`] into an [`ParseError`](Error::ParseError)
