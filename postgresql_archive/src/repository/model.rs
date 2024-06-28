@@ -13,7 +13,7 @@ pub trait Repository: Debug + Send + Sync {
 
     /// Gets the version for the specified [version requirement](VersionReq). If a
     /// [version](Version) for the [version requirement](VersionReq) is not found,
-    /// then a [ReleaseNotFound] error is returned.
+    /// then an error is returned.
     ///
     /// # Arguments
     /// * `version_req` - The version requirement.
