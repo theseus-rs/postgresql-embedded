@@ -72,7 +72,7 @@ mod test {
     fn test_from_archive_error() {
         let archive_error = postgresql_archive::Error::VersionNotFound("test".to_string());
         let error = Error::from(archive_error);
-        assert_eq!(error.to_string(), "release not found for 'test'");
+        assert_eq!(error.to_string(), "version not found for 'test'");
     }
 
     #[test]

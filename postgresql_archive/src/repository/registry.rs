@@ -10,14 +10,13 @@ lazy_static! {
         Arc::new(Mutex::new(RepositoryRegistry::default()));
 }
 
-type RepoSupportsFn = Arc<RwLock<dyn Fn(&str) -> bool + Send + Sync>>;
-type SupportsFn = Box<dyn Fn(&str) -> bool + Send + Sync>;
-type RepoNewFn = Arc<RwLock<dyn Fn(&str) -> Result<Box<dyn Repository>> + Send + Sync>>;
-type NewFn = Box<dyn Fn(&str) -> Result<Box<dyn Repository>> + Send + Sync>;
+type SupportsFn = dyn Fn(&str) -> bool + Send + Sync;
+type NewFn = dyn Fn(&str) -> Result<Box<dyn Repository>> + Send + Sync;
 
 /// Singleton struct to store repositories
+#[allow(clippy::type_complexity)]
 struct RepositoryRegistry {
-    repositories: Vec<(RepoSupportsFn, RepoNewFn)>,
+    repositories: Vec<(Arc<RwLock<SupportsFn>>, Arc<RwLock<NewFn>>)>,
 }
 
 impl RepositoryRegistry {
@@ -36,7 +35,7 @@ impl RepositoryRegistry {
     /// # Arguments
     /// * `supports_fn` - The function to check if the repository supports the URL.
     /// * `new_fn` - The repository constructor function to register.
-    fn register(&mut self, supports_fn: SupportsFn, new_fn: NewFn) {
+    fn register(&mut self, supports_fn: Box<SupportsFn>, new_fn: Box<NewFn>) {
         self.repositories.insert(
             0,
             (
@@ -79,8 +78,11 @@ impl Default for RepositoryRegistry {
 /// # Arguments
 /// * `supports_fn` - The function to check if the repository supports the URL.
 /// * `new_fn` - The repository constructor function to register.
+///
+/// # Panics
+/// * If the repository registry is poisoned.
 #[allow(dead_code)]
-pub fn register(supports_fn: SupportsFn, new_fn: NewFn) {
+pub fn register(supports_fn: Box<SupportsFn>, new_fn: Box<NewFn>) {
     let mut registry = REGISTRY.lock().unwrap();
     registry.register(supports_fn, new_fn);
 }
@@ -95,6 +97,9 @@ pub fn register(supports_fn: SupportsFn, new_fn: NewFn) {
 ///
 /// # Errors
 /// * If the URL is not supported.
+///
+/// # Panics
+/// * If the repository registry is poisoned.
 pub fn get(url: &str) -> Result<Box<dyn Repository>> {
     let registry = REGISTRY.lock().unwrap();
     registry.get(url)
@@ -106,11 +111,13 @@ mod tests {
 
     #[tokio::test]
     async fn test_register() -> Result<()> {
+        let repositories = REGISTRY.lock().unwrap().repositories.len();
         assert!(!REGISTRY.lock().unwrap().repositories.is_empty());
         REGISTRY.lock().unwrap().repositories.truncate(0);
-        assert!(REGISTRY.lock().unwrap().repositories.is_empty());
-
+        assert_ne!(repositories, REGISTRY.lock().unwrap().repositories.len());
         register(Box::new(GitHub::supports), Box::new(GitHub::new));
+        assert_eq!(repositories, REGISTRY.lock().unwrap().repositories.len());
+
         let url = "https://github.com/theseus-rs/postgresql-binaries";
         let result = get(url);
         assert!(result.is_ok());

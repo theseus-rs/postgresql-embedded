@@ -113,12 +113,12 @@ mod archive;
 #[cfg(feature = "blocking")]
 pub mod blocking;
 mod error;
-mod repository;
+pub mod matcher;
+pub mod repository;
 mod version;
 
 pub use archive::DEFAULT_POSTGRESQL_URL;
 pub use archive::{extract, get_archive, get_version};
 pub use error::{Error, Result};
-pub use repository::{Archive, Repository};
 pub use semver::{Version, VersionReq};
 pub use version::{ExactVersion, ExactVersionReq};

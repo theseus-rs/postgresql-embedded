@@ -1,9 +1,10 @@
 use crate::repository::github::models::{Asset, Release};
 use crate::repository::model::Repository;
+use crate::repository::Archive;
 use crate::Error::{
     ArchiveHashMismatch, AssetHashNotFound, AssetNotFound, RepositoryFailure, VersionNotFound,
 };
-use crate::{Archive, Result};
+use crate::{matcher, Result};
 use async_trait::async_trait;
 use bytes::Bytes;
 use http::{header, Extensions};
@@ -50,6 +51,7 @@ lazy_static! {
 #[derive(Debug)]
 pub(crate) struct GitHub {
     url: String,
+    releases_url: String,
 }
 
 impl GitHub {
@@ -76,10 +78,11 @@ impl GitHub {
             .get(1)
             .ok_or_else(|| RepositoryFailure(format!("No repo in URL {url}")))?)
         .to_string();
-        let url = format!("https://api.github.com/repos/{owner}/{repo}/releases");
+        let releases_url = format!("https://api.github.com/repos/{owner}/{repo}/releases");
 
         Ok(Box::new(Self {
             url: url.to_string(),
+            releases_url,
         }))
     }
 
@@ -143,7 +146,7 @@ impl GitHub {
 
         loop {
             let request = client
-                .get(&self.url)
+                .get(&self.releases_url)
                 .query(&[("page", page.to_string().as_str()), ("per_page", "100")]);
             let response = request.send().await?.error_for_status()?;
             let response_releases = response.json::<Vec<Release>>().await?;
@@ -196,14 +199,12 @@ impl GitHub {
     ///
     /// # Errors
     /// * If the asset is not found.
-    #[instrument(level = "debug", skip(release, matcher))]
-    fn get_asset(
-        release: Release,
-        matcher: impl Fn(&str) -> Result<bool>,
-    ) -> Result<(Asset, Option<Asset>)> {
+    #[instrument(level = "debug", skip(version, release))]
+    fn get_asset(&self, version: &Version, release: &Release) -> Result<(Asset, Option<Asset>)> {
+        let matcher = matcher::registry::get(&self.url);
         let mut release_asset: Option<Asset> = None;
         for asset in &release.assets {
-            if matcher(asset.name.as_str())? {
+            if matcher(asset.name.as_str(), version)? {
                 release_asset = Some(asset.clone());
                 break;
             }
@@ -214,7 +215,7 @@ impl GitHub {
         };
 
         let mut asset_hash: Option<Asset> = None;
-        for asset in release.assets {
+        for asset in &release.assets {
             if asset.name.ends_with(".sha256") {
                 asset_hash = Some(asset.clone());
                 break;
@@ -244,7 +245,7 @@ impl Repository for GitHub {
     async fn get_archive(&self, version_req: &VersionReq) -> Result<Archive> {
         let release = self.get_release(version_req).await?;
         let version = Self::get_version_from_tag_name(release.tag_name.as_str())?;
-        let (asset, asset_hash) = Self::get_asset(release, asset_matcher)?;
+        let (asset, asset_hash) = self.get_asset(&version, &release)?;
         let name = asset.name.clone();
 
         let client = reqwest_client();
@@ -344,67 +345,6 @@ fn reqwest_client() -> ClientWithMiddleware {
         .build()
 }
 
-/// Matcher assets.
-///
-/// # Arguments
-/// * `name` - The name of the asset.
-///
-/// # Returns
-/// * Whether the asset matches.
-///
-/// # Errors
-/// * If the asset matcher fails.
-fn asset_matcher(name: &str) -> Result<bool> {
-    if !name.ends_with(".tar.gz") {
-        return Ok(false);
-    }
-    let target_re = regex(target_triple::TARGET)?;
-    if target_re.is_match(name) {
-        return Ok(true);
-    }
-    let os = env::consts::OS;
-    let os_re = regex(os)?;
-    let matches_os = match os {
-        "macos" => {
-            let darwin_re = regex("darwin")?;
-            os_re.is_match(name) || darwin_re.is_match(name)
-        }
-        _ => os_re.is_match(name),
-    };
-    let arch = env::consts::ARCH;
-    let arch_re = regex(arch)?;
-    let matches_arch = match arch {
-        "x86_64" => {
-            let amd64_re = regex("amd64")?;
-            arch_re.is_match(name) || amd64_re.is_match(name)
-        }
-        "aarch64" => {
-            let arm64_re = regex("arm64")?;
-            arch_re.is_match(name) || arm64_re.is_match(name)
-        }
-        _ => arch_re.is_match(name),
-    };
-    if matches_os && matches_arch {
-        return Ok(true);
-    }
-    Ok(false)
-}
-
-/// Creates a new regex for the specified key.
-///
-/// # Arguments
-/// * `key` - The key to create the regex for.
-///
-/// # Returns
-/// * The regex.
-///
-/// # Errors
-/// * If the regex cannot be created.
-fn regex(key: &str) -> Result<Regex> {
-    let regex = Regex::new(format!(r"[\W_]{key}[\W_]").as_str())?;
-    Ok(regex)
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -454,7 +394,7 @@ mod tests {
         let github = GitHub::new(URL)?;
         let version_req = VersionReq::parse("=0.0.0")?;
         let error = github.get_version(&version_req).await.unwrap_err();
-        assert_eq!("release not found for '=0.0.0'", error.to_string());
+        assert_eq!("version not found for '=0.0.0'", error.to_string());
         Ok(())
     }
 
@@ -509,46 +449,6 @@ mod tests {
         assert!(name.ends_with(".tar.gz"));
         assert_eq!(&Version::new(0, 12, 0), archive.version());
         assert!(!archive.bytes().is_empty());
-        Ok(())
-    }
-
-    //
-    // asset matcher tests
-    //
-
-    #[test]
-    fn test_asset_match_success() -> Result<()> {
-        let target = target_triple::TARGET;
-        let os = env::consts::OS;
-        let arch = env::consts::ARCH;
-        let names = vec![
-            format!("postgresql-16.3.0-{target}.tar.gz"),
-            format!("postgresql-16.3.0-{os}-{arch}.tar.gz"),
-            format!("foo.{target}.tar.gz"),
-            format!("foo.{os}.{arch}.tar.gz"),
-            format!("foo-{arch}-{os}.tar.gz"),
-        ];
-        for name in names {
-            assert!(asset_matcher(name.as_str())?, "{}", name);
-        }
-        Ok(())
-    }
-
-    #[test]
-    fn test_asset_match_errors() -> Result<()> {
-        let target = target_triple::TARGET;
-        let os = env::consts::OS;
-        let arch = env::consts::ARCH;
-        let names = vec![
-            format!("foo{target}.tar.gz"),
-            format!("foo{os}-{arch}.tar.gz"),
-            format!("foo-{target}.tar"),
-            format!("foo-{os}-{arch}.tar"),
-            format!("foo-{os}{arch}.tar.gz"),
-        ];
-        for name in names {
-            assert!(!asset_matcher(name.as_str())?, "{}", name);
-        }
         Ok(())
     }
 }
