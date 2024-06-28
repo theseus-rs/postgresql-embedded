@@ -24,6 +24,7 @@ reqwest = { workspace = true, default-features = false, features = ["json"] }
 reqwest-middleware = { workspace = true }
 reqwest-retry = { workspace = true }
 reqwest-tracing = { workspace = true }
+semver = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
 sha2 = { workspace = true }
@@ -33,6 +34,7 @@ tempfile = { workspace = true }
 thiserror = { workspace = true }
 tokio = { workspace = true, features = ["full"], optional = true }
 tracing = { workspace = true, features = ["log"] }
+url = "2.5.2"
 
 [dev-dependencies]
 criterion = { workspace = true }

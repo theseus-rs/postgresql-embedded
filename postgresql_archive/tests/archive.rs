@@ -1,115 +1,82 @@
 #[allow(deprecated)]
-use postgresql_archive::{extract, Version, LATEST, V12, V13, V14, V15, V16};
-use postgresql_archive::{get_archive, get_archive_for_target, get_version, DEFAULT_RELEASES_URL};
+use postgresql_archive::extract;
+use postgresql_archive::{get_archive, get_version, DEFAULT_POSTGRESQL_URL};
+use semver::VersionReq;
 use std::fs::{create_dir_all, remove_dir_all};
 use test_log::test;
 
-async fn test_get_archive_for_version_constant(version: Version) -> anyhow::Result<()> {
-    let (_archive_version, _archive) = get_archive(DEFAULT_RELEASES_URL, &version).await?;
+async fn test_get_archive_for_version_constant(major: u64) -> anyhow::Result<()> {
+    let version_req = VersionReq::parse(&format!("={major}"))?;
+    let (archive_version, _archive) = get_archive(DEFAULT_POSTGRESQL_URL, &version_req).await?;
+
+    assert!(version_req.matches(&archive_version));
+    assert_eq!(major, archive_version.major);
     Ok(())
 }
 
 #[test(tokio::test)]
 async fn test_get_archive_for_version_constant_v16() -> anyhow::Result<()> {
-    test_get_archive_for_version_constant(V16).await
+    test_get_archive_for_version_constant(16).await
 }
 
 #[test(tokio::test)]
 async fn test_get_archive_for_version_constant_v15() -> anyhow::Result<()> {
-    test_get_archive_for_version_constant(V15).await
+    test_get_archive_for_version_constant(15).await
 }
 
 #[test(tokio::test)]
 async fn test_get_archive_for_version_constant_v14() -> anyhow::Result<()> {
-    test_get_archive_for_version_constant(V14).await
+    test_get_archive_for_version_constant(14).await
 }
 
 #[test(tokio::test)]
 async fn test_get_archive_for_version_constant_v13() -> anyhow::Result<()> {
-    test_get_archive_for_version_constant(V13).await
+    test_get_archive_for_version_constant(13).await
 }
 
 #[test(tokio::test)]
 #[allow(deprecated)]
 async fn test_get_archive_for_version_constant_v12() -> anyhow::Result<()> {
-    test_get_archive_for_version_constant(V12).await
+    test_get_archive_for_version_constant(12).await
 }
 
 #[test(tokio::test)]
 async fn test_get_version_not_found() -> postgresql_archive::Result<()> {
-    let invalid_version = Version::new(1, Some(0), Some(0));
-    let result = get_version(DEFAULT_RELEASES_URL, &invalid_version).await;
+    let invalid_version_req = VersionReq::parse("=1.0.0")?;
+    let result = get_version(DEFAULT_POSTGRESQL_URL, &invalid_version_req).await;
+
     assert!(result.is_err());
     Ok(())
 }
 
 #[test(tokio::test)]
 async fn test_get_version() -> anyhow::Result<()> {
-    let version = &LATEST;
+    let version_req = VersionReq::STAR;
+    let latest_version = get_version(DEFAULT_POSTGRESQL_URL, &version_req).await?;
 
-    assert!(version.minor.is_none());
-    assert!(version.release.is_none());
-
-    let latest_version = get_version(DEFAULT_RELEASES_URL, version).await?;
-
-    assert_eq!(version.major, latest_version.major);
-    assert!(latest_version.minor.is_some());
-    assert!(latest_version.release.is_some());
-
+    assert!(version_req.matches(&latest_version));
     Ok(())
 }
 
 #[test(tokio::test)]
 async fn test_get_archive_and_extract() -> anyhow::Result<()> {
-    let version = &LATEST;
-    let (archive_version, archive) = get_archive(DEFAULT_RELEASES_URL, version).await?;
+    let version_req = VersionReq::STAR;
+    let (archive_version, archive) = get_archive(DEFAULT_POSTGRESQL_URL, &version_req).await?;
 
-    assert!(archive_version.matches(version));
+    assert!(version_req.matches(&archive_version));
 
     let out_dir = tempfile::tempdir()?.path().to_path_buf();
     create_dir_all(&out_dir)?;
     extract(&archive, &out_dir).await?;
     remove_dir_all(&out_dir)?;
-
     Ok(())
 }
 
 #[test(tokio::test)]
 async fn test_get_archive_version_not_found() -> postgresql_archive::Result<()> {
-    let invalid_version = Version::new(1, Some(0), Some(0));
-    let result = get_archive(DEFAULT_RELEASES_URL, &invalid_version).await;
+    let invalid_version_req = VersionReq::parse("=1.0.0")?;
+    let result = get_archive(DEFAULT_POSTGRESQL_URL, &invalid_version_req).await;
+
     assert!(result.is_err());
-    Ok(())
-}
-
-#[test(tokio::test)]
-async fn test_get_archive_for_target_version_not_found() -> postgresql_archive::Result<()> {
-    let invalid_version = Version::new(1, Some(0), Some(0));
-    let result = get_archive_for_target(
-        DEFAULT_RELEASES_URL,
-        &invalid_version,
-        target_triple::TARGET,
-    )
-    .await;
-    assert!(result.is_err());
-    Ok(())
-}
-
-#[test(tokio::test)]
-async fn test_get_archive_for_target_target_not_found() -> postgresql_archive::Result<()> {
-    let result =
-        get_archive_for_target(DEFAULT_RELEASES_URL, &LATEST, "wasm64-unknown-unknown").await;
-    assert!(result.is_err());
-    Ok(())
-}
-
-#[test(tokio::test)]
-async fn test_get_archive_for_target() -> anyhow::Result<()> {
-    let version = &LATEST;
-    let (archive_version, _archive) =
-        get_archive_for_target(DEFAULT_RELEASES_URL, version, target_triple::TARGET).await?;
-
-    assert!(archive_version.matches(version));
-
     Ok(())
 }

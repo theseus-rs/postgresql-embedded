@@ -116,11 +116,11 @@ impl PostgreSQL {
 #[cfg(test)]
 mod test {
     use super::*;
-    use postgresql_archive::Version;
+    use crate::VersionReq;
 
     #[test]
-    fn test_postgresql() {
-        let version = Version::new(16, Some(3), Some(0));
+    fn test_postgresql() -> Result<()> {
+        let version = VersionReq::parse("=16.3.0")?;
         let settings = Settings {
             version,
             ..Settings::default()
@@ -128,5 +128,6 @@ mod test {
         let postgresql = PostgreSQL::new(settings);
         let initial_statuses = [Status::NotInstalled, Status::Installed, Status::Stopped];
         assert!(initial_statuses.contains(&postgresql.status()));
+        Ok(())
     }
 }

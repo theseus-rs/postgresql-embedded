@@ -98,12 +98,6 @@ Licensed under either of
 
 at your option.
 
-PostgreSQL is covered under [The PostgreSQL License](https://opensource.org/licenses/postgresql).
-
-## Notes
-
-Uses PostgreSQL binaries from [theseus-rs/postgresql-binaries](https://github.com/theseus-rs/postgresql-binaries).
-
 ## Contribution
 
 Unless you explicitly state otherwise, any contribution intentionally submitted

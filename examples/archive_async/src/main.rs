@@ -1,11 +1,12 @@
 #![forbid(unsafe_code)]
 #![deny(clippy::pedantic)]
 
-use postgresql_archive::{extract, get_archive, Result, DEFAULT_RELEASES_URL, LATEST};
+use postgresql_archive::{extract, get_archive, Result, VersionReq, DEFAULT_POSTGRESQL_URL};
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    let (archive_version, archive) = get_archive(DEFAULT_RELEASES_URL, &LATEST).await?;
+    let version_req = VersionReq::STAR;
+    let (archive_version, archive) = get_archive(DEFAULT_POSTGRESQL_URL, &version_req).await?;
     let out_dir = tempfile::tempdir()?.into_path();
     extract(&archive, &out_dir).await?;
     println!(

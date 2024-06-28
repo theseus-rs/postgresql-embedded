@@ -3,6 +3,7 @@ use crate::error::Result;
 use crate::settings::{Settings, BOOTSTRAP_SUPERUSER};
 use postgresql_archive::get_version;
 use postgresql_archive::{extract, get_archive};
+use postgresql_archive::{ExactVersion, ExactVersionReq};
 use postgresql_commands::initdb::InitDbBuilder;
 use postgresql_commands::pg_ctl::Mode::{Start, Stop};
 use postgresql_commands::pg_ctl::PgCtlBuilder;
@@ -48,12 +49,11 @@ impl PostgreSQL {
     pub fn new(settings: Settings) -> Self {
         let mut postgresql = PostgreSQL { settings };
 
-        // If the minor and release version are set, append the version to the installation directory
-        // to avoid conflicts with other versions.  This will also facilitate setting the status
-        // of the server to the correct initial value.  If the minor and release version are not set,
-        // the installation directory will be determined dynamically during the installation process.
-        let version = postgresql.settings.version;
-        if version.minor.is_some() && version.release.is_some() {
+        // If an exact version is set, append the version to the installation directory to avoid
+        // conflicts with other versions.  This will also facilitate setting the status of the
+        // server to the correct initial value.  If the minor and release version are not set, the
+        // installation directory will be determined dynamically during the installation process.
+        if let Some(version) = postgresql.settings.version.exact_version() {
             let path = &postgresql.settings.installation_dir;
             let version_string = version.to_string();
 
@@ -88,11 +88,9 @@ impl PostgreSQL {
 
     /// Check if the `PostgreSQL` server is installed
     fn is_installed(&self) -> bool {
-        let version = self.settings.version;
-        if version.minor.is_none() || version.release.is_none() {
+        let Some(version) = self.settings.version.exact_version() else {
             return false;
-        }
-
+        };
         let path = &self.settings.installation_dir;
         path.ends_with(version.to_string()) && path.exists()
     }
@@ -136,16 +134,14 @@ impl PostgreSQL {
             self.settings.version
         );
 
-        // If the minor and release version are not set, determine the latest version and update the
-        // version and installation directory accordingly. This is an optimization to avoid downloading
-        // the archive if the latest version is already installed.
-        if self.settings.version.minor.is_none() || self.settings.version.release.is_none() {
-            self.settings.version =
-                get_version(&self.settings.releases_url, &self.settings.version).await?;
-            self.settings.installation_dir = self
-                .settings
-                .installation_dir
-                .join(self.settings.version.to_string());
+        // If the exact version is not set, determine the latest version and update the version and
+        // installation directory accordingly. This is an optimization to avoid downloading the
+        // archive if the latest version is already installed.
+        if self.settings.version.exact_version().is_none() {
+            let version = get_version(&self.settings.releases_url, &self.settings.version).await?;
+            self.settings.version = version.exact_version_req()?;
+            self.settings.installation_dir =
+                self.settings.installation_dir.join(version.to_string());
         }
 
         if self.settings.installation_dir.exists() {
@@ -160,16 +156,21 @@ impl PostgreSQL {
         let (version, bytes) = if *crate::settings::ARCHIVE_VERSION == self.settings.version {
             debug!("Using bundled installation archive");
             (
-                self.settings.version,
+                self.settings.version.clone(),
                 bytes::Bytes::copy_from_slice(crate::settings::ARCHIVE),
             )
         } else {
-            get_archive(&self.settings.releases_url, &self.settings.version).await?
+            let (version, bytes) =
+                get_archive(&self.settings.releases_url, &self.settings.version).await?;
+            (version.exact_version_req()?, bytes)
         };
 
         #[cfg(not(feature = "bundled"))]
-        let (version, bytes) =
-            { get_archive(&self.settings.releases_url, &self.settings.version).await? };
+        let (version, bytes) = {
+            let (version, bytes) =
+                get_archive(&self.settings.releases_url, &self.settings.version).await?;
+            (version.exact_version_req()?, bytes)
+        };
 
         self.settings.version = version;
         extract(&bytes, &self.settings.installation_dir).await?;

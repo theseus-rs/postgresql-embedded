@@ -36,6 +36,9 @@ pub enum Error {
     /// Error when IO operations fail
     #[error(transparent)]
     IoError(anyhow::Error),
+    /// Parse error
+    #[error(transparent)]
+    ParseError(#[from] semver::Error),
 }
 
 /// Convert `PostgreSQL` [archive errors](postgresql_archive::Error) to an [embedded errors](Error::ArchiveError)
@@ -69,7 +72,7 @@ mod test {
     fn test_from_archive_error() {
         let archive_error = postgresql_archive::Error::ReleaseNotFound("test".to_string());
         let error = Error::from(archive_error);
-        assert_eq!(error.to_string(), "release not found for version [test]");
+        assert_eq!(error.to_string(), "release not found for 'test'");
     }
 
     #[test]
