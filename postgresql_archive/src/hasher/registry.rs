@@ -1,8 +1,7 @@
 use crate::hasher::{blake2b_512, blake2s_256, sha2_256, sha2_512, sha3_256, sha3_512};
-use crate::Error::PoisonedLock;
+use crate::Error::{PoisonedLock, UnsupportedRepository};
 use crate::Result;
 use lazy_static::lazy_static;
-use std::collections::HashMap;
 use std::sync::{Arc, Mutex, RwLock};
 
 lazy_static! {
@@ -10,53 +9,55 @@ lazy_static! {
         Arc::new(Mutex::new(HasherRegistry::default()));
 }
 
+pub type SupportsFn = fn(&str, &str) -> Result<bool>;
 pub type HasherFn = fn(&Vec<u8>) -> Result<String>;
 
 /// Singleton struct to store hashers
+#[allow(clippy::type_complexity)]
 struct HasherRegistry {
-    hashers: HashMap<String, Arc<RwLock<HasherFn>>>,
+    hashers: Vec<(Arc<RwLock<SupportsFn>>, Arc<RwLock<HasherFn>>)>,
 }
 
 impl HasherRegistry {
     /// Creates a new hasher registry.
     fn new() -> Self {
         Self {
-            hashers: HashMap::new(),
+            hashers: Vec::new(),
         }
     }
 
-    /// Registers a hasher for an extension. Newly registered hashers with the same extension will
-    /// override existing ones.
-    fn register<S: AsRef<str>>(&mut self, extension: S, hasher_fn: HasherFn) {
-        let extension = extension.as_ref().to_string();
-        self.hashers
-            .insert(extension, Arc::new(RwLock::new(hasher_fn)));
+    /// Registers a hasher for a supports function. Newly registered hashers will take precedence
+    /// over existing ones.
+    fn register(&mut self, supports_fn: SupportsFn, hasher_fn: HasherFn) {
+        self.hashers.insert(
+            0,
+            (
+                Arc::new(RwLock::new(supports_fn)),
+                Arc::new(RwLock::new(hasher_fn)),
+            ),
+        );
     }
 
-    /// Get a hasher for the specified extension.
+    /// Get a hasher for the specified url and extension.
     ///
     /// # Errors
     /// * If the registry is poisoned.
-    fn get<S: AsRef<str>>(&self, extension: S) -> Result<Option<HasherFn>> {
-        let extension = extension.as_ref().to_string();
-        if let Some(hasher) = self.hashers.get(&extension) {
-            let hasher = *hasher
+    fn get<S: AsRef<str>>(&self, url: S, extension: S) -> Result<HasherFn> {
+        let url = url.as_ref();
+        let extension = extension.as_ref();
+        for (supports_fn, hasher_fn) in &self.hashers {
+            let supports_function = supports_fn
                 .read()
                 .map_err(|error| PoisonedLock(error.to_string()))?;
-            return Ok(Some(hasher));
+            if supports_function(url, extension)? {
+                let hasher_function = hasher_fn
+                    .read()
+                    .map_err(|error| PoisonedLock(error.to_string()))?;
+                return Ok(*hasher_function);
+            }
         }
 
-        Ok(None)
-    }
-
-    /// Get the number of hashers in the registry.
-    fn len(&self) -> usize {
-        self.hashers.len()
-    }
-
-    /// Check if the registry is empty.
-    fn is_empty(&self) -> bool {
-        self.hashers.is_empty()
+        Err(UnsupportedRepository(url.to_string()))
     }
 }
 
@@ -64,61 +65,39 @@ impl Default for HasherRegistry {
     /// Creates a new hasher registry with the default hashers registered.
     fn default() -> Self {
         let mut registry = Self::new();
-        registry.register("blake2s", blake2s_256::hash);
-        registry.register("blake2b", blake2b_512::hash);
-        registry.register("sha256", sha2_256::hash);
-        registry.register("sha512", sha2_512::hash);
-        registry.register("sha3-256", sha3_256::hash);
-        registry.register("sha3-512", sha3_512::hash);
+        registry.register(|_, extension| Ok(extension == "blake2s"), blake2s_256::hash);
+        registry.register(|_, extension| Ok(extension == "blake2b"), blake2b_512::hash);
+        registry.register(|_, extension| Ok(extension == "sha256"), sha2_256::hash);
+        registry.register(|_, extension| Ok(extension == "sha512"), sha2_512::hash);
+        registry.register(|_, extension| Ok(extension == "sha3-256"), sha3_256::hash);
+        registry.register(|_, extension| Ok(extension == "sha3-512"), sha3_512::hash);
         registry
     }
 }
 
-/// Registers a hasher for an extension. Newly registered hashers with the same extension will
-/// override existing ones.
+/// Registers a hasher for a supports function. Newly registered hashers will take precedence
+/// over existing ones.
 ///
 /// # Errors
 /// * If the registry is poisoned.
 #[allow(dead_code)]
-pub fn register<S: AsRef<str>>(extension: S, hasher_fn: HasherFn) -> Result<()> {
+pub fn register(supports_fn: SupportsFn, hasher_fn: HasherFn) -> Result<()> {
     let mut registry = REGISTRY
         .lock()
         .map_err(|error| PoisonedLock(error.to_string()))?;
-    registry.register(extension, hasher_fn);
+    registry.register(supports_fn, hasher_fn);
     Ok(())
 }
 
-/// Get a hasher for the specified extension.
+/// Get a hasher for the specified url and extension.
 ///
 /// # Errors
 /// * If the registry is poisoned.
-pub fn get<S: AsRef<str>>(extension: S) -> Result<Option<HasherFn>> {
+pub fn get<S: AsRef<str>>(url: S, extension: S) -> Result<HasherFn> {
     let registry = REGISTRY
         .lock()
         .map_err(|error| PoisonedLock(error.to_string()))?;
-    registry.get(extension)
-}
-
-/// Get the number of matchers in the registry.
-///
-/// # Errors
-/// * If the registry is poisoned.
-pub fn len() -> Result<usize> {
-    let registry = REGISTRY
-        .lock()
-        .map_err(|error| PoisonedLock(error.to_string()))?;
-    Ok(registry.len())
-}
-
-/// Check if the registry is empty.
-///
-/// # Errors
-/// * If the registry is poisoned.
-pub fn is_empty() -> Result<bool> {
-    let registry = REGISTRY
-        .lock()
-        .map_err(|error| PoisonedLock(error.to_string()))?;
-    Ok(registry.is_empty())
+    registry.get(url, extension)
 }
 
 #[cfg(test)]
@@ -126,7 +105,7 @@ mod tests {
     use super::*;
 
     fn test_hasher(extension: &str, expected: &str) -> Result<()> {
-        let hasher = get(extension)?.unwrap();
+        let hasher = get("https://foo.com", extension)?;
         let data = vec![1, 2, 3, 4, 5, 6, 7, 8, 9, 0];
         let hash = hasher(&data)?;
         assert_eq!(expected, hash);
@@ -135,22 +114,11 @@ mod tests {
 
     #[test]
     fn test_register() -> Result<()> {
-        let extension = "sha256";
-        let hashers = len()?;
-        assert!(!is_empty()?);
-        REGISTRY
-            .lock()
-            .map_err(|error| PoisonedLock(error.to_string()))?
-            .hashers
-            .remove(extension);
-        assert_ne!(hashers, len()?);
-        register(extension, sha2_256::hash)?;
-        assert_eq!(hashers, len()?);
-
-        test_hasher(
-            extension,
-            "9a89c68c4c5e28b8c4a5567673d462fff515db46116f9900624d09c474f593fb",
-        )
+        register(
+            |_, extension| Ok(extension == "foo"),
+            |_| Ok("42".to_string()),
+        )?;
+        test_hasher("foo", "42")
     }
 
     #[test]

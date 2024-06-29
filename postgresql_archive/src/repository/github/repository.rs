@@ -199,7 +199,7 @@ impl GitHub {
                 .strip_prefix(format!("{}.", asset.name.as_str()).as_str())
                 .unwrap_or_default();
 
-            if let Some(hasher_fn) = hasher::registry::get(extension)? {
+            if let Ok(hasher_fn) = hasher::registry::get(&self.url, &extension.to_string()) {
                 asset_hash = Some(release_asset.clone());
                 asset_hasher_fn = Some(hasher_fn);
                 break;

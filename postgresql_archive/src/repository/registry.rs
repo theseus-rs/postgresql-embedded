@@ -27,7 +27,7 @@ impl RepositoryRegistry {
         }
     }
 
-    /// Registers a repository. Newly registered repositories can override existing ones.
+    /// Registers a repository. Newly registered repositories take precedence over existing ones.
     fn register(&mut self, supports_fn: Box<SupportsFn>, new_fn: Box<NewFn>) {
         self.repositories.insert(
             0,
@@ -56,16 +56,6 @@ impl RepositoryRegistry {
         }
 
         Err(UnsupportedRepository(url.to_string()))
-    }
-
-    /// Get the number of repositories in the registry.
-    fn len(&self) -> usize {
-        self.repositories.len()
-    }
-
-    /// Check if the registry is empty.
-    fn is_empty(&self) -> bool {
-        self.repositories.is_empty()
     }
 }
 
@@ -102,48 +92,57 @@ pub fn get(url: &str) -> Result<Box<dyn Repository>> {
     registry.get(url)
 }
 
-/// Get the number of repositories in the registry.
-///
-/// # Errors
-/// * If the registry is poisoned.
-pub fn len() -> Result<usize> {
-    let registry = REGISTRY
-        .lock()
-        .map_err(|error| PoisonedLock(error.to_string()))?;
-    Ok(registry.len())
-}
-
-/// Check if the registry is empty.
-///
-/// # Errors
-/// * If the registry is poisoned.
-pub fn is_empty() -> Result<bool> {
-    let registry = REGISTRY
-        .lock()
-        .map_err(|error| PoisonedLock(error.to_string()))?;
-    Ok(registry.is_empty())
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::repository::Archive;
+    use async_trait::async_trait;
+    use semver::{Version, VersionReq};
+    use std::fmt::Debug;
+
+    #[derive(Debug)]
+    struct TestRepository;
+
+    impl TestRepository {
+        #[allow(clippy::new_ret_no_self)]
+        #[allow(clippy::unnecessary_wraps)]
+        fn new(_url: &str) -> Result<Box<dyn Repository>> {
+            Ok(Box::new(Self))
+        }
+
+        fn supports(url: &str) -> bool {
+            url == "https://foo.com"
+        }
+    }
+
+    #[async_trait]
+    impl Repository for TestRepository {
+        fn name(&self) -> &str {
+            "test"
+        }
+
+        async fn get_version(&self, _version_req: &VersionReq) -> Result<Version> {
+            Ok(Version::new(0, 0, 42))
+        }
+
+        async fn get_archive(&self, _version_req: &VersionReq) -> Result<Archive> {
+            Ok(Archive::new(
+                "test".to_string(),
+                Version::new(0, 0, 42),
+                Vec::new(),
+            ))
+        }
+    }
 
     #[tokio::test]
     async fn test_register() -> Result<()> {
-        let repositories = len()?;
-        assert!(!is_empty()?);
-        REGISTRY
-            .lock()
-            .map_err(|error| PoisonedLock(error.to_string()))?
-            .repositories
-            .truncate(0);
-        assert_ne!(repositories, len()?);
-        register(Box::new(GitHub::supports), Box::new(GitHub::new))?;
-        assert_eq!(repositories, len()?);
-
-        let url = "https://github.com/theseus-rs/postgresql-binaries";
-        let result = get(url);
-        assert!(result.is_ok());
+        register(
+            Box::new(TestRepository::supports),
+            Box::new(TestRepository::new),
+        )?;
+        let url = "https://foo.com";
+        let repository = get(url)?;
+        assert_eq!("test", repository.name());
         Ok(())
     }
 
