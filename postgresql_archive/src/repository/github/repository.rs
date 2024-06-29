@@ -368,6 +368,26 @@ mod tests {
         assert_eq!("GitHub", github.name());
     }
 
+    #[test]
+    fn test_get_version_from_tag_name() -> Result<()> {
+        let versions = vec!["16.3.0", "v16.3.0"];
+        for version in versions {
+            let version = GitHub::get_version_from_tag_name(version)?;
+            assert_eq!(Version::new(16, 3, 0), version);
+        }
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_get_version_from_tag_name_error() {
+        let error = GitHub::get_version_from_tag_name("foo").unwrap_err();
+        assert_eq!(
+            "empty string, expected a semver version".to_string(),
+            error.to_string()
+        );
+    }
+
     //
     // get_version tests
     //

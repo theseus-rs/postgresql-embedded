@@ -16,19 +16,14 @@ impl ExactVersion for VersionReq {
         if self.comparators.len() != 1 {
             return None;
         }
-
-        if let Some(comparator) = self.comparators.first() {
-            if comparator.op != semver::Op::Exact {
-                return None;
-            }
-            let minor = comparator.minor?;
-            let patch = comparator.patch?;
-
-            let version = Version::new(comparator.major, minor, patch);
-            return Some(version);
+        let comparator = self.comparators.first()?;
+        if comparator.op != semver::Op::Exact {
+            return None;
         }
-
-        None
+        let minor = comparator.minor?;
+        let patch = comparator.patch?;
+        let version = Version::new(comparator.major, minor, patch);
+        Some(version)
     }
 }
 
@@ -95,6 +90,13 @@ mod tests {
     #[test]
     fn test_exact_version_major() -> Result<()> {
         let version_req = VersionReq::parse("=16")?;
+        assert_eq!(None, version_req.exact_version());
+        Ok(())
+    }
+
+    #[test]
+    fn test_exact_version_range() -> Result<()> {
+        let version_req = VersionReq::parse(">= 16, < 17")?;
         assert_eq!(None, version_req.exact_version());
         Ok(())
     }
