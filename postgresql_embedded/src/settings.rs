@@ -1,6 +1,6 @@
 use crate::error::{Error, Result};
 use home::home_dir;
-use postgresql_archive::{Version, DEFAULT_RELEASES_URL};
+use postgresql_archive::{VersionReq, DEFAULT_POSTGRESQL_URL};
 use rand::distributions::Alphanumeric;
 use rand::Rng;
 use std::collections::HashMap;
@@ -15,11 +15,13 @@ use url::Url;
 #[cfg(feature = "bundled")]
 lazy_static::lazy_static! {
     #[allow(clippy::unwrap_used)]
-    pub(crate) static ref ARCHIVE_VERSION: Version = {
-        let version_string = include_str!(concat!(std::env!("OUT_DIR"), "/postgresql.version"));
-        let version = Version::from_str(version_string).unwrap();
-        tracing::debug!("Bundled installation archive version {version}");
-        version
+    pub(crate) static ref ARCHIVE_VERSION: VersionReq = {
+        let version_string = include_str!(
+            concat!(std::env!("OUT_DIR"), "/postgresql.version")
+        );
+        let version_req = VersionReq::from_str(&format!("={version_string}")).unwrap();
+        tracing::debug!("Bundled installation archive version {version_string}");
+        version_req
     };
 }
 
@@ -34,8 +36,8 @@ pub const BOOTSTRAP_SUPERUSER: &str = "postgres";
 pub struct Settings {
     /// URL for the releases location of the `PostgreSQL` installation archives
     pub releases_url: String,
-    /// Version of `PostgreSQL` to install
-    pub version: Version,
+    /// Version requirement of `PostgreSQL` to install
+    pub version: VersionReq,
     /// `PostgreSQL` installation directory
     pub installation_dir: PathBuf,
     /// `PostgreSQL` password file
@@ -90,7 +92,7 @@ impl Settings {
             .collect();
 
         Self {
-            releases_url: DEFAULT_RELEASES_URL.to_string(),
+            releases_url: DEFAULT_POSTGRESQL_URL.to_string(),
             version: default_version(),
             installation_dir: home_dir.join(".theseus").join("postgresql"),
             password_file,
@@ -146,7 +148,7 @@ impl Settings {
             settings.releases_url = releases_url.to_string();
         }
         if let Some(version) = query_parameters.get("version") {
-            settings.version = Version::from_str(version)?;
+            settings.version = VersionReq::parse(version)?;
         }
         if let Some(installation_dir) = query_parameters.get("installation_dir") {
             if let Ok(path) = PathBuf::from_str(installation_dir) {
@@ -236,15 +238,15 @@ impl Default for Settings {
 
 /// Get the default version used if not otherwise specified
 #[must_use]
-fn default_version() -> Version {
+fn default_version() -> VersionReq {
     #[cfg(feature = "bundled")]
     {
-        *ARCHIVE_VERSION
+        ARCHIVE_VERSION.clone()
     }
 
     #[cfg(not(feature = "bundled"))]
     {
-        postgresql_archive::LATEST
+        VersionReq::STAR
     }
 }
 
@@ -288,7 +290,7 @@ mod tests {
     fn test_settings_from_url() -> Result<()> {
         let base_url = "postgresql://postgres:password@localhost:5432/test";
         let releases_url = "releases_url=https%3A%2F%2Fgithub.com";
-        let version = "version=16.3.0";
+        let version = "version=%3D16.3.0";
         let installation_dir = "installation_dir=/tmp/postgresql";
         let password_file = "password_file=/tmp/.pgpass";
         let data_dir = "data_dir=/tmp/data";
@@ -300,7 +302,7 @@ mod tests {
         let settings = Settings::from_url(url)?;
 
         assert_eq!("https://github.com", settings.releases_url);
-        assert_eq!(Version::new(16, Some(3), Some(0)), settings.version);
+        assert_eq!(VersionReq::parse("=16.3.0")?, settings.version);
         assert_eq!(PathBuf::from("/tmp/postgresql"), settings.installation_dir);
         assert_eq!(PathBuf::from("/tmp/.pgpass"), settings.password_file);
         assert_eq!(PathBuf::from("/tmp/data"), settings.data_dir);

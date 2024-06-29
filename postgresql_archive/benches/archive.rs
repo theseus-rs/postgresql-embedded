@@ -1,7 +1,7 @@
 use bytes::Bytes;
 use criterion::{criterion_group, criterion_main, Criterion};
 use postgresql_archive::blocking::{extract, get_archive};
-use postgresql_archive::{Result, DEFAULT_RELEASES_URL, LATEST};
+use postgresql_archive::{Result, VersionReq, DEFAULT_POSTGRESQL_URL};
 use std::fs::{create_dir_all, remove_dir_all};
 use std::time::Duration;
 
@@ -10,8 +10,8 @@ fn benchmarks(criterion: &mut Criterion) {
 }
 
 fn bench_extract(criterion: &mut Criterion) -> Result<()> {
-    let version = &LATEST;
-    let (_archive_version, archive) = get_archive(DEFAULT_RELEASES_URL, version)?;
+    let version_req = VersionReq::STAR;
+    let (_archive_version, archive) = get_archive(DEFAULT_POSTGRESQL_URL, &version_req)?;
 
     criterion.bench_function("extract", |bencher| {
         bencher.iter(|| {

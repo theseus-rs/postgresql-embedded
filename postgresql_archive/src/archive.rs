@@ -1,284 +1,78 @@
-//! Manage PostgreSQL archive
+//! Manage PostgreSQL archives
 #![allow(dead_code)]
 
-use crate::error::Error::{AssetHashNotFound, AssetNotFound, ReleaseNotFound, Unexpected};
+use crate::error::Error::Unexpected;
 use crate::error::Result;
-use crate::github::{Asset, Release};
-use crate::version::Version;
-use crate::Error::ArchiveHashMismatch;
+use crate::repository;
 use bytes::Bytes;
 use flate2::bufread::GzDecoder;
-use http::Extensions;
 use human_bytes::human_bytes;
 use num_format::{Locale, ToFormattedString};
-use regex::Regex;
-use reqwest::{header, Request, Response};
-use reqwest_middleware::{ClientBuilder, ClientWithMiddleware, Middleware, Next};
-use reqwest_retry::policies::ExponentialBackoff;
-use reqwest_retry::RetryTransientMiddleware;
-use reqwest_tracing::TracingMiddleware;
-use sha2::{Digest, Sha256};
+use semver::{Version, VersionReq};
 use std::fs::{create_dir_all, remove_dir_all, remove_file, rename, File};
 use std::io::{copy, BufReader, Cursor};
 use std::path::{Path, PathBuf};
-use std::str::FromStr;
 use std::thread::sleep;
 use std::time::Duration;
 use tar::Archive;
 use tracing::{debug, instrument, warn};
 
-const GITHUB_API_VERSION_HEADER: &str = "X-GitHub-Api-Version";
-const GITHUB_API_VERSION: &str = "2022-11-28";
-pub const DEFAULT_RELEASES_URL: &str =
-    "https://api.github.com/repos/theseus-rs/postgresql-binaries/releases";
+pub const DEFAULT_POSTGRESQL_URL: &str = "https://github.com/theseus-rs/postgresql-binaries";
 
-lazy_static! {
-    static ref GITHUB_TOKEN: Option<String> = match std::env::var("GITHUB_TOKEN") {
-        Ok(token) => {
-            debug!("GITHUB_TOKEN environment variable found");
-            Some(token)
-        }
-        Err(_) => None,
-    };
-}
-
-lazy_static! {
-    static ref USER_AGENT: String = format!(
-        "{PACKAGE}/{VERSION}",
-        PACKAGE = env!("CARGO_PKG_NAME"),
-        VERSION = env!("CARGO_PKG_VERSION")
-    );
-}
-
-/// Middleware to add GitHub headers to the request. If a GitHub token is set, then it is added as a
-/// bearer token. This is used to authenticate with the GitHub API to increase the rate limit.
-#[derive(Debug)]
-struct GithubMiddleware;
-
-impl GithubMiddleware {
-    #[allow(clippy::unnecessary_wraps)]
-    fn add_github_headers(request: &mut Request) -> Result<()> {
-        let headers = request.headers_mut();
-
-        headers.append(
-            GITHUB_API_VERSION_HEADER,
-            GITHUB_API_VERSION.parse().unwrap(),
-        );
-        headers.append(header::USER_AGENT, USER_AGENT.parse().unwrap());
-
-        if let Some(token) = &*GITHUB_TOKEN {
-            headers.append(
-                header::AUTHORIZATION,
-                format!("Bearer {token}").parse().unwrap(),
-            );
-        }
-
-        Ok(())
-    }
-}
-
-#[async_trait::async_trait]
-impl Middleware for GithubMiddleware {
-    async fn handle(
-        &self,
-        mut request: Request,
-        extensions: &mut Extensions,
-        next: Next<'_>,
-    ) -> reqwest_middleware::Result<Response> {
-        match GithubMiddleware::add_github_headers(&mut request) {
-            Ok(()) => next.run(request, extensions).await,
-            Err(error) => Err(reqwest_middleware::Error::Middleware(error.into())),
-        }
-    }
-}
-
-/// Creates a new reqwest client with middleware for tracing, GitHub, and retrying transient errors.
-fn reqwest_client() -> ClientWithMiddleware {
-    let retry_policy = ExponentialBackoff::builder().build_with_max_retries(3);
-    ClientBuilder::new(reqwest::Client::new())
-        .with(TracingMiddleware::default())
-        .with(GithubMiddleware)
-        .with(RetryTransientMiddleware::new_with_policy(retry_policy))
-        .build()
-}
-
-/// Gets a release from GitHub for a given [version](Version) of PostgreSQL. If a release for the
-/// [version](Version) is not found, then a [ReleaseNotFound] error is returned.
-#[instrument(level = "debug")]
-async fn get_release(releases_url: &str, version: &Version) -> Result<Release> {
-    let client = reqwest_client();
-
-    debug!("Attempting to locate release for version {version}");
-
-    if version.minor.is_some() && version.release.is_some() {
-        let request = client.get(format!("{releases_url}/tags/{version}"));
-        let response = request.send().await?.error_for_status()?;
-        let release = response.json::<Release>().await?;
-
-        debug!("Release found for version {version}");
-        return Ok(release);
-    }
-
-    let mut result: Option<Release> = None;
-    let mut page = 1;
-
-    loop {
-        let request = client
-            .get(releases_url)
-            .query(&[("page", page.to_string().as_str()), ("per_page", "100")]);
-        let response = request.send().await?.error_for_status()?;
-        let response_releases = response.json::<Vec<Release>>().await?;
-        if response_releases.is_empty() {
-            break;
-        }
-
-        for release in response_releases {
-            let Ok(release_version) = Version::from_str(&release.tag_name) else {
-                warn!("Failed to parse release version {}", release.tag_name);
-                continue;
-            };
-
-            if version.matches(&release_version) {
-                match &result {
-                    Some(result_release) => {
-                        let result_version = Version::from_str(&result_release.tag_name)?;
-                        if release_version > result_version {
-                            result = Some(release);
-                        }
-                    }
-                    None => {
-                        result = Some(release);
-                    }
-                }
-            }
-        }
-
-        page += 1;
-    }
-
-    match result {
-        Some(release) => {
-            let release_version = Version::from_str(&release.tag_name)?;
-            debug!("Release {release_version} found for version {version}");
-            Ok(release)
-        }
-        None => Err(ReleaseNotFound(version.to_string())),
-    }
-}
-
-/// Gets the version of PostgreSQL for the specified [version](Version).  If the version minor or release is not
-/// specified, then the latest version is returned. If a release for the [version](Version) is not found, then a
-/// [ReleaseNotFound] error is returned.
-#[instrument(level = "debug")]
-pub async fn get_version(releases_url: &str, version: &Version) -> Result<Version> {
-    let release = get_release(releases_url, version).await?;
-    Version::from_str(&release.tag_name)
-}
-
-/// Gets the assets for a given [version](Version) of PostgreSQL and
-/// [target](https://doc.rust-lang.org/nightly/rustc/platform-support.html).
-/// If the [version](Version) or [target](https://doc.rust-lang.org/nightly/rustc/platform-support.html)
-/// is not found, then an [error](crate::error::Error) is returned.
+/// Gets the version for the specified [version requirement](VersionReq). If a version for the
+/// [version requirement](VersionReq) is not found, then an error is returned.
 ///
-/// Two assets are returned. The first [asset](Asset) is the archive, and the second [asset](Asset) is the archive hash.
-#[instrument(level = "debug", skip(target))]
-async fn get_asset<S: AsRef<str>>(
-    releases_url: &str,
-    version: &Version,
-    target: S,
-) -> Result<(Version, Asset, Asset)> {
-    let release = get_release(releases_url, version).await?;
-    let asset_version = Version::from_str(&release.tag_name)?;
-    let mut asset: Option<Asset> = None;
-    let mut asset_hash: Option<Asset> = None;
-    let asset_name = format!("postgresql-{}-{}.tar.gz", asset_version, target.as_ref());
-    let asset_hash_name = format!("{asset_name}.sha256");
-
-    for release_asset in release.assets {
-        if release_asset.name == asset_name {
-            asset = Some(release_asset);
-        } else if release_asset.name == asset_hash_name {
-            asset_hash = Some(release_asset);
-        }
-
-        if asset.is_some() && asset_hash.is_some() {
-            break;
-        }
-    }
-
-    match (asset, asset_hash) {
-        (Some(asset), Some(asset_hash)) => Ok((asset_version, asset, asset_hash)),
-        (_, None) | (None, _) => Err(AssetNotFound(asset_name.to_string())),
-    }
+/// # Arguments
+/// * `url` - The URL to released archives.
+/// * `version_req` - The version requirement.
+///
+/// # Returns
+/// * The version matching the requirement.
+///
+/// # Errors
+/// * If the version is not found.
+#[instrument(level = "debug")]
+pub async fn get_version(url: &str, version_req: &VersionReq) -> Result<Version> {
+    let repository = repository::registry::get(url)?;
+    let version = repository.get_version(version_req).await?;
+    Ok(version)
 }
 
-/// Gets the archive for a given [version](Version) of PostgreSQL for the current target.
-/// If the [version](Version) is not found for this target, then an
-/// [error](crate::error::Error) is returned.
+/// Gets the archive for a given [version requirement](VersionReq) that passes the default
+/// matcher. If no archive is found for the [version requirement](VersionReq) and matcher then
+/// an [error](crate::error::Error) is returned.
 ///
-/// Returns the archive version and bytes.
+/// # Arguments
+/// * `url` - The URL to the archive resources.
+/// * `version_req` - The version requirement.
+///
+/// # Returns
+/// * The archive version and bytes.
+///
+/// # Errors
+/// * If the archive is not found.
+/// * If the archive cannot be downloaded.
 #[instrument]
-pub async fn get_archive(releases_url: &str, version: &Version) -> Result<(Version, Bytes)> {
-    get_archive_for_target(releases_url, version, target_triple::TARGET).await
-}
-
-/// Gets the archive for a given [version](Version) of PostgreSQL and
-/// [target](https://doc.rust-lang.org/nightly/rustc/platform-support.html).
-/// If the [version](Version) or [target](https://doc.rust-lang.org/nightly/rustc/platform-support.html)
-/// is not found, then an [error](crate::error::Error) is returned.
-///
-/// Returns the archive version and bytes.
-#[allow(clippy::cast_precision_loss)]
-#[instrument(level = "debug", skip(target))]
-pub async fn get_archive_for_target<S: AsRef<str>>(
-    releases_url: &str,
-    version: &Version,
-    target: S,
-) -> Result<(Version, Bytes)> {
-    let (asset_version, asset, asset_hash) = get_asset(releases_url, version, target).await?;
-
-    debug!(
-        "Downloading archive hash {}",
-        asset_hash.browser_download_url
-    );
-    let client = reqwest_client();
-    let request = client.get(&asset_hash.browser_download_url);
-    let response = request.send().await?.error_for_status()?;
-    let text = response.text().await?;
-    let re = Regex::new(r"[0-9a-f]{64}")?;
-    let hash = match re.find(&text) {
-        Some(hash) => hash.as_str().to_string(),
-        None => return Err(AssetHashNotFound(asset.name)),
-    };
-    debug!(
-        "Archive hash {} downloaded: {}",
-        asset_hash.browser_download_url,
-        human_bytes(text.len() as f64)
-    );
-
-    debug!("Downloading archive {}", asset.browser_download_url);
-    let request = client.get(&asset.browser_download_url);
-    let response = request.send().await?.error_for_status()?;
-    let archive: Bytes = response.bytes().await?;
-    debug!(
-        "Archive {} downloaded: {}",
-        asset.browser_download_url,
-        human_bytes(archive.len() as f64)
-    );
-
-    let mut hasher = Sha256::new();
-    hasher.update(&archive);
-    let archive_hash = hex::encode(hasher.finalize());
-
-    if archive_hash != hash {
-        return Err(ArchiveHashMismatch { archive_hash, hash });
-    }
-
-    Ok((asset_version, archive))
+pub async fn get_archive(url: &str, version_req: &VersionReq) -> Result<(Version, Bytes)> {
+    let repository = repository::registry::get(url)?;
+    let archive = repository.get_archive(version_req).await?;
+    let version = archive.version().clone();
+    let archive_bytes = archive.bytes().to_vec();
+    let bytes = Bytes::from(archive_bytes.clone());
+    Ok((version, bytes))
 }
 
 /// Acquires a lock file in the [out_dir](Path) to prevent multiple processes from extracting the
 /// archive at the same time.
+///
+/// # Arguments
+/// * `out_dir` - The directory to extract the archive to.
+///
+/// # Returns
+/// * The lock file.
+///
+/// # Errors
+/// * If the lock file cannot be acquired.
 #[instrument(level = "debug")]
 fn acquire_lock(out_dir: &Path) -> Result<PathBuf> {
     let lock_file = out_dir.join("postgresql-archive.lock");
@@ -324,6 +118,16 @@ fn acquire_lock(out_dir: &Path) -> Result<PathBuf> {
 }
 
 /// Extracts the compressed tar [bytes](Bytes) to the [out_dir](Path).
+///
+/// # Arguments
+/// * `bytes` - The compressed tar bytes.
+/// * `out_dir` - The directory to extract the tar to.
+///
+/// # Returns
+/// * The extracted files.
+///
+/// # Errors
+/// Returns an error if the extraction fails.
 #[allow(clippy::cast_precision_loss)]
 #[instrument(skip(bytes))]
 pub async fn extract(bytes: &Bytes, out_dir: &Path) -> Result<()> {
@@ -434,51 +238,21 @@ pub async fn extract(bytes: &Bytes, out_dir: &Path) -> Result<()> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use test_log::test;
 
-    /// Use a known, fully defined version to speed up test execution
-    const VERSION: Version = Version::new(16, Some(1), Some(0));
-    const INVALID_VERSION: Version = Version::new(1, Some(0), Some(0));
-
-    #[test(tokio::test)]
-    async fn test_get_release() -> Result<()> {
-        let _ = get_release(DEFAULT_RELEASES_URL, &VERSION).await?;
+    #[tokio::test]
+    async fn test_get_version() -> Result<()> {
+        let version_req = VersionReq::parse("=16.3.0")?;
+        let version = get_version(DEFAULT_POSTGRESQL_URL, &version_req).await?;
+        assert_eq!(Version::new(16, 3, 0), version);
         Ok(())
     }
 
-    #[test(tokio::test)]
-    async fn test_get_release_version_not_found() -> Result<()> {
-        let release = get_release(DEFAULT_RELEASES_URL, &INVALID_VERSION).await;
-        assert!(release.is_err());
-        Ok(())
-    }
-
-    #[test(tokio::test)]
-    async fn test_get_asset() -> Result<()> {
-        let target_triple = "x86_64-unknown-linux-musl".to_string();
-        let (asset_version, asset, asset_hash) =
-            get_asset(DEFAULT_RELEASES_URL, &VERSION, &target_triple).await?;
-        assert!(asset_version.matches(&VERSION));
-        assert!(asset.name.contains(&target_triple));
-        assert!(asset_hash.name.contains(&target_triple));
-        assert!(asset_hash.name.starts_with(asset.name.as_str()));
-        assert!(asset_hash.name.ends_with(".sha256"));
-        Ok(())
-    }
-
-    #[test(tokio::test)]
-    async fn test_get_asset_version_not_found() -> Result<()> {
-        let target_triple = "x86_64-unknown-linux-musl".to_string();
-        let result = get_asset(DEFAULT_RELEASES_URL, &INVALID_VERSION, &target_triple).await;
-        assert!(result.is_err());
-        Ok(())
-    }
-
-    #[test(tokio::test)]
-    async fn test_get_asset_target_not_found() -> Result<()> {
-        let target_triple = "wasm64-unknown-unknown".to_string();
-        let result = get_asset(DEFAULT_RELEASES_URL, &VERSION, &target_triple).await;
-        assert!(result.is_err());
+    #[tokio::test]
+    async fn test_get_archive() -> Result<()> {
+        let version_req = VersionReq::parse("=16.3.0")?;
+        let (version, bytes) = get_archive(DEFAULT_POSTGRESQL_URL, &version_req).await?;
+        assert_eq!(Version::new(16, 3, 0), version);
+        assert!(!bytes.is_empty());
         Ok(())
     }
 }

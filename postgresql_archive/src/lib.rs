@@ -21,11 +21,11 @@
 //! ### Asynchronous API
 //!
 //! ```no_run
-//! use postgresql_archive::{extract, get_archive, Result, DEFAULT_RELEASES_URL, LATEST};
+//! use postgresql_archive::{extract, get_archive, Result, VersionReq, DEFAULT_POSTGRESQL_URL};
 //!
 //! #[tokio::main]
 //! async fn main() -> Result<()> {
-//!     let (archive_version, archive) = get_archive(DEFAULT_RELEASES_URL, &LATEST).await?;
+//!     let (archive_version, archive) = get_archive(DEFAULT_POSTGRESQL_URL, &VersionReq::STAR).await?;
 //!     let out_dir = std::env::temp_dir();
 //!     extract(&archive, &out_dir).await
 //! }
@@ -34,10 +34,10 @@
 //! ### Synchronous API
 //! ```no_run
 //! #[cfg(feature = "blocking")] {
-//! use postgresql_archive::{DEFAULT_RELEASES_URL, LATEST};
+//! use postgresql_archive::{VersionReq, DEFAULT_POSTGRESQL_URL};
 //! use postgresql_archive::blocking::{extract, get_archive};
 //!
-//! let (archive_version, archive) = get_archive(DEFAULT_RELEASES_URL, &LATEST).unwrap();
+//! let (archive_version, archive) = get_archive(DEFAULT_POSTGRESQL_URL, &VersionReq::STAR).unwrap();
 //! let out_dir = std::env::temp_dir();
 //! let result = extract(&archive, &out_dir).unwrap();
 //! }
@@ -50,9 +50,11 @@
 //!
 //! The following features are available:
 //!
-//! | Name         | Description              | Default? |
-//! |--------------|--------------------------|----------|
-//! | `blocking`   | Enables the blocking API | No       |
+//! | Name         | Description                | Default? |
+//! |--------------|----------------------------|----------|
+//! | `blocking`   | Enables the blocking API   | No       |
+//! | `native-tls` | Enables native-tls support | No       |
+//! | `rustls-tls` | Enables rustls-tls support | Yes      |
 //!
 //! ## Supported platforms
 //!
@@ -98,10 +100,6 @@
 //! at your option.
 //!
 //! PostgreSQL is covered under [The PostgreSQL License](https://opensource.org/licenses/postgresql).
-//!
-//! ## Notes
-//!
-//! Uses PostgreSQL binaries from [theseus-rs/postgresql-binaries](https://github.com/theseus-rs/postgresql-binaries).
 
 #![forbid(unsafe_code)]
 #![deny(clippy::pedantic)]
@@ -115,11 +113,12 @@ mod archive;
 #[cfg(feature = "blocking")]
 pub mod blocking;
 mod error;
-mod github;
+pub mod matcher;
+pub mod repository;
 mod version;
 
-pub use archive::DEFAULT_RELEASES_URL;
-pub use archive::{extract, get_archive, get_archive_for_target, get_version};
+pub use archive::DEFAULT_POSTGRESQL_URL;
+pub use archive::{extract, get_archive, get_version};
 pub use error::{Error, Result};
-#[allow(deprecated)]
-pub use version::{Version, LATEST, V12, V13, V14, V15, V16};
+pub use semver::{Version, VersionReq};
+pub use version::{ExactVersion, ExactVersionReq};

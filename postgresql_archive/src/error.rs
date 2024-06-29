@@ -5,16 +5,16 @@ pub type Result<T, E = Error> = core::result::Result<T, E>;
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
     /// Asset not found
-    #[error("asset [{0}] not found")]
-    AssetNotFound(String),
+    #[error("asset not found")]
+    AssetNotFound,
     /// Asset hash not found
-    #[error("asset hash not found for asset [{0}]")]
+    #[error("asset hash not found for asset '{0}'")]
     AssetHashNotFound(String),
     /// Error when the hash of the archive does not match the expected hash
     #[error("Archive hash [{archive_hash}] does not match expected hash [{hash}]")]
     ArchiveHashMismatch { archive_hash: String, hash: String },
     /// Invalid version
-    #[error("version [{0}] is invalid")]
+    #[error("version '{0}' is invalid")]
     InvalidVersion(String),
     /// IO error
     #[error(transparent)]
@@ -22,12 +22,18 @@ pub enum Error {
     /// Parse error
     #[error(transparent)]
     ParseError(anyhow::Error),
-    /// Release not found
-    #[error("release not found for version [{0}]")]
-    ReleaseNotFound(String),
+    /// Repository failure
+    #[error("{0}")]
+    RepositoryFailure(String),
     /// Unexpected error
     #[error("{0}")]
     Unexpected(String),
+    /// Unsupported repository
+    #[error("unsupported repository for '{0}'")]
+    UnsupportedRepository(String),
+    /// Version not found
+    #[error("version not found for '{0}'")]
+    VersionNotFound(String),
 }
 
 /// Converts a [`regex::Error`] into an [`ParseError`](Error::ParseError)
@@ -72,6 +78,13 @@ impl From<std::num::ParseIntError> for Error {
     }
 }
 
+/// Converts a [`semver::Error`] into an [`ParseError`](Error::ParseError)
+impl From<semver::Error> for Error {
+    fn from(error: semver::Error) -> Self {
+        Error::IoError(error.into())
+    }
+}
+
 /// Converts a [`std::path::StripPrefixError`] into an [`ParseError`](Error::ParseError)
 impl From<std::path::StripPrefixError> for Error {
     fn from(error: std::path::StripPrefixError) -> Self {
@@ -86,12 +99,20 @@ impl From<anyhow::Error> for Error {
     }
 }
 
+/// Converts a [`url::ParseError`] into an [`ParseError`](Error::ParseError)
+impl From<url::ParseError> for Error {
+    fn from(error: url::ParseError) -> Self {
+        Error::ParseError(error.into())
+    }
+}
+
 /// These are relatively low value tests; they are here to reduce the coverage gap and
 /// ensure that the error conversions are working as expected.
 #[cfg(test)]
 mod test {
     use super::*;
     use anyhow::anyhow;
+    use semver::VersionReq;
     use std::ops::Add;
     use std::path::PathBuf;
     use std::str::FromStr;
@@ -137,6 +158,16 @@ mod test {
     }
 
     #[test]
+    fn test_from_semver_error() {
+        let semver_error = VersionReq::parse("foo").expect_err("semver error");
+        let error = Error::from(semver_error);
+        assert_eq!(
+            error.to_string(),
+            "unexpected character 'f' while parsing major version number"
+        );
+    }
+
+    #[test]
     fn test_from_strip_prefix_error() {
         let path = PathBuf::from("test");
         let stip_prefix_error = path.strip_prefix("foo").expect_err("strip prefix error");
@@ -162,5 +193,12 @@ mod test {
         let anyhow_error = anyhow::Error::msg("test");
         let error = Error::from(anyhow_error);
         assert_eq!(error.to_string(), "test");
+    }
+
+    #[test]
+    fn test_from_url_parse_error() {
+        let parse_error = url::ParseError::EmptyHost;
+        let error = Error::from(parse_error);
+        assert_eq!(error.to_string(), "empty host");
     }
 }

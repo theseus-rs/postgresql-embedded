@@ -13,6 +13,7 @@ version.workspace = true
 [build-dependencies]
 anyhow = { workspace = true }
 postgresql_archive = { path = "../postgresql_archive", version = "0.12.0", default-features = false }
+target-triple = { workspace = true }
 tokio = { workspace = true, features = ["full"] }
 
 [dependencies]
@@ -23,6 +24,7 @@ lazy_static = { workspace = true }
 postgresql_archive = { path = "../postgresql_archive", version = "0.12.0", default-features = false }
 postgresql_commands = { path = "../postgresql_commands", version = "0.12.0" }
 rand = { workspace = true }
+semver = { workspace = true }
 tempfile = { workspace = true }
 thiserror = { workspace = true }
 tokio = { workspace = true, features = ["full"], optional = true }

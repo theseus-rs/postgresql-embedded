@@ -8,8 +8,7 @@
 [![License](https://img.shields.io/crates/l/postgresql_archive?)](https://github.com/theseus-rs/postgresql-embedded/tree/main/postgresql_archive#license)
 [![Semantic Versioning](https://img.shields.io/badge/%E2%9A%99%EF%B8%8F_SemVer-2.0.0-blue)](https://semver.org/spec/v2.0.0.html)
 
-A library for downloading and extracting PostgreSQL archives from
-[theseus-rs/postgresql-binaries](https://github.com/theseus-rs/postgresql-binaries).
+A library for downloading and extracting PostgreSQL archives.
 
 ## Examples
 
@@ -97,12 +96,6 @@ Licensed under either of
 * MIT license ([LICENSE-MIT](LICENSE-MIT) or https://opensource.org/licenses/MIT)
 
 at your option.
-
-PostgreSQL is covered under [The PostgreSQL License](https://opensource.org/licenses/postgresql).
-
-## Notes
-
-Uses PostgreSQL binaries from [theseus-rs/postgresql-binaries](https://github.com/theseus-rs/postgresql-binaries).
 
 ## Contribution
 
