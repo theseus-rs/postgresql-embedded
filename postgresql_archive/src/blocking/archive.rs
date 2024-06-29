@@ -30,7 +30,7 @@ pub fn get_archive(url: &str, version_req: &VersionReq) -> crate::Result<(Versio
         .block_on(async move { crate::get_archive(url, version_req).await })
 }
 
-/// Extracts the compressed tar [bytes](Bytes) to the [out_dir](Path).
+/// Extracts the compressed tar `bytes` to the [out_dir](Path).
 ///
 /// # Errors
 /// Returns an error if the extraction fails.

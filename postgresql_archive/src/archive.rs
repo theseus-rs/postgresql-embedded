@@ -95,7 +95,7 @@ fn acquire_lock(out_dir: &Path) -> Result<PathBuf> {
     Err(Unexpected("Failed to acquire lock".to_string()))
 }
 
-/// Extracts the compressed tar [bytes](Bytes) to the [out_dir](Path).
+/// Extracts the compressed tar `bytes` to the [out_dir](Path).
 ///
 /// # Errors
 /// Returns an error if the extraction fails.
