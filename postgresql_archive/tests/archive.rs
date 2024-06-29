@@ -25,15 +25,15 @@ async fn test_get_version() -> anyhow::Result<()> {
 
 #[test(tokio::test)]
 async fn test_get_archive_and_extract() -> anyhow::Result<()> {
+    let url = THESEUS_POSTGRESQL_BINARIES_URL;
     let version_req = VersionReq::STAR;
-    let (archive_version, archive) =
-        get_archive(THESEUS_POSTGRESQL_BINARIES_URL, &version_req).await?;
+    let (archive_version, archive) = get_archive(url, &version_req).await?;
 
     assert!(version_req.matches(&archive_version));
 
     let out_dir = tempfile::tempdir()?.path().to_path_buf();
     create_dir_all(&out_dir)?;
-    extract(&archive, &out_dir).await?;
+    extract(url, &archive, &out_dir).await?;
     remove_dir_all(&out_dir)?;
     Ok(())
 }

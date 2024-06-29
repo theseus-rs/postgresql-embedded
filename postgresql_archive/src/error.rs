@@ -31,6 +31,9 @@ pub enum Error {
     /// Unexpected error
     #[error("{0}")]
     Unexpected(String),
+    /// Unsupported extractor
+    #[error("unsupported extractor for '{0}'")]
+    UnsupportedExtractor(String),
     /// Unsupported hasher
     #[error("unsupported hasher for '{0}'")]
     UnsupportedHasher(String),

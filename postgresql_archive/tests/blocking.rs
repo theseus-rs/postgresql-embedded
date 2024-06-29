@@ -21,14 +21,15 @@ fn test_get_version() -> anyhow::Result<()> {
 #[test]
 #[allow(deprecated)]
 fn test_get_archive_and_extract() -> anyhow::Result<()> {
+    let url = THESEUS_POSTGRESQL_BINARIES_URL;
     let version_req = &VersionReq::STAR;
-    let (archive_version, archive) = get_archive(THESEUS_POSTGRESQL_BINARIES_URL, version_req)?;
+    let (archive_version, archive) = get_archive(url, version_req)?;
 
     assert!(version_req.matches(&archive_version));
 
     let out_dir = tempfile::tempdir()?.path().to_path_buf();
     create_dir_all(&out_dir)?;
-    extract(&archive, &out_dir)?;
+    extract(url, &archive, &out_dir)?;
     remove_dir_all(&out_dir)?;
     Ok(())
 }

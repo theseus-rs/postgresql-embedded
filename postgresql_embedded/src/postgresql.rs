@@ -149,6 +149,8 @@ impl PostgreSQL {
             return Ok(());
         }
 
+        let url = &self.settings.releases_url;
+
         #[cfg(feature = "bundled")]
         // If the requested version is the same as the version of the bundled archive, use the bundled
         // archive. This avoids downloading the archive in environments where internet access is
@@ -160,20 +162,18 @@ impl PostgreSQL {
                 crate::settings::ARCHIVE.to_vec(),
             )
         } else {
-            let (version, bytes) =
-                get_archive(&self.settings.releases_url, &self.settings.version).await?;
+            let (version, bytes) = get_archive(url, &self.settings.version).await?;
             (version.exact_version_req()?, bytes)
         };
 
         #[cfg(not(feature = "bundled"))]
         let (version, bytes) = {
-            let (version, bytes) =
-                get_archive(&self.settings.releases_url, &self.settings.version).await?;
+            let (version, bytes) = get_archive(url, &self.settings.version).await?;
             (version.exact_version_req()?, bytes)
         };
 
         self.settings.version = version;
-        extract(&bytes, &self.settings.installation_dir).await?;
+        extract(url, &bytes, &self.settings.installation_dir).await?;
 
         debug!(
             "Installed PostgreSQL version {} to {}",

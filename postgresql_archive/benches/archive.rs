@@ -24,7 +24,7 @@ fn bench_extract(criterion: &mut Criterion) -> Result<()> {
 fn extract_archive(archive: &Vec<u8>) -> Result<()> {
     let out_dir = tempfile::tempdir()?.path().to_path_buf();
     create_dir_all(&out_dir)?;
-    extract(archive, &out_dir)?;
+    extract(THESEUS_POSTGRESQL_BINARIES_URL, archive, &out_dir)?;
     remove_dir_all(&out_dir)?;
     Ok(())
 }

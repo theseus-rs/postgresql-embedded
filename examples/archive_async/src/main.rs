@@ -7,11 +7,11 @@ use postgresql_archive::{
 
 #[tokio::main]
 async fn main() -> Result<()> {
+    let url = THESEUS_POSTGRESQL_BINARIES_URL;
     let version_req = VersionReq::STAR;
-    let (archive_version, archive) =
-        get_archive(THESEUS_POSTGRESQL_BINARIES_URL, &version_req).await?;
+    let (archive_version, archive) = get_archive(url, &version_req).await?;
     let out_dir = tempfile::tempdir()?.into_path();
-    extract(&archive, &out_dir).await?;
+    extract(url, &archive, &out_dir).await?;
     println!(
         "PostgreSQL {} extracted to {}",
         archive_version,

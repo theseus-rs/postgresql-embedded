@@ -34,8 +34,8 @@ pub fn get_archive(url: &str, version_req: &VersionReq) -> crate::Result<(Versio
 ///
 /// # Errors
 /// Returns an error if the extraction fails.
-pub fn extract(bytes: &Vec<u8>, out_dir: &Path) -> crate::Result<()> {
+pub fn extract(url: &str, bytes: &Vec<u8>, out_dir: &Path) -> crate::Result<()> {
     RUNTIME
         .handle()
-        .block_on(async move { crate::extract(bytes, out_dir).await })
+        .block_on(async move { crate::extract(url, bytes, out_dir).await })
 }
