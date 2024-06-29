@@ -31,6 +31,12 @@ pub enum Error {
     /// Unexpected error
     #[error("{0}")]
     Unexpected(String),
+    /// Unsupported hasher
+    #[error("unsupported hasher for '{0}'")]
+    UnsupportedHasher(String),
+    /// Unsupported hasher
+    #[error("unsupported matcher for '{0}'")]
+    UnsupportedMatcher(String),
     /// Unsupported repository
     #[error("unsupported repository for '{0}'")]
     UnsupportedRepository(String),

@@ -1,9 +1,8 @@
-use crate::matcher::{default, postgresql_binaries};
-use crate::Error::PoisonedLock;
-use crate::{Result, DEFAULT_POSTGRESQL_URL};
+use crate::matcher::postgresql_binaries;
+use crate::Error::{PoisonedLock, UnsupportedMatcher};
+use crate::{Result, THESEUS_POSTGRESQL_BINARIES_URL};
 use lazy_static::lazy_static;
 use semver::Version;
-use std::collections::HashMap;
 use std::sync::{Arc, Mutex, RwLock};
 
 lazy_static! {
@@ -11,59 +10,54 @@ lazy_static! {
         Arc::new(Mutex::new(MatchersRegistry::default()));
 }
 
+pub type SupportsFn = fn(&str) -> Result<bool>;
 pub type MatcherFn = fn(&str, &Version) -> Result<bool>;
 
 /// Singleton struct to store matchers
+#[allow(clippy::type_complexity)]
 struct MatchersRegistry {
-    matchers: HashMap<Option<String>, Arc<RwLock<MatcherFn>>>,
+    matchers: Vec<(Arc<RwLock<SupportsFn>>, Arc<RwLock<MatcherFn>>)>,
 }
 
 impl MatchersRegistry {
     /// Creates a new matcher registry.
     fn new() -> Self {
         Self {
-            matchers: HashMap::new(),
+            matchers: Vec::new(),
         }
     }
 
-    /// Registers a matcher for a URL. Newly registered matchers with the same url will override
-    /// existing ones.
-    fn register<S: AsRef<str>>(&mut self, url: Option<S>, matcher_fn: MatcherFn) {
-        let url: Option<String> = url.map(|s| s.as_ref().to_string());
-        self.matchers.insert(url, Arc::new(RwLock::new(matcher_fn)));
+    /// Registers a matcher for a supports function. Newly registered matchers with the take
+    /// precedence over existing ones.
+    fn register(&mut self, supports_fn: SupportsFn, matcher_fn: MatcherFn) {
+        self.matchers.insert(
+            0,
+            (
+                Arc::new(RwLock::new(supports_fn)),
+                Arc::new(RwLock::new(matcher_fn)),
+            ),
+        );
     }
 
-    /// Get a matcher for the specified URL, or the default matcher if no matcher is
-    /// registered for the URL.
+    /// Get a matcher for the specified URL.
     ///
     /// # Errors
     /// * If the registry is poisoned.
     fn get<S: AsRef<str>>(&self, url: S) -> Result<MatcherFn> {
-        let url = Some(url.as_ref().to_string());
-        if let Some(matcher) = self.matchers.get(&url) {
-            let matcher = *matcher
+        let url = url.as_ref();
+        for (supports_fn, matcher_fn) in &self.matchers {
+            let supports_function = supports_fn
                 .read()
                 .map_err(|error| PoisonedLock(error.to_string()))?;
-            return Ok(matcher);
+            if supports_function(url)? {
+                let matcher_function = matcher_fn
+                    .read()
+                    .map_err(|error| PoisonedLock(error.to_string()))?;
+                return Ok(*matcher_function);
+            }
         }
 
-        let matcher = match self.matchers.get(&None) {
-            Some(matcher) => *matcher
-                .read()
-                .map_err(|error| PoisonedLock(error.to_string()))?,
-            None => default::matcher,
-        };
-        Ok(matcher)
-    }
-
-    /// Get the number of matchers in the registry.
-    fn len(&self) -> usize {
-        self.matchers.len()
-    }
-
-    /// Check if the registry is empty.
-    fn is_empty(&self) -> bool {
-        self.matchers.is_empty()
+        Err(UnsupportedMatcher(url.to_string()))
     }
 }
 
@@ -71,28 +65,29 @@ impl Default for MatchersRegistry {
     /// Creates a new matcher registry with the default matchers registered.
     fn default() -> Self {
         let mut registry = Self::new();
-        registry.register(None::<&str>, default::matcher);
-        registry.register(Some(DEFAULT_POSTGRESQL_URL), postgresql_binaries::matcher);
+        registry.register(
+            |url| Ok(url == THESEUS_POSTGRESQL_BINARIES_URL),
+            postgresql_binaries::matcher,
+        );
         registry
     }
 }
 
-/// Registers a matcher for a URL. Newly registered matchers with the same url will override
-/// existing ones.
+/// Registers a matcher for a supports function. Newly registered matchers with the take
+/// precedence over existing ones.
 ///
 /// # Errors
 /// * If the registry is poisoned.
 #[allow(dead_code)]
-pub fn register<S: AsRef<str>>(url: Option<S>, matcher_fn: MatcherFn) -> Result<()> {
+pub fn register(supports_fn: SupportsFn, matcher_fn: MatcherFn) -> Result<()> {
     let mut registry = REGISTRY
         .lock()
         .map_err(|error| PoisonedLock(error.to_string()))?;
-    registry.register(url, matcher_fn);
+    registry.register(supports_fn, matcher_fn);
     Ok(())
 }
 
-/// Get a matcher for the specified URL, or the default matcher if no matcher is
-/// registered for the URL.
+/// Get a matcher for the specified URL.
 ///
 /// # Errors
 /// * If the registry is poisoned.
@@ -103,65 +98,32 @@ pub fn get<S: AsRef<str>>(url: S) -> Result<MatcherFn> {
     registry.get(url)
 }
 
-/// Get the number of matchers in the registry.
-///
-/// # Errors
-/// * If the registry is poisoned.
-pub fn len() -> Result<usize> {
-    let registry = REGISTRY
-        .lock()
-        .map_err(|error| PoisonedLock(error.to_string()))?;
-    Ok(registry.len())
-}
-
-/// Check if the registry is empty.
-///
-/// # Errors
-/// * If the registry is poisoned.
-pub fn is_empty() -> Result<bool> {
-    let registry = REGISTRY
-        .lock()
-        .map_err(|error| PoisonedLock(error.to_string()))?;
-    Ok(registry.is_empty())
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::Error::PoisonedLock;
-    use std::env;
 
     #[test]
     fn test_register() -> Result<()> {
-        let matchers = len()?;
-        assert!(!is_empty()?);
-        REGISTRY
-            .lock()
-            .map_err(|error| PoisonedLock(error.to_string()))?
-            .matchers
-            .remove(&None::<String>);
-        assert_ne!(matchers, len()?);
-        register(None::<&str>, default::matcher)?;
-        assert_eq!(matchers, len()?);
+        register(
+            |url| Ok(url == "https://foo.com"),
+            |name, _| Ok(name == "foo"),
+        )?;
 
-        let matcher = get(DEFAULT_POSTGRESQL_URL)?;
+        let matcher = get("https://foo.com")?;
         let version = Version::new(16, 3, 0);
-        let target = target_triple::TARGET;
-        let name = format!("postgresql-{version}-{target}.tar.gz");
 
-        assert!(matcher(name.as_str(), &version)?, "{}", name);
+        assert!(matcher("foo", &version)?);
         Ok(())
     }
 
     #[test]
-    fn test_default_matcher() -> Result<()> {
-        let matcher = get("https://foo.com")?;
-        let version = Version::new(16, 3, 0);
-        let os = env::consts::OS;
-        let arch = env::consts::ARCH;
-        let name = format!("plugin_csv.pg16-{os}_{arch}.tar.gz");
+    fn test_get_error() {
+        let result = get("foo").unwrap_err();
+        assert_eq!("unsupported matcher for 'foo'", result.to_string());
+    }
 
-        assert!(matcher(name.as_str(), &version)?, "{}", name);
-        Ok(())
+    #[test]
+    fn test_get_theseus_postgresql_binaries() {
+        assert!(get(THESEUS_POSTGRESQL_BINARIES_URL).is_ok());
     }
 }

@@ -16,7 +16,8 @@ use std::time::Duration;
 use tar::Archive;
 use tracing::{debug, instrument, warn};
 
-pub const DEFAULT_POSTGRESQL_URL: &str = "https://github.com/theseus-rs/postgresql-binaries";
+pub const THESEUS_POSTGRESQL_BINARIES_URL: &str =
+    "https://github.com/theseus-rs/postgresql-binaries";
 
 /// Gets the version for the specified [version requirement](VersionReq). If a version for the
 /// [version requirement](VersionReq) is not found, then an error is returned.
@@ -213,7 +214,7 @@ mod tests {
     #[tokio::test]
     async fn test_get_version() -> Result<()> {
         let version_req = VersionReq::parse("=16.3.0")?;
-        let version = get_version(DEFAULT_POSTGRESQL_URL, &version_req).await?;
+        let version = get_version(THESEUS_POSTGRESQL_BINARIES_URL, &version_req).await?;
         assert_eq!(Version::new(16, 3, 0), version);
         Ok(())
     }
@@ -221,7 +222,7 @@ mod tests {
     #[tokio::test]
     async fn test_get_archive() -> Result<()> {
         let version_req = VersionReq::parse("=16.3.0")?;
-        let (version, bytes) = get_archive(DEFAULT_POSTGRESQL_URL, &version_req).await?;
+        let (version, bytes) = get_archive(THESEUS_POSTGRESQL_BINARIES_URL, &version_req).await?;
         assert_eq!(Version::new(16, 3, 0), version);
         assert!(!bytes.is_empty());
         Ok(())

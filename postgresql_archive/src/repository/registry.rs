@@ -1,7 +1,7 @@
 use crate::repository::github::repository::GitHub;
 use crate::repository::model::Repository;
 use crate::Error::{PoisonedLock, UnsupportedRepository};
-use crate::Result;
+use crate::{Result, THESEUS_POSTGRESQL_BINARIES_URL};
 use lazy_static::lazy_static;
 use std::sync::{Arc, Mutex, RwLock};
 
@@ -10,7 +10,7 @@ lazy_static! {
         Arc::new(Mutex::new(RepositoryRegistry::default()));
 }
 
-type SupportsFn = dyn Fn(&str) -> bool + Send + Sync;
+type SupportsFn = fn(&str) -> Result<bool>;
 type NewFn = dyn Fn(&str) -> Result<Box<dyn Repository>> + Send + Sync;
 
 /// Singleton struct to store repositories
@@ -27,8 +27,8 @@ impl RepositoryRegistry {
         }
     }
 
-    /// Registers a repository. Newly registered repositories can override existing ones.
-    fn register(&mut self, supports_fn: Box<SupportsFn>, new_fn: Box<NewFn>) {
+    /// Registers a repository. Newly registered repositories take precedence over existing ones.
+    fn register(&mut self, supports_fn: SupportsFn, new_fn: Box<NewFn>) {
         self.repositories.insert(
             0,
             (
@@ -47,7 +47,7 @@ impl RepositoryRegistry {
             let supports_function = supports_fn
                 .read()
                 .map_err(|error| PoisonedLock(error.to_string()))?;
-            if supports_function(url) {
+            if supports_function(url)? {
                 let new_function = new_fn
                     .read()
                     .map_err(|error| PoisonedLock(error.to_string()))?;
@@ -57,23 +57,16 @@ impl RepositoryRegistry {
 
         Err(UnsupportedRepository(url.to_string()))
     }
-
-    /// Get the number of repositories in the registry.
-    fn len(&self) -> usize {
-        self.repositories.len()
-    }
-
-    /// Check if the registry is empty.
-    fn is_empty(&self) -> bool {
-        self.repositories.is_empty()
-    }
 }
 
 impl Default for RepositoryRegistry {
     /// Creates a new repository registry with the default repositories registered.
     fn default() -> Self {
         let mut registry = Self::new();
-        registry.register(Box::new(GitHub::supports), Box::new(GitHub::new));
+        registry.register(
+            |url| Ok(url.starts_with(THESEUS_POSTGRESQL_BINARIES_URL)),
+            Box::new(GitHub::new),
+        );
         registry
     }
 }
@@ -83,7 +76,7 @@ impl Default for RepositoryRegistry {
 /// # Errors
 /// * If the registry is poisoned.
 #[allow(dead_code)]
-pub fn register(supports_fn: Box<SupportsFn>, new_fn: Box<NewFn>) -> Result<()> {
+pub fn register(supports_fn: SupportsFn, new_fn: Box<NewFn>) -> Result<()> {
     let mut registry = REGISTRY
         .lock()
         .map_err(|error| PoisonedLock(error.to_string()))?;
@@ -102,64 +95,66 @@ pub fn get(url: &str) -> Result<Box<dyn Repository>> {
     registry.get(url)
 }
 
-/// Get the number of repositories in the registry.
-///
-/// # Errors
-/// * If the registry is poisoned.
-pub fn len() -> Result<usize> {
-    let registry = REGISTRY
-        .lock()
-        .map_err(|error| PoisonedLock(error.to_string()))?;
-    Ok(registry.len())
-}
-
-/// Check if the registry is empty.
-///
-/// # Errors
-/// * If the registry is poisoned.
-pub fn is_empty() -> Result<bool> {
-    let registry = REGISTRY
-        .lock()
-        .map_err(|error| PoisonedLock(error.to_string()))?;
-    Ok(registry.is_empty())
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::repository::Archive;
+    use async_trait::async_trait;
+    use semver::{Version, VersionReq};
+    use std::fmt::Debug;
+
+    #[derive(Debug)]
+    struct TestRepository;
+
+    impl TestRepository {
+        #[allow(clippy::new_ret_no_self)]
+        #[allow(clippy::unnecessary_wraps)]
+        fn new(_url: &str) -> Result<Box<dyn Repository>> {
+            Ok(Box::new(Self))
+        }
+    }
+
+    #[async_trait]
+    impl Repository for TestRepository {
+        fn name(&self) -> &str {
+            "test"
+        }
+
+        async fn get_version(&self, _version_req: &VersionReq) -> Result<Version> {
+            Ok(Version::new(0, 0, 42))
+        }
+
+        async fn get_archive(&self, _version_req: &VersionReq) -> Result<Archive> {
+            Ok(Archive::new(
+                "test".to_string(),
+                Version::new(0, 0, 42),
+                Vec::new(),
+            ))
+        }
+    }
 
     #[tokio::test]
     async fn test_register() -> Result<()> {
-        let repositories = len()?;
-        assert!(!is_empty()?);
-        REGISTRY
-            .lock()
-            .map_err(|error| PoisonedLock(error.to_string()))?
-            .repositories
-            .truncate(0);
-        assert_ne!(repositories, len()?);
-        register(Box::new(GitHub::supports), Box::new(GitHub::new))?;
-        assert_eq!(repositories, len()?);
-
-        let url = "https://github.com/theseus-rs/postgresql-binaries";
-        let result = get(url);
-        assert!(result.is_ok());
+        register(
+            |url| Ok(url == "https://foo.com"),
+            Box::new(TestRepository::new),
+        )?;
+        let url = "https://foo.com";
+        let repository = get(url)?;
+        assert_eq!("test", repository.name());
+        assert!(repository.get_version(&VersionReq::STAR).await.is_ok());
+        assert!(repository.get_archive(&VersionReq::STAR).await.is_ok());
         Ok(())
     }
 
-    #[tokio::test]
-    async fn test_get_no_host() -> Result<()> {
-        let url = "https://";
-        let error = get(url).err().unwrap();
-        assert_eq!("unsupported repository for 'https://'", error.to_string());
-        Ok(())
+    #[test]
+    fn test_get_error() {
+        let error = get("foo").unwrap_err();
+        assert_eq!("unsupported repository for 'foo'", error.to_string());
     }
 
-    #[tokio::test]
-    async fn test_get_github() -> Result<()> {
-        let url = "https://github.com/theseus-rs/postgresql-binaries";
-        let result = get(url);
-        assert!(result.is_ok());
-        Ok(())
+    #[test]
+    fn test_get_theseus_postgresql_binaries() {
+        assert!(get(THESEUS_POSTGRESQL_BINARIES_URL).is_ok());
     }
 }

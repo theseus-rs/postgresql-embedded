@@ -1,7 +1,7 @@
 #[cfg(feature = "blocking")]
 use postgresql_archive::blocking::{extract, get_archive, get_version};
 #[cfg(feature = "blocking")]
-use postgresql_archive::{VersionReq, DEFAULT_POSTGRESQL_URL};
+use postgresql_archive::{VersionReq, THESEUS_POSTGRESQL_BINARIES_URL};
 #[cfg(feature = "blocking")]
 use std::fs::{create_dir_all, remove_dir_all};
 #[cfg(feature = "blocking")]
@@ -11,7 +11,7 @@ use test_log::test;
 #[test]
 fn test_get_version() -> anyhow::Result<()> {
     let version_req = VersionReq::STAR;
-    let latest_version = get_version(DEFAULT_POSTGRESQL_URL, &version_req)?;
+    let latest_version = get_version(THESEUS_POSTGRESQL_BINARIES_URL, &version_req)?;
 
     assert!(version_req.matches(&latest_version));
     Ok(())
@@ -22,7 +22,7 @@ fn test_get_version() -> anyhow::Result<()> {
 #[allow(deprecated)]
 fn test_get_archive_and_extract() -> anyhow::Result<()> {
     let version_req = &VersionReq::STAR;
-    let (archive_version, archive) = get_archive(DEFAULT_POSTGRESQL_URL, version_req)?;
+    let (archive_version, archive) = get_archive(THESEUS_POSTGRESQL_BINARIES_URL, version_req)?;
 
     assert!(version_req.matches(&archive_version));
 
