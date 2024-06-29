@@ -7,7 +7,6 @@ use crate::Error::{
 };
 use crate::{hasher, matcher, Result};
 use async_trait::async_trait;
-use bytes::Bytes;
 use http::{header, Extensions};
 use human_bytes::human_bytes;
 use regex::Regex;
@@ -237,7 +236,7 @@ impl Repository for GitHub {
         debug!("Downloading archive {}", asset.browser_download_url);
         let request = client.get(&asset.browser_download_url);
         let response = request.send().await?.error_for_status()?;
-        let archive: Bytes = response.bytes().await?;
+        let archive = response.bytes().await?;
         let bytes = archive.to_vec();
         debug!(
             "Archive {} downloaded: {}",

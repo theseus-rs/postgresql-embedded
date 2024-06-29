@@ -4,7 +4,6 @@
 use crate::error::Error::Unexpected;
 use crate::error::Result;
 use crate::repository;
-use bytes::Bytes;
 use flate2::bufread::GzDecoder;
 use human_bytes::human_bytes;
 use num_format::{Locale, ToFormattedString};
@@ -39,12 +38,11 @@ pub async fn get_version(url: &str, version_req: &VersionReq) -> Result<Version>
 /// * If the archive is not found.
 /// * If the archive cannot be downloaded.
 #[instrument]
-pub async fn get_archive(url: &str, version_req: &VersionReq) -> Result<(Version, Bytes)> {
+pub async fn get_archive(url: &str, version_req: &VersionReq) -> Result<(Version, Vec<u8>)> {
     let repository = repository::registry::get(url)?;
     let archive = repository.get_archive(version_req).await?;
     let version = archive.version().clone();
-    let archive_bytes = archive.bytes().to_vec();
-    let bytes = Bytes::from(archive_bytes.clone());
+    let bytes = archive.bytes().to_vec();
     Ok((version, bytes))
 }
 
@@ -103,7 +101,7 @@ fn acquire_lock(out_dir: &Path) -> Result<PathBuf> {
 /// Returns an error if the extraction fails.
 #[allow(clippy::cast_precision_loss)]
 #[instrument(skip(bytes))]
-pub async fn extract(bytes: &Bytes, out_dir: &Path) -> Result<()> {
+pub async fn extract(bytes: Vec<u8>, out_dir: &Path) -> Result<()> {
     let input = BufReader::new(Cursor::new(bytes));
     let decoder = GzDecoder::new(input);
     let mut archive = Archive::new(decoder);

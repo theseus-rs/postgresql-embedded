@@ -13,7 +13,6 @@ version.workspace = true
 anyhow = { workspace = true }
 async-trait = { workspace = true }
 blake2 = { workspace = true }
-bytes = { workspace = true }
 flate2 = { workspace = true }
 hex = { workspace = true }
 http = { workspace = true }
