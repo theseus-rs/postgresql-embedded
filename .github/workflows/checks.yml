@@ -20,8 +20,6 @@ jobs:
         uses: dtolnay/rust-toolchain@master
         with:
           toolchain: stable
-      - name: Enable caching
-        uses: Swatinem/rust-cache@v2
       - name: Install cargo audit
         run: cargo install cargo-audit
 
@@ -56,8 +54,6 @@ jobs:
         uses: dtolnay/rust-toolchain@master
         with:
           toolchain: stable
-      - name: Enable caching
-        uses: Swatinem/rust-cache@v2
       - name: Check the project
         run: |
           cargo check --workspace --all-targets --features blocking
@@ -74,8 +70,6 @@ jobs:
         uses: dtolnay/rust-toolchain@master
         with:
           toolchain: stable
-      - name: Enable caching
-        uses: Swatinem/rust-cache@v2
       - name: Check lints
         env:
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
@@ -91,8 +85,6 @@ jobs:
         uses: dtolnay/rust-toolchain@master
         with:
           toolchain: stable
-      - name: Enable caching
-        uses: Swatinem/rust-cache@v2
       - name: Install cargo deny
         run: cargo install cargo-deny
       - name: Check licenses
@@ -107,8 +99,6 @@ jobs:
         uses: dtolnay/rust-toolchain@master
         with:
           toolchain: stable
-      - name: Enable caching
-        uses: Swatinem/rust-cache@v2
       - name: Check documentation
         env:
           RUSTDOCFLAGS: -D warnings
@@ -124,7 +114,5 @@ jobs:
         with:
           toolchain: stable
           components: rustfmt
-      - name: Enable caching
-        uses: Swatinem/rust-cache@v2
       - name: Check formatting
         run: cargo fmt --all --check
