@@ -1,5 +1,4 @@
 use crate::{Version, VersionReq};
-use bytes::Bytes;
 use std::path::Path;
 use tokio::runtime::Runtime;
 
@@ -25,17 +24,17 @@ pub fn get_version(url: &str, version_req: &VersionReq) -> crate::Result<Version
 /// # Errors
 /// * If the archive is not found.
 /// * If the archive cannot be downloaded.
-pub fn get_archive(url: &str, version_req: &VersionReq) -> crate::Result<(Version, Bytes)> {
+pub fn get_archive(url: &str, version_req: &VersionReq) -> crate::Result<(Version, Vec<u8>)> {
     RUNTIME
         .handle()
         .block_on(async move { crate::get_archive(url, version_req).await })
 }
 
-/// Extracts the compressed tar [bytes](Bytes) to the [out_dir](Path).
+/// Extracts the compressed tar `bytes` to the [out_dir](Path).
 ///
 /// # Errors
 /// Returns an error if the extraction fails.
-pub fn extract(bytes: &Bytes, out_dir: &Path) -> crate::Result<()> {
+pub fn extract(bytes: &Vec<u8>, out_dir: &Path) -> crate::Result<()> {
     RUNTIME
         .handle()
         .block_on(async move { crate::extract(bytes, out_dir).await })

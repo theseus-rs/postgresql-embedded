@@ -1,4 +1,3 @@
-use bytes::Bytes;
 use criterion::{criterion_group, criterion_main, Criterion};
 use postgresql_archive::blocking::{extract, get_archive};
 use postgresql_archive::{Result, VersionReq, DEFAULT_POSTGRESQL_URL};
@@ -22,7 +21,7 @@ fn bench_extract(criterion: &mut Criterion) -> Result<()> {
     Ok(())
 }
 
-fn extract_archive(archive: &Bytes) -> Result<()> {
+fn extract_archive(archive: &Vec<u8>) -> Result<()> {
     let out_dir = tempfile::tempdir()?.path().to_path_buf();
     create_dir_all(&out_dir)?;
     extract(archive, &out_dir)?;

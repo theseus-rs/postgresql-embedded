@@ -1626,7 +1626,6 @@ dependencies = [
  "anyhow",
  "async-trait",
  "blake2",
- "bytes",
  "criterion",
  "flate2",
  "hex",
@@ -1670,7 +1669,6 @@ name = "postgresql_embedded"
 version = "0.12.0"
 dependencies = [
  "anyhow",
- "bytes",
  "criterion",
  "home",
  "lazy_static",

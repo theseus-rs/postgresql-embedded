@@ -81,6 +81,14 @@ pub fn get<S: AsRef<str>>(extension: S) -> Option<HasherFn> {
 mod tests {
     use super::*;
 
+    fn test_hasher(extension: &str, expected: &str) -> Result<()> {
+        let hasher = get(extension).unwrap();
+        let data = vec![1, 2, 3, 4, 5, 6, 7, 8, 9, 0];
+        let hash = hasher(&data)?;
+        assert_eq!(expected, hash);
+        Ok(())
+    }
+
     #[test]
     fn test_register() -> Result<()> {
         let extension = "sha256";
@@ -91,92 +99,57 @@ mod tests {
         register(extension, sha2_256::hash);
         assert_eq!(hashers, REGISTRY.lock().unwrap().hashers.len());
 
-        let hasher = get(extension).unwrap();
-        let data = vec![1, 2, 3];
-        let hash = hasher(&data)?;
-
-        assert_eq!(
-            "039058c6f2c0cb492c533b0a4d14ef77cc0f78abccced5287d84a1a2011cfb81",
-            hash
-        );
-        Ok(())
+        test_hasher(
+            extension,
+            "9a89c68c4c5e28b8c4a5567673d462fff515db46116f9900624d09c474f593fb",
+        )
     }
 
     #[test]
     fn test_sha2_256() -> Result<()> {
-        let hasher = get("sha256").unwrap();
-        let data = vec![1, 2, 3, 4, 5, 6, 7, 8, 9, 0];
-        let hash = hasher(&data)?;
-
-        assert_eq!(
+        test_hasher(
+            "sha256",
             "9a89c68c4c5e28b8c4a5567673d462fff515db46116f9900624d09c474f593fb",
-            hash
-        );
-        Ok(())
+        )
     }
 
     #[test]
     fn test_sha2_512() -> Result<()> {
-        let hasher = get("sha512").unwrap();
-        let data = vec![1, 2, 3, 4, 5, 6, 7, 8, 9, 0];
-        let hash = hasher(&data)?;
-
-        assert_eq!(
+        test_hasher(
+            "sha512",
             "3ad3f36979450d4f53366244ecf1010f4f9121d6888285ff14104fd5aded85d48aa171bf1e33a112602f92b7a7088b298789012fb87b9056321241a19fb74e0b",
-            hash
-        );
-        Ok(())
+        )
     }
 
     #[test]
     fn test_sha3_256() -> Result<()> {
-        let hasher = get("sha3-256").unwrap();
-        let data = vec![1, 2, 3, 4, 5, 6, 7, 8, 9, 0];
-        let hash = hasher(&data)?;
-
-        assert_eq!(
+        test_hasher(
+            "sha3-256",
             "c0188232190e0427fc9cc78597221c76c799528660889bd6ce1f3563148ff84d",
-            hash
-        );
-        Ok(())
+        )
     }
 
     #[test]
     fn test_sha3_512() -> Result<()> {
-        let hasher = get("sha3-512").unwrap();
-        let data = vec![1, 2, 3, 4, 5, 6, 7, 8, 9, 0];
-        let hash = hasher(&data)?;
-
-        assert_eq!(
+        test_hasher(
+            "sha3-512",
             "9429fc1f9772cc1d8039fe75cc1b033cd60f0ec4face0f8a514d25b0649ba8a5954b6c7a41cc3697a56db3ff321475be1fa14b70c7eb78fec6ce62dbfc54c9d3",
-            hash
-        );
-        Ok(())
+        )
     }
 
     #[test]
     fn test_blake2s_256() -> Result<()> {
-        let hasher = get("blake2s").unwrap();
-        let data = vec![1, 2, 3, 4, 5, 6, 7, 8, 9, 0];
-        let hash = hasher(&data)?;
-
-        assert_eq!(
+        test_hasher(
+            "blake2s",
             "7125921e06071710350390fe902856dbea366a5d6f5ee26c18e741143ac80061",
-            hash
-        );
-        Ok(())
+        )
     }
 
     #[test]
-    fn test_blake2s_512() -> Result<()> {
-        let hasher = get("blake2s").unwrap();
-        let data = vec![1, 2, 3, 4, 5, 6, 7, 8, 9, 0];
-        let hash = hasher(&data)?;
-
-        assert_eq!(
-            "7125921e06071710350390fe902856dbea366a5d6f5ee26c18e741143ac80061",
-            hash
-        );
-        Ok(())
+    fn test_blake2b_512() -> Result<()> {
+        test_hasher(
+            "blake2b",
+            "67767f1cab415502dcceec9f099fb84539b1c73c5ebdcfe1bb8ca7411e3b6cb33e304f49222edac9bdaa74129e9e13f11f215b8560f9081f0e8f1f869162bf46",
+        )
     }
 }
