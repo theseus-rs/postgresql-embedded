@@ -10,7 +10,7 @@ lazy_static! {
         Arc::new(Mutex::new(MatchersRegistry::default()));
 }
 
-type MatcherFn = fn(&str, &Version) -> Result<bool>;
+pub type MatcherFn = fn(&str, &Version) -> Result<bool>;
 
 /// Singleton struct to store matchers
 struct MatchersRegistry {
@@ -75,6 +75,9 @@ impl Default for MatchersRegistry {
 /// # Arguments
 /// * `url` - The URL to register the matcher for; [None] to register the default.
 /// * `matcher_fn` - The matcher function to register.
+///
+/// # Panics
+/// * If the registry is poisoned.
 #[allow(dead_code)]
 pub fn register<S: AsRef<str>>(url: Option<S>, matcher_fn: MatcherFn) {
     let mut registry = REGISTRY.lock().unwrap();
@@ -89,6 +92,9 @@ pub fn register<S: AsRef<str>>(url: Option<S>, matcher_fn: MatcherFn) {
 ///
 /// # Returns
 /// * The matcher for the URL, or the default matcher.
+///
+/// # Panics
+/// * If the registry is poisoned.
 pub fn get<S: AsRef<str>>(url: S) -> MatcherFn {
     let registry = REGISTRY.lock().unwrap();
     registry.get(url)
@@ -99,8 +105,8 @@ mod tests {
     use super::*;
     use std::env;
 
-    #[tokio::test]
-    async fn test_register() -> Result<()> {
+    #[test]
+    fn test_register() -> Result<()> {
         let matchers = REGISTRY.lock().unwrap().matchers.len();
         assert!(!REGISTRY.lock().unwrap().matchers.is_empty());
         REGISTRY.lock().unwrap().matchers.remove(&None::<String>);
@@ -117,8 +123,8 @@ mod tests {
         Ok(())
     }
 
-    #[tokio::test]
-    async fn test_default_matcher() -> Result<()> {
+    #[test]
+    fn test_default_matcher() -> Result<()> {
         let matcher = get("https://foo.com");
         let version = Version::new(16, 3, 0);
         let os = env::consts::OS;
