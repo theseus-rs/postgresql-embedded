@@ -174,7 +174,7 @@ impl GitHub {
         version: &Version,
         release: &Release,
     ) -> Result<(Asset, Option<Asset>, Option<HasherFn>)> {
-        let matcher = matcher::registry::get(&self.url);
+        let matcher = matcher::registry::get(&self.url)?;
         let mut release_asset: Option<Asset> = None;
         for asset in &release.assets {
             if matcher(asset.name.as_str(), version)? {
@@ -199,7 +199,7 @@ impl GitHub {
                 .strip_prefix(format!("{}.", asset.name.as_str()).as_str())
                 .unwrap_or_default();
 
-            if let Some(hasher_fn) = hasher::registry::get(extension) {
+            if let Some(hasher_fn) = hasher::registry::get(extension)? {
                 asset_hash = Some(release_asset.clone());
                 asset_hasher_fn = Some(hasher_fn);
                 break;

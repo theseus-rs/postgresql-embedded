@@ -22,6 +22,9 @@ pub enum Error {
     /// Parse error
     #[error(transparent)]
     ParseError(anyhow::Error),
+    /// Poisoned lock
+    #[error("poisoned lock '{0}'")]
+    PoisonedLock(String),
     /// Repository failure
     #[error("{0}")]
     RepositoryFailure(String),

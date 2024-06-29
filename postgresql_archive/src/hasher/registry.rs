@@ -1,4 +1,5 @@
 use crate::hasher::{blake2b_512, blake2s_256, sha2_256, sha2_512, sha3_256, sha3_512};
+use crate::Error::PoisonedLock;
 use crate::Result;
 use lazy_static::lazy_static;
 use std::collections::HashMap;
@@ -33,13 +34,29 @@ impl HasherRegistry {
     }
 
     /// Get a hasher for the specified extension.
-    fn get<S: AsRef<str>>(&self, extension: S) -> Option<HasherFn> {
+    ///
+    /// # Errors
+    /// * If the registry is poisoned.
+    fn get<S: AsRef<str>>(&self, extension: S) -> Result<Option<HasherFn>> {
         let extension = extension.as_ref().to_string();
         if let Some(hasher) = self.hashers.get(&extension) {
-            return Some(*hasher.read().unwrap());
+            let hasher = *hasher
+                .read()
+                .map_err(|error| PoisonedLock(error.to_string()))?;
+            return Ok(Some(hasher));
         }
 
-        None
+        Ok(None)
+    }
+
+    /// Get the number of hashers in the registry.
+    fn len(&self) -> usize {
+        self.hashers.len()
+    }
+
+    /// Check if the registry is empty.
+    fn is_empty(&self) -> bool {
+        self.hashers.is_empty()
     }
 }
 
@@ -60,21 +77,48 @@ impl Default for HasherRegistry {
 /// Registers a hasher for an extension. Newly registered hashers with the same extension will
 /// override existing ones.
 ///
-/// # Panics
+/// # Errors
 /// * If the registry is poisoned.
 #[allow(dead_code)]
-pub fn register<S: AsRef<str>>(extension: S, hasher_fn: HasherFn) {
-    let mut registry = REGISTRY.lock().unwrap();
+pub fn register<S: AsRef<str>>(extension: S, hasher_fn: HasherFn) -> Result<()> {
+    let mut registry = REGISTRY
+        .lock()
+        .map_err(|error| PoisonedLock(error.to_string()))?;
     registry.register(extension, hasher_fn);
+    Ok(())
 }
 
 /// Get a hasher for the specified extension.
 ///
-/// # Panics
+/// # Errors
 /// * If the registry is poisoned.
-pub fn get<S: AsRef<str>>(extension: S) -> Option<HasherFn> {
-    let registry = REGISTRY.lock().unwrap();
+pub fn get<S: AsRef<str>>(extension: S) -> Result<Option<HasherFn>> {
+    let registry = REGISTRY
+        .lock()
+        .map_err(|error| PoisonedLock(error.to_string()))?;
     registry.get(extension)
+}
+
+/// Get the number of matchers in the registry.
+///
+/// # Errors
+/// * If the registry is poisoned.
+pub fn len() -> Result<usize> {
+    let registry = REGISTRY
+        .lock()
+        .map_err(|error| PoisonedLock(error.to_string()))?;
+    Ok(registry.len())
+}
+
+/// Check if the registry is empty.
+///
+/// # Errors
+/// * If the registry is poisoned.
+pub fn is_empty() -> Result<bool> {
+    let registry = REGISTRY
+        .lock()
+        .map_err(|error| PoisonedLock(error.to_string()))?;
+    Ok(registry.is_empty())
 }
 
 #[cfg(test)]
@@ -82,7 +126,7 @@ mod tests {
     use super::*;
 
     fn test_hasher(extension: &str, expected: &str) -> Result<()> {
-        let hasher = get(extension).unwrap();
+        let hasher = get(extension)?.unwrap();
         let data = vec![1, 2, 3, 4, 5, 6, 7, 8, 9, 0];
         let hash = hasher(&data)?;
         assert_eq!(expected, hash);
@@ -92,12 +136,16 @@ mod tests {
     #[test]
     fn test_register() -> Result<()> {
         let extension = "sha256";
-        let hashers = REGISTRY.lock().unwrap().hashers.len();
-        assert!(!REGISTRY.lock().unwrap().hashers.is_empty());
-        REGISTRY.lock().unwrap().hashers.remove(extension);
-        assert_ne!(hashers, REGISTRY.lock().unwrap().hashers.len());
-        register(extension, sha2_256::hash);
-        assert_eq!(hashers, REGISTRY.lock().unwrap().hashers.len());
+        let hashers = len()?;
+        assert!(!is_empty()?);
+        REGISTRY
+            .lock()
+            .map_err(|error| PoisonedLock(error.to_string()))?
+            .hashers
+            .remove(extension);
+        assert_ne!(hashers, len()?);
+        register(extension, sha2_256::hash)?;
+        assert_eq!(hashers, len()?);
 
         test_hasher(
             extension,
