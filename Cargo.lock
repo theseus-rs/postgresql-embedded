@@ -1658,6 +1658,7 @@ dependencies = [
  "postgresql_commands",
  "rand",
  "semver",
+ "target-triple",
  "tempfile",
  "test-log",
  "thiserror",

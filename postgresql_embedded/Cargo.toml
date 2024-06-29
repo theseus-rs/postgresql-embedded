@@ -13,6 +13,7 @@ version.workspace = true
 [build-dependencies]
 anyhow = { workspace = true }
 postgresql_archive = { path = "../postgresql_archive", version = "0.12.0", default-features = false }
+target-triple = { workspace = true }
 tokio = { workspace = true, features = ["full"] }
 
 [dependencies]

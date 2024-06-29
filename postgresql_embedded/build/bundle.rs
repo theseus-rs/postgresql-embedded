@@ -20,6 +20,7 @@ pub(crate) async fn stage_postgresql_archive() -> Result<()> {
     let postgres_version_req = env::var("POSTGRESQL_VERSION").unwrap_or("*".to_string());
     let version_req = VersionReq::from_str(postgres_version_req.as_str())?;
     println!("PostgreSQL version: {postgres_version_req}");
+    println!("Target: {}", target_triple::TARGET);
 
     let out_dir = PathBuf::from(env::var("OUT_DIR")?);
     println!("OUT_DIR: {:?}", out_dir);
