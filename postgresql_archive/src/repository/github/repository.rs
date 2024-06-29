@@ -276,6 +276,12 @@ impl Repository for GitHub {
         );
 
         if let Some(asset_hash) = asset_hash {
+            let archive_hash = match asset_hasher_fn {
+                Some(hasher_fn) => hasher_fn(&bytes)?,
+                None => return Err(AssetHashNotFound(asset.name))?,
+            };
+            let hash_len = archive_hash.len();
+
             debug!(
                 "Downloading archive hash {}",
                 asset_hash.browser_download_url
@@ -283,7 +289,7 @@ impl Repository for GitHub {
             let request = client.get(&asset_hash.browser_download_url);
             let response = request.send().await?.error_for_status()?;
             let text = response.text().await?;
-            let re = Regex::new(r"[0-9a-f]{64}")?;
+            let re = Regex::new(&format!(r"[0-9a-f]{{{hash_len}}}"))?;
             let hash = match re.find(&text) {
                 Some(hash) => hash.as_str().to_string(),
                 None => return Err(AssetHashNotFound(asset.name)),
@@ -293,11 +299,6 @@ impl Repository for GitHub {
                 asset_hash.browser_download_url,
                 human_bytes(text.len() as f64)
             );
-
-            let archive_hash = match asset_hasher_fn {
-                Some(hasher_fn) => hasher_fn(&bytes)?,
-                None => String::new(),
-            };
 
             if archive_hash != hash {
                 return Err(ArchiveHashMismatch { archive_hash, hash });

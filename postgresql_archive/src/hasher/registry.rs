@@ -1,4 +1,4 @@
-use crate::hasher::sha2_256;
+use crate::hasher::{sha2_256, sha2_512};
 use crate::Result;
 use lazy_static::lazy_static;
 use std::collections::HashMap;
@@ -60,6 +60,7 @@ impl Default for HasherRegistry {
     fn default() -> Self {
         let mut registry = Self::new();
         registry.register("sha256", sha2_256::hash);
+        registry.register("sha512", sha2_512::hash);
         registry
     }
 }
@@ -127,6 +128,19 @@ mod tests {
 
         assert_eq!(
             "9a89c68c4c5e28b8c4a5567673d462fff515db46116f9900624d09c474f593fb",
+            hash
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn test_sha2_512() -> Result<()> {
+        let hasher = get("sha512").unwrap();
+        let data = vec![1, 2, 3, 4, 5, 6, 7, 8, 9, 0];
+        let hash = hasher(&data)?;
+
+        assert_eq!(
+            "3ad3f36979450d4f53366244ecf1010f4f9121d6888285ff14104fd5aded85d48aa171bf1e33a112602f92b7a7088b298789012fb87b9056321241a19fb74e0b",
             hash
         );
         Ok(())
