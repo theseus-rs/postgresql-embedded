@@ -143,6 +143,8 @@ mod tests {
         let url = "https://foo.com";
         let repository = get(url)?;
         assert_eq!("test", repository.name());
+        assert!(repository.get_version(&VersionReq::STAR).await.is_ok());
+        assert!(repository.get_archive(&VersionReq::STAR).await.is_ok());
         Ok(())
     }
 
