@@ -13,7 +13,8 @@ use semver::Version;
 /// * If the asset matcher fails.
 #[allow(clippy::unnecessary_wraps)]
 pub fn matcher(name: &str, version: &Version) -> crate::Result<bool> {
-    let expected_name = format!("postgresql-{}-{}.tar.gz", version, target_triple::TARGET);
+    let target = target_triple::TARGET;
+    let expected_name = format!("postgresql-{version}-{target}.tar.gz");
     Ok(name == expected_name)
 }
 

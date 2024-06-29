@@ -215,9 +215,10 @@ impl GitHub {
         };
 
         let mut asset_hash: Option<Asset> = None;
-        for asset in &release.assets {
-            if asset.name.ends_with(".sha256") {
-                asset_hash = Some(asset.clone());
+        let hash_name = format!("{}.sha256", asset.name);
+        for release_asset in &release.assets {
+            if release_asset.name == hash_name {
+                asset_hash = Some(release_asset.clone());
                 break;
             }
         }
