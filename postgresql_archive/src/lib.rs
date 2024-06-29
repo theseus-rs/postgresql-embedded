@@ -25,9 +25,10 @@
 //!
 //! #[tokio::main]
 //! async fn main() -> Result<()> {
-//!     let (archive_version, archive) = get_archive(THESEUS_POSTGRESQL_BINARIES_URL, &VersionReq::STAR).await?;
+//!     let url = THESEUS_POSTGRESQL_BINARIES_URL;
+//!     let (archive_version, archive) = get_archive(url, &VersionReq::STAR).await?;
 //!     let out_dir = std::env::temp_dir();
-//!     extract(&archive, &out_dir).await
+//!     extract(url, &archive, &out_dir).await
 //! }
 //! ```
 //!
@@ -37,9 +38,10 @@
 //! use postgresql_archive::{VersionReq, THESEUS_POSTGRESQL_BINARIES_URL};
 //! use postgresql_archive::blocking::{extract, get_archive};
 //!
-//! let (archive_version, archive) = get_archive(THESEUS_POSTGRESQL_BINARIES_URL, &VersionReq::STAR).unwrap();
+//! let url = THESEUS_POSTGRESQL_BINARIES_URL;
+//! let (archive_version, archive) = get_archive(url, &VersionReq::STAR).unwrap();
 //! let out_dir = std::env::temp_dir();
-//! let result = extract(&archive, &out_dir).unwrap();
+//! let result = extract(url, &archive, &out_dir).unwrap();
 //! }
 //! ```
 //!
@@ -113,6 +115,7 @@ mod archive;
 #[cfg(feature = "blocking")]
 pub mod blocking;
 mod error;
+pub mod extractor;
 pub mod hasher;
 pub mod matcher;
 pub mod repository;

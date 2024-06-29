@@ -1,4 +1,4 @@
-use crate::matcher::postgresql_binaries;
+use crate::matcher::theseus_postgresql_binary;
 use crate::Error::{PoisonedLock, UnsupportedMatcher};
 use crate::{Result, THESEUS_POSTGRESQL_BINARIES_URL};
 use lazy_static::lazy_static;
@@ -67,7 +67,7 @@ impl Default for MatchersRegistry {
         let mut registry = Self::new();
         registry.register(
             |url| Ok(url == THESEUS_POSTGRESQL_BINARIES_URL),
-            postgresql_binaries::matcher,
+            theseus_postgresql_binary::matcher,
         );
         registry
     }
