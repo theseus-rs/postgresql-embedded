@@ -2,7 +2,7 @@
 
 use anyhow::Result;
 use postgresql_archive::VersionReq;
-use postgresql_archive::{get_archive, DEFAULT_POSTGRESQL_URL};
+use postgresql_archive::{get_archive, THESEUS_POSTGRESQL_BINARIES_URL};
 use std::fs::File;
 use std::io::Write;
 use std::path::PathBuf;
@@ -15,7 +15,7 @@ use std::{env, fs};
 /// downloaded at runtime.
 pub(crate) async fn stage_postgresql_archive() -> Result<()> {
     let releases_url =
-        env::var("POSTGRESQL_RELEASES_URL").unwrap_or(DEFAULT_POSTGRESQL_URL.to_string());
+        env::var("POSTGRESQL_RELEASES_URL").unwrap_or(THESEUS_POSTGRESQL_BINARIES_URL.to_string());
     println!("PostgreSQL releases URL: {releases_url}");
     let postgres_version_req = env::var("POSTGRESQL_VERSION").unwrap_or("*".to_string());
     let version_req = VersionReq::from_str(postgres_version_req.as_str())?;

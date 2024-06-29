@@ -1,6 +1,6 @@
-use crate::matcher::{default, postgresql_binaries};
+use crate::matcher::postgresql_binaries;
 use crate::Error::{PoisonedLock, UnsupportedMatcher};
-use crate::{Result, DEFAULT_POSTGRESQL_URL};
+use crate::{Result, THESEUS_POSTGRESQL_BINARIES_URL};
 use lazy_static::lazy_static;
 use semver::Version;
 use std::sync::{Arc, Mutex, RwLock};
@@ -66,10 +66,9 @@ impl Default for MatchersRegistry {
     fn default() -> Self {
         let mut registry = Self::new();
         registry.register(
-            |url| Ok(url == DEFAULT_POSTGRESQL_URL),
+            |url| Ok(url == THESEUS_POSTGRESQL_BINARIES_URL),
             postgresql_binaries::matcher,
         );
-        registry.register(|_| Ok(true), default::matcher);
         registry
     }
 }
@@ -102,7 +101,6 @@ pub fn get<S: AsRef<str>>(url: S) -> Result<MatcherFn> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::env;
 
     #[test]
     fn test_register() -> Result<()> {
@@ -119,14 +117,13 @@ mod tests {
     }
 
     #[test]
-    fn test_default_matcher() -> Result<()> {
-        let matcher = get("https://foo.com")?;
-        let version = Version::new(16, 3, 0);
-        let os = env::consts::OS;
-        let arch = env::consts::ARCH;
-        let name = format!("plugin_csv.pg16-{os}_{arch}.tar.gz");
+    fn test_get_error() {
+        let result = get("foo").unwrap_err();
+        assert_eq!("unsupported matcher for 'foo'", result.to_string());
+    }
 
-        assert!(matcher(name.as_str(), &version)?, "{}", name);
-        Ok(())
+    #[test]
+    fn test_get_theseus_postgresql_binaries() {
+        assert!(get(THESEUS_POSTGRESQL_BINARIES_URL).is_ok());
     }
 }

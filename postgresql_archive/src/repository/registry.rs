@@ -1,7 +1,7 @@
 use crate::repository::github::repository::GitHub;
 use crate::repository::model::Repository;
 use crate::Error::{PoisonedLock, UnsupportedRepository};
-use crate::Result;
+use crate::{Result, THESEUS_POSTGRESQL_BINARIES_URL};
 use lazy_static::lazy_static;
 use std::sync::{Arc, Mutex, RwLock};
 
@@ -10,7 +10,7 @@ lazy_static! {
         Arc::new(Mutex::new(RepositoryRegistry::default()));
 }
 
-type SupportsFn = dyn Fn(&str) -> bool + Send + Sync;
+type SupportsFn = fn(&str) -> Result<bool>;
 type NewFn = dyn Fn(&str) -> Result<Box<dyn Repository>> + Send + Sync;
 
 /// Singleton struct to store repositories
@@ -28,7 +28,7 @@ impl RepositoryRegistry {
     }
 
     /// Registers a repository. Newly registered repositories take precedence over existing ones.
-    fn register(&mut self, supports_fn: Box<SupportsFn>, new_fn: Box<NewFn>) {
+    fn register(&mut self, supports_fn: SupportsFn, new_fn: Box<NewFn>) {
         self.repositories.insert(
             0,
             (
@@ -47,7 +47,7 @@ impl RepositoryRegistry {
             let supports_function = supports_fn
                 .read()
                 .map_err(|error| PoisonedLock(error.to_string()))?;
-            if supports_function(url) {
+            if supports_function(url)? {
                 let new_function = new_fn
                     .read()
                     .map_err(|error| PoisonedLock(error.to_string()))?;
@@ -63,7 +63,10 @@ impl Default for RepositoryRegistry {
     /// Creates a new repository registry with the default repositories registered.
     fn default() -> Self {
         let mut registry = Self::new();
-        registry.register(Box::new(GitHub::supports), Box::new(GitHub::new));
+        registry.register(
+            |url| Ok(url.starts_with(THESEUS_POSTGRESQL_BINARIES_URL)),
+            Box::new(GitHub::new),
+        );
         registry
     }
 }
@@ -73,7 +76,7 @@ impl Default for RepositoryRegistry {
 /// # Errors
 /// * If the registry is poisoned.
 #[allow(dead_code)]
-pub fn register(supports_fn: Box<SupportsFn>, new_fn: Box<NewFn>) -> Result<()> {
+pub fn register(supports_fn: SupportsFn, new_fn: Box<NewFn>) -> Result<()> {
     let mut registry = REGISTRY
         .lock()
         .map_err(|error| PoisonedLock(error.to_string()))?;
@@ -109,10 +112,6 @@ mod tests {
         fn new(_url: &str) -> Result<Box<dyn Repository>> {
             Ok(Box::new(Self))
         }
-
-        fn supports(url: &str) -> bool {
-            url == "https://foo.com"
-        }
     }
 
     #[async_trait]
@@ -137,7 +136,7 @@ mod tests {
     #[tokio::test]
     async fn test_register() -> Result<()> {
         register(
-            Box::new(TestRepository::supports),
+            |url| Ok(url == "https://foo.com"),
             Box::new(TestRepository::new),
         )?;
         let url = "https://foo.com";
@@ -148,19 +147,14 @@ mod tests {
         Ok(())
     }
 
-    #[tokio::test]
-    async fn test_get_no_host() -> Result<()> {
-        let url = "https://";
-        let error = get(url).err().unwrap();
-        assert_eq!("unsupported repository for 'https://'", error.to_string());
-        Ok(())
+    #[test]
+    fn test_get_error() {
+        let error = get("foo").unwrap_err();
+        assert_eq!("unsupported repository for 'foo'", error.to_string());
     }
 
-    #[tokio::test]
-    async fn test_get_github() -> Result<()> {
-        let url = "https://github.com/theseus-rs/postgresql-binaries";
-        let result = get(url);
-        assert!(result.is_ok());
-        Ok(())
+    #[test]
+    fn test_get_theseus_postgresql_binaries() {
+        assert!(get(THESEUS_POSTGRESQL_BINARIES_URL).is_ok());
     }
 }

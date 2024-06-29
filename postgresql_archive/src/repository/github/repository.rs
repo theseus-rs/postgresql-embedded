@@ -80,18 +80,6 @@ impl GitHub {
         }))
     }
 
-    /// Determines if the specified URL is supported by the GitHub repository.
-    ///
-    /// # Errors
-    /// * If the URL cannot be parsed.
-    pub fn supports(url: &str) -> bool {
-        let Ok(parsed_url) = Url::parse(url) else {
-            return false;
-        };
-        let host = parsed_url.host_str().unwrap_or_default();
-        host.contains("github.com")
-    }
-
     /// Gets the version from the specified tag name.
     ///
     /// # Errors
@@ -334,22 +322,11 @@ fn reqwest_client() -> ClientWithMiddleware {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    const URL: &str = "https://github.com/theseus-rs/postgresql-binaries";
-
-    #[test]
-    fn test_supports() {
-        assert!(GitHub::supports(URL));
-    }
-
-    #[test]
-    fn test_supports_error() {
-        assert!(!GitHub::supports("https://foo.com"));
-    }
+    use crate::THESEUS_POSTGRESQL_BINARIES_URL;
 
     #[test]
     fn test_name() {
-        let github = GitHub::new(URL).unwrap();
+        let github = GitHub::new(THESEUS_POSTGRESQL_BINARIES_URL).unwrap();
         assert_eq!("GitHub", github.name());
     }
 
@@ -379,7 +356,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_get_version() -> Result<()> {
-        let github = GitHub::new(URL)?;
+        let github = GitHub::new(THESEUS_POSTGRESQL_BINARIES_URL)?;
         let version_req = VersionReq::STAR;
         let version = github.get_version(&version_req).await?;
         assert!(version > Version::new(0, 0, 0));
@@ -388,7 +365,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_get_specific_version() -> Result<()> {
-        let github = GitHub::new(URL)?;
+        let github = GitHub::new(THESEUS_POSTGRESQL_BINARIES_URL)?;
         let version_req = VersionReq::parse("=16.3.0")?;
         let version = github.get_version(&version_req).await?;
         assert_eq!(Version::new(16, 3, 0), version);
@@ -397,7 +374,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_get_specific_not_found() -> Result<()> {
-        let github = GitHub::new(URL)?;
+        let github = GitHub::new(THESEUS_POSTGRESQL_BINARIES_URL)?;
         let version_req = VersionReq::parse("=0.0.0")?;
         let error = github.get_version(&version_req).await.unwrap_err();
         assert_eq!("version not found for '=0.0.0'", error.to_string());
@@ -410,7 +387,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_get_archive() -> Result<()> {
-        let github = GitHub::new(URL)?;
+        let github = GitHub::new(THESEUS_POSTGRESQL_BINARIES_URL)?;
         let version_req = VersionReq::parse("=16.3.0")?;
         let archive = github.get_archive(&version_req).await?;
         assert_eq!(
@@ -434,27 +411,6 @@ mod tests {
         let version_req = VersionReq::parse("=0.12.0")?;
         let version = github.get_version(&version_req).await?;
         assert_eq!(Version::new(0, 12, 0), version);
-        Ok(())
-    }
-
-    /// Test that a version with a 'v' prefix is correctly parsed; this is a common convention
-    /// for GitHub releases.  Use a known PostgreSQL plugin repository for the test.
-    #[tokio::test]
-    async fn test_get_archive_with_v_prefix() -> Result<()> {
-        let github = GitHub::new("https://github.com/turbot/steampipe-plugin-csv")?;
-        let version_req = VersionReq::parse("=0.12.0")?;
-        let archive = github.get_archive(&version_req).await?;
-        let name = archive.name();
-        // Note: this plugin repository has 3 artifacts that can match:
-        // steampipe_export...
-        // steampipe_postgres...
-        // steampipe_sqlite...
-        // custom matchers will be needed to disambiguate plugins
-        assert!(name.starts_with("steampipe_"));
-        assert!(name.contains("csv"));
-        assert!(name.ends_with(".tar.gz"));
-        assert_eq!(&Version::new(0, 12, 0), archive.version());
-        assert!(!archive.bytes().is_empty());
         Ok(())
     }
 }
