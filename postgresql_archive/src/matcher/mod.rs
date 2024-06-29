@@ -1,3 +1,3 @@
-mod default;
-mod postgresql_binaries;
-pub(crate) mod registry;
+pub mod default;
+pub mod postgresql_binaries;
+pub mod registry;

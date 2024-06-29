@@ -1,10 +1,11 @@
+use crate::hasher::registry::HasherFn;
 use crate::repository::github::models::{Asset, Release};
 use crate::repository::model::Repository;
 use crate::repository::Archive;
 use crate::Error::{
     ArchiveHashMismatch, AssetHashNotFound, AssetNotFound, RepositoryFailure, VersionNotFound,
 };
-use crate::{matcher, Result};
+use crate::{hasher, matcher, Result};
 use async_trait::async_trait;
 use bytes::Bytes;
 use http::{header, Extensions};
@@ -16,7 +17,6 @@ use reqwest_retry::policies::ExponentialBackoff;
 use reqwest_retry::RetryTransientMiddleware;
 use reqwest_tracing::TracingMiddleware;
 use semver::{Version, VersionReq};
-use sha2::{Digest, Sha256};
 use std::env;
 use std::str::FromStr;
 use tracing::{debug, instrument, warn};
@@ -26,7 +26,7 @@ const GITHUB_API_VERSION_HEADER: &str = "X-GitHub-Api-Version";
 const GITHUB_API_VERSION: &str = "2022-11-28";
 
 lazy_static! {
-    static ref GITHUB_TOKEN: Option<String> = match std::env::var("GITHUB_TOKEN") {
+    static ref GITHUB_TOKEN: Option<String> = match env::var("GITHUB_TOKEN") {
         Ok(token) => {
             debug!("GITHUB_TOKEN environment variable found");
             Some(token)
@@ -200,7 +200,11 @@ impl GitHub {
     /// # Errors
     /// * If the asset is not found.
     #[instrument(level = "debug", skip(version, release))]
-    fn get_asset(&self, version: &Version, release: &Release) -> Result<(Asset, Option<Asset>)> {
+    fn get_asset(
+        &self,
+        version: &Version,
+        release: &Release,
+    ) -> Result<(Asset, Option<Asset>, Option<HasherFn>)> {
         let matcher = matcher::registry::get(&self.url);
         let mut release_asset: Option<Asset> = None;
         for asset in &release.assets {
@@ -214,16 +218,26 @@ impl GitHub {
             return Err(AssetNotFound);
         };
 
+        // Attempt to find the asset hash for the asset.
         let mut asset_hash: Option<Asset> = None;
-        let hash_name = format!("{}.sha256", asset.name);
+        let mut asset_hasher_fn: Option<HasherFn> = None;
         for release_asset in &release.assets {
-            if release_asset.name == hash_name {
+            let release_asset_name = release_asset.name.as_str();
+            if !release_asset_name.starts_with(&asset.name) {
+                continue;
+            }
+            let extension = release_asset_name
+                .strip_prefix(format!("{}.", asset.name.as_str()).as_str())
+                .unwrap_or_default();
+
+            if let Some(hasher_fn) = hasher::registry::get(extension) {
                 asset_hash = Some(release_asset.clone());
+                asset_hasher_fn = Some(hasher_fn);
                 break;
             }
         }
 
-        Ok((asset, asset_hash))
+        Ok((asset, asset_hash, asset_hasher_fn))
     }
 }
 
@@ -246,7 +260,7 @@ impl Repository for GitHub {
     async fn get_archive(&self, version_req: &VersionReq) -> Result<Archive> {
         let release = self.get_release(version_req).await?;
         let version = Self::get_version_from_tag_name(release.tag_name.as_str())?;
-        let (asset, asset_hash) = self.get_asset(&version, &release)?;
+        let (asset, asset_hash, asset_hasher_fn) = self.get_asset(&version, &release)?;
         let name = asset.name.clone();
 
         let client = reqwest_client();
@@ -280,9 +294,10 @@ impl Repository for GitHub {
                 human_bytes(text.len() as f64)
             );
 
-            let mut hasher = Sha256::new();
-            hasher.update(&archive);
-            let archive_hash = hex::encode(hasher.finalize());
+            let archive_hash = match asset_hasher_fn {
+                Some(hasher_fn) => hasher_fn(&bytes)?,
+                None => String::new(),
+            };
 
             if archive_hash != hash {
                 return Err(ArchiveHashMismatch { archive_hash, hash });

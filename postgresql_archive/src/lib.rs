@@ -113,6 +113,7 @@ mod archive;
 #[cfg(feature = "blocking")]
 pub mod blocking;
 mod error;
+pub mod hasher;
 pub mod matcher;
 pub mod repository;
 mod version;
