@@ -19,9 +19,6 @@ struct MatchersRegistry {
 
 impl MatchersRegistry {
     /// Creates a new matcher registry.
-    ///
-    /// # Returns
-    /// * The matcher registry.
     fn new() -> Self {
         Self {
             matchers: HashMap::new(),
@@ -30,10 +27,6 @@ impl MatchersRegistry {
 
     /// Registers a matcher for a URL. Newly registered matchers with the same url will override
     /// existing ones.
-    ///
-    /// # Arguments
-    /// * `url` - The URL to register the matcher for; [None] to register the default.
-    /// * `matcher_fn` - The matcher function to register.
     fn register<S: AsRef<str>>(&mut self, url: Option<S>, matcher_fn: MatcherFn) {
         let url: Option<String> = url.map(|s| s.as_ref().to_string());
         self.matchers.insert(url, Arc::new(RwLock::new(matcher_fn)));
@@ -41,12 +34,6 @@ impl MatchersRegistry {
 
     /// Get a matcher for the specified URL, or the default matcher if no matcher is
     /// registered for the URL.
-    ///
-    /// # Arguments
-    /// * `url` - The URL to locate a matcher for.
-    ///
-    /// # Returns
-    /// * The matcher for the URL, or the default matcher.
     fn get<S: AsRef<str>>(&self, url: S) -> MatcherFn {
         let url = Some(url.as_ref().to_string());
         if let Some(matcher) = self.matchers.get(&url) {
@@ -61,6 +48,7 @@ impl MatchersRegistry {
 }
 
 impl Default for MatchersRegistry {
+    /// Creates a new matcher registry with the default matchers registered.
     fn default() -> Self {
         let mut registry = Self::new();
         registry.register(None::<&str>, default::matcher);
@@ -72,10 +60,6 @@ impl Default for MatchersRegistry {
 /// Registers a matcher for a URL. Newly registered matchers with the same url will override
 /// existing ones.
 ///
-/// # Arguments
-/// * `url` - The URL to register the matcher for; [None] to register the default.
-/// * `matcher_fn` - The matcher function to register.
-///
 /// # Panics
 /// * If the registry is poisoned.
 #[allow(dead_code)]
@@ -86,12 +70,6 @@ pub fn register<S: AsRef<str>>(url: Option<S>, matcher_fn: MatcherFn) {
 
 /// Get a matcher for the specified URL, or the default matcher if no matcher is
 /// registered for the URL.
-///
-/// # Arguments
-/// * `url` - The URL to locate a matcher for.
-///
-/// # Returns
-/// * The matcher for the URL, or the default matcher.
 ///
 /// # Panics
 /// * If the registry is poisoned.

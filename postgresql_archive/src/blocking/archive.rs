@@ -10,13 +10,6 @@ lazy_static! {
 /// Gets the version for the specified [version requirement](VersionReq). If a version for the
 /// [version requirement](VersionReq) is not found, then an error is returned.
 ///
-/// # Arguments
-/// * `url` - The URL to released archives.
-/// * `version_req` - The version requirement.
-///
-/// # Returns
-/// * The version matching the requirement.
-///
 /// # Errors
 /// * If the version is not found.
 pub fn get_version(url: &str, version_req: &VersionReq) -> crate::Result<Version> {
@@ -29,13 +22,6 @@ pub fn get_version(url: &str, version_req: &VersionReq) -> crate::Result<Version
 /// matcher. If no archive is found for the [version requirement](VersionReq) and matcher then
 /// an [error](crate::error::Error) is returned.
 ///
-/// # Arguments
-/// * `url` - The URL to the archive resources.
-/// * `version_req` - The version requirement.
-///
-/// # Returns
-/// * The archive version and bytes.
-///
 /// # Errors
 /// * If the archive is not found.
 /// * If the archive cannot be downloaded.
@@ -46,13 +32,6 @@ pub fn get_archive(url: &str, version_req: &VersionReq) -> crate::Result<(Versio
 }
 
 /// Extracts the compressed tar [bytes](Bytes) to the [out_dir](Path).
-///
-/// # Arguments
-/// * `bytes` - The compressed tar bytes.
-/// * `out_dir` - The directory to extract the tar to.
-///
-/// # Returns
-/// * The extracted files.
 ///
 /// # Errors
 /// Returns an error if the extraction fails.

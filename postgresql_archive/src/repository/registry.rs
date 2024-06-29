@@ -21,9 +21,6 @@ struct RepositoryRegistry {
 
 impl RepositoryRegistry {
     /// Creates a new repository registry.
-    ///
-    /// # Returns
-    /// * The repository registry.
     fn new() -> Self {
         Self {
             repositories: Vec::new(),
@@ -31,10 +28,6 @@ impl RepositoryRegistry {
     }
 
     /// Registers a repository. Newly registered repositories can override existing ones.
-    ///
-    /// # Arguments
-    /// * `supports_fn` - The function to check if the repository supports the URL.
-    /// * `new_fn` - The repository constructor function to register.
     fn register(&mut self, supports_fn: Box<SupportsFn>, new_fn: Box<NewFn>) {
         self.repositories.insert(
             0,
@@ -46,12 +39,6 @@ impl RepositoryRegistry {
     }
 
     /// Gets a repository that supports the specified URL
-    ///
-    /// # Arguments
-    /// * `url` - The URL to check for support.
-    ///
-    /// # Returns
-    /// * The repository that supports the URL.
     fn get(&self, url: &str) -> Result<Box<dyn Repository>> {
         for (supports_fn, new_fn) in &self.repositories {
             let supports_function = supports_fn.read().unwrap();
@@ -66,6 +53,7 @@ impl RepositoryRegistry {
 }
 
 impl Default for RepositoryRegistry {
+    /// Creates a new repository registry with the default repositories registered.
     fn default() -> Self {
         let mut registry = Self::new();
         registry.register(Box::new(GitHub::supports), Box::new(GitHub::new));
@@ -74,10 +62,6 @@ impl Default for RepositoryRegistry {
 }
 
 /// Registers a repository. Newly registered repositories can override existing ones.
-///
-/// # Arguments
-/// * `supports_fn` - The function to check if the repository supports the URL.
-/// * `new_fn` - The repository constructor function to register.
 ///
 /// # Panics
 /// * If the repository registry is poisoned.
@@ -88,12 +72,6 @@ pub fn register(supports_fn: Box<SupportsFn>, new_fn: Box<NewFn>) {
 }
 
 /// Gets a repository that supports the specified URL
-///
-/// # Arguments
-/// * `url` - The URL to check for support.
-///
-/// # Returns
-/// * The repository that supports the URL.
 ///
 /// # Errors
 /// * If the URL is not supported.

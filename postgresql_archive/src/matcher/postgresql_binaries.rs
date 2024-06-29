@@ -2,13 +2,6 @@ use semver::Version;
 
 /// Matcher for PostgreSQL binaries from <https://github.com/theseus-rs/postgresql-binaries>
 ///
-/// # Arguments
-/// * `name` - The name of the asset.
-/// * `version` - The version of the asset.
-///
-/// # Returns
-/// * Whether the asset matches.
-///
 /// # Errors
 /// * If the asset matcher fails.
 #[allow(clippy::unnecessary_wraps)]

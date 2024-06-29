@@ -18,9 +18,6 @@ struct HasherRegistry {
 
 impl HasherRegistry {
     /// Creates a new hasher registry.
-    ///
-    /// # Returns
-    /// * The hasher registry.
     fn new() -> Self {
         Self {
             hashers: HashMap::new(),
@@ -29,10 +26,6 @@ impl HasherRegistry {
 
     /// Registers a hasher for an extension. Newly registered hashers with the same extension will
     /// override existing ones.
-    ///
-    /// # Arguments
-    /// * `extension` - The extension to register the hasher for.
-    /// * `hasher_fn` - The hasher function to register.
     fn register<S: AsRef<str>>(&mut self, extension: S, hasher_fn: HasherFn) {
         let extension = extension.as_ref().to_string();
         self.hashers
@@ -40,12 +33,6 @@ impl HasherRegistry {
     }
 
     /// Get a hasher for the specified extension.
-    ///
-    /// # Arguments
-    /// * `extension` - The extension to locate a hasher for.
-    ///
-    /// # Returns
-    /// * The hasher for the extension or [None] if not found.
     fn get<S: AsRef<str>>(&self, extension: S) -> Option<HasherFn> {
         let extension = extension.as_ref().to_string();
         if let Some(hasher) = self.hashers.get(&extension) {
@@ -57,6 +44,7 @@ impl HasherRegistry {
 }
 
 impl Default for HasherRegistry {
+    /// Creates a new hasher registry with the default hashers registered.
     fn default() -> Self {
         let mut registry = Self::new();
         registry.register("blake2s", blake2s_256::hash);
@@ -72,10 +60,6 @@ impl Default for HasherRegistry {
 /// Registers a hasher for an extension. Newly registered hashers with the same extension will
 /// override existing ones.
 ///
-/// # Arguments
-/// * `extension` - The extension to register the hasher for.
-/// * `hasher_fn` - The hasher function to register.
-///
 /// # Panics
 /// * If the registry is poisoned.
 #[allow(dead_code)]
@@ -85,12 +69,6 @@ pub fn register<S: AsRef<str>>(extension: S, hasher_fn: HasherFn) {
 }
 
 /// Get a hasher for the specified extension.
-///
-/// # Arguments
-/// * `extension` - The extension to locate a hasher for.
-///
-/// # Returns
-/// * The hasher for the extension or [None] if not found.
 ///
 /// # Panics
 /// * If the registry is poisoned.

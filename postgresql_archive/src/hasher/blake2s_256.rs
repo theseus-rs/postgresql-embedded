@@ -3,12 +3,6 @@ use blake2::{Blake2s256, Digest};
 
 /// Hashes the data using blake2s-256.
 ///
-/// # Arguments
-/// * `data` - The data to hash.
-///
-/// # Returns
-/// * The hash of the data.
-///
 /// # Errors
 /// * If the data cannot be hashed.
 pub fn hash(data: &Vec<u8>) -> Result<String> {

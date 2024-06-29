@@ -1,6 +1,7 @@
 //! Structs for GitHub API responses
 use serde::{Deserialize, Serialize};
 
+/// Represents a GitHub release
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub(crate) struct Release {
     pub url: String,
@@ -15,6 +16,7 @@ pub(crate) struct Release {
     pub assets: Vec<Asset>,
 }
 
+/// Represents a GitHub asset
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub(crate) struct Asset {
     pub url: String,

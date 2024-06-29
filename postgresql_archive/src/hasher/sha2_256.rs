@@ -3,12 +3,6 @@ use sha2::{Digest, Sha256};
 
 /// Hashes the data using SHA2-256.
 ///
-/// # Arguments
-/// * `data` - The data to hash.
-///
-/// # Returns
-/// * The hash of the data.
-///
 /// # Errors
 /// * If the data cannot be hashed.
 pub fn hash(data: &Vec<u8>) -> Result<String> {

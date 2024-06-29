@@ -6,20 +6,11 @@ use std::fmt::Debug;
 #[async_trait]
 pub trait Repository: Debug + Send + Sync {
     /// Gets the name of the repository.
-    ///
-    /// # Returns
-    /// * The name of the repository.
     fn name(&self) -> &str;
 
     /// Gets the version for the specified [version requirement](VersionReq). If a
     /// [version](Version) for the [version requirement](VersionReq) is not found,
     /// then an error is returned.
-    ///
-    /// # Arguments
-    /// * `version_req` - The version requirement.
-    ///
-    /// # Returns
-    /// * The version matching the requirement.
     ///
     /// # Errors
     /// * If the version is not found.
@@ -28,12 +19,6 @@ pub trait Repository: Debug + Send + Sync {
     /// Gets the archive for a given [version requirement](VersionReq) that passes the default
     /// matcher. If no archive is found for the [version requirement](VersionReq) and matcher then
     /// an [error](crate::error::Error) is returned.
-    ///
-    /// # Arguments
-    /// * `version_req` - The version requirement.
-    ///
-    /// # Returns
-    /// * The archive version and bytes.
     ///
     /// # Errors
     /// * If the archive is not found.
@@ -51,14 +36,6 @@ pub struct Archive {
 
 impl Archive {
     /// Creates a new archive.
-    ///
-    /// # Arguments
-    /// * `name` - The name of the archive.
-    /// * `version` - The version of the archive.
-    /// * `bytes` - The bytes of the archive.
-    ///
-    /// # Returns
-    /// * The archive.
     #[must_use]
     pub fn new(name: String, version: Version, bytes: Vec<u8>) -> Self {
         Self {
@@ -69,27 +46,18 @@ impl Archive {
     }
 
     /// Gets the name of the archive.
-    ///
-    /// # Returns
-    /// * The name of the archive.
     #[must_use]
     pub fn name(&self) -> &str {
         &self.name
     }
 
     /// Gets the version of the archive.
-    ///
-    /// # Returns
-    /// * The version of the archive.
     #[must_use]
     pub fn version(&self) -> &Version {
         &self.version
     }
 
     /// Gets the bytes of the archive.
-    ///
-    /// # Returns
-    /// * The bytes of the archive.
     #[must_use]
     pub fn bytes(&self) -> &[u8] {
         &self.bytes

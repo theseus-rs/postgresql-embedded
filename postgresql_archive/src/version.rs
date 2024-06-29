@@ -3,15 +3,12 @@ use semver::{Version, VersionReq};
 
 /// A trait for getting the exact version from a [version requirement](VersionReq).
 pub trait ExactVersion {
-    /// Gets the exact version from a [version requirement](VersionReq).
-    ///
-    /// # Returns
-    /// * The exact version or `None` if the [version requirement](VersionReq) is not an exact
-    /// version.
+    /// Gets the exact version from a [version requirement](VersionReq) or `None`.
     fn exact_version(&self) -> Option<Version>;
 }
 
 impl ExactVersion for VersionReq {
+    /// Gets the exact version from a [version requirement](VersionReq) or `None`.
     fn exact_version(&self) -> Option<Version> {
         if self.comparators.len() != 1 {
             return None;
@@ -31,15 +28,16 @@ impl ExactVersion for VersionReq {
 pub trait ExactVersionReq {
     /// Gets the exact version requirement from a [version](Version).
     ///
-    /// # Returns
-    /// * The exact version requirement.
-    ///
     /// # Errors
     /// * If the version requirement cannot be parsed.
     fn exact_version_req(&self) -> Result<VersionReq>;
 }
 
 impl ExactVersionReq for Version {
+    /// Gets the exact version requirement from a [version](Version).
+    ///
+    /// # Errors
+    /// * If the version requirement cannot be parsed.
     fn exact_version_req(&self) -> Result<VersionReq> {
         let version = format!("={self}");
         let version_req = VersionReq::parse(&version)?;

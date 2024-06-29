@@ -5,13 +5,6 @@ use std::env;
 /// Default asset matcher that matches the asset name to the current target triple or OS/CPU
 /// architecture.
 ///
-/// # Arguments
-/// * `name` - The name of the asset.
-/// * `version` - The version of the asset.
-///
-/// # Returns
-/// * Whether the asset matches.
-///
 /// # Errors
 /// * If the asset matcher fails.
 pub fn matcher(name: &str, _version: &Version) -> crate::Result<bool> {

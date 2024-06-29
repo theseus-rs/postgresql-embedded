@@ -55,13 +55,8 @@ pub(crate) struct GitHub {
 }
 
 impl GitHub {
-    /// Creates a new GitHub repository from the specified URL.
-    ///
-    /// # Arguments
-    /// * `url` - The URL to the GitHub repository in the format <https://github.com/owner/repository>
-    ///
-    /// # Returns
-    /// * The GitHub repository.
+    /// Creates a new GitHub repository from the specified URL in the format
+    /// <https://github.com/owner/repository>
     ///
     /// # Errors
     /// * If the URL is invalid.
@@ -88,12 +83,6 @@ impl GitHub {
 
     /// Determines if the specified URL is supported by the GitHub repository.
     ///
-    /// # Arguments
-    /// * `url` - The URL to check for support.
-    ///
-    /// # Returns
-    /// * Whether the URL is supported.
-    ///
     /// # Errors
     /// * If the URL cannot be parsed.
     pub fn supports(url: &str) -> bool {
@@ -105,12 +94,6 @@ impl GitHub {
     }
 
     /// Gets the version from the specified tag name.
-    ///
-    /// # Arguments
-    /// * `tag_name` - The tag name.
-    ///
-    /// # Returns
-    /// * The version.
     ///
     /// # Errors
     /// * If the version cannot be parsed.
@@ -128,12 +111,6 @@ impl GitHub {
 
     /// Gets the release for the specified [version requirement](VersionReq). If a release for the
     /// [version requirement](VersionReq) is not found, then an error is returned.
-    ///
-    /// # Arguments
-    /// * `version_req` - The version requirement.
-    ///
-    /// # Returns
-    /// * The release matching the requirement.
     ///
     /// # Errors
     /// * If the release is not found.
@@ -189,13 +166,6 @@ impl GitHub {
 
     /// Gets the asset for the specified release that passes the supplied matcher. If an asset for
     /// that passes the matcher is not found, then an [AssetNotFound] error is returned.
-    ///
-    /// # Arguments
-    /// * `release` - The release.
-    /// * `matcher` - The matcher function.
-    ///
-    /// # Returns
-    /// * The asset and hash asset.
     ///
     /// # Errors
     /// * If the asset is not found.
