@@ -101,7 +101,7 @@ fn acquire_lock(out_dir: &Path) -> Result<PathBuf> {
 /// Returns an error if the extraction fails.
 #[allow(clippy::cast_precision_loss)]
 #[instrument(skip(bytes))]
-pub async fn extract(bytes: Vec<u8>, out_dir: &Path) -> Result<()> {
+pub async fn extract(bytes: &Vec<u8>, out_dir: &Path) -> Result<()> {
     let input = BufReader::new(Cursor::new(bytes));
     let decoder = GzDecoder::new(input);
     let mut archive = Archive::new(decoder);

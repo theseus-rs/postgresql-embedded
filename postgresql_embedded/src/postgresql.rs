@@ -157,7 +157,7 @@ impl PostgreSQL {
             debug!("Using bundled installation archive");
             (
                 self.settings.version.clone(),
-                bytes::Bytes::copy_from_slice(crate::settings::ARCHIVE),
+                crate::settings::ARCHIVE.to_vec(),
             )
         } else {
             let (version, bytes) =
