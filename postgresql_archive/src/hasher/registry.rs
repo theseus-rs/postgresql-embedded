@@ -1,4 +1,4 @@
-use crate::hasher::{sha2_256, sha2_512};
+use crate::hasher::{blake2b_512, blake2s_256, sha2_256, sha2_512, sha3_256, sha3_512};
 use crate::Result;
 use lazy_static::lazy_static;
 use std::collections::HashMap;
@@ -59,8 +59,12 @@ impl HasherRegistry {
 impl Default for HasherRegistry {
     fn default() -> Self {
         let mut registry = Self::new();
+        registry.register("blake2s", blake2s_256::hash);
+        registry.register("blake2b", blake2b_512::hash);
         registry.register("sha256", sha2_256::hash);
         registry.register("sha512", sha2_512::hash);
+        registry.register("sha3-256", sha3_256::hash);
+        registry.register("sha3-512", sha3_512::hash);
         registry
     }
 }
@@ -141,6 +145,58 @@ mod tests {
 
         assert_eq!(
             "3ad3f36979450d4f53366244ecf1010f4f9121d6888285ff14104fd5aded85d48aa171bf1e33a112602f92b7a7088b298789012fb87b9056321241a19fb74e0b",
+            hash
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn test_sha3_256() -> Result<()> {
+        let hasher = get("sha3-256").unwrap();
+        let data = vec![1, 2, 3, 4, 5, 6, 7, 8, 9, 0];
+        let hash = hasher(&data)?;
+
+        assert_eq!(
+            "c0188232190e0427fc9cc78597221c76c799528660889bd6ce1f3563148ff84d",
+            hash
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn test_sha3_512() -> Result<()> {
+        let hasher = get("sha3-512").unwrap();
+        let data = vec![1, 2, 3, 4, 5, 6, 7, 8, 9, 0];
+        let hash = hasher(&data)?;
+
+        assert_eq!(
+            "9429fc1f9772cc1d8039fe75cc1b033cd60f0ec4face0f8a514d25b0649ba8a5954b6c7a41cc3697a56db3ff321475be1fa14b70c7eb78fec6ce62dbfc54c9d3",
+            hash
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn test_blake2s_256() -> Result<()> {
+        let hasher = get("blake2s").unwrap();
+        let data = vec![1, 2, 3, 4, 5, 6, 7, 8, 9, 0];
+        let hash = hasher(&data)?;
+
+        assert_eq!(
+            "7125921e06071710350390fe902856dbea366a5d6f5ee26c18e741143ac80061",
+            hash
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn test_blake2s_512() -> Result<()> {
+        let hasher = get("blake2s").unwrap();
+        let data = vec![1, 2, 3, 4, 5, 6, 7, 8, 9, 0];
+        let hash = hasher(&data)?;
+
+        assert_eq!(
+            "7125921e06071710350390fe902856dbea366a5d6f5ee26c18e741143ac80061",
             hash
         );
         Ok(())

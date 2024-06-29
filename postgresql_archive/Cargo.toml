@@ -12,6 +12,7 @@ version.workspace = true
 [dependencies]
 anyhow = { workspace = true }
 async-trait = { workspace = true }
+blake2 = { workspace = true }
 bytes = { workspace = true }
 flate2 = { workspace = true }
 hex = { workspace = true }
@@ -28,6 +29,7 @@ semver = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
 sha2 = { workspace = true }
+sha3 = { workspace = true }
 tar = { workspace = true }
 target-triple = { workspace = true }
 tempfile = { workspace = true }
