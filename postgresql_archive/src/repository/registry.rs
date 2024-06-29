@@ -1,6 +1,6 @@
 use crate::repository::github::repository::GitHub;
 use crate::repository::model::Repository;
-use crate::Error::UnsupportedRepository;
+use crate::Error::{PoisonedLock, UnsupportedRepository};
 use crate::Result;
 use lazy_static::lazy_static;
 use std::sync::{Arc, Mutex, RwLock};
@@ -39,16 +39,33 @@ impl RepositoryRegistry {
     }
 
     /// Gets a repository that supports the specified URL
+    ///
+    /// # Errors
+    /// * If the URL is not supported.
     fn get(&self, url: &str) -> Result<Box<dyn Repository>> {
         for (supports_fn, new_fn) in &self.repositories {
-            let supports_function = supports_fn.read().unwrap();
+            let supports_function = supports_fn
+                .read()
+                .map_err(|error| PoisonedLock(error.to_string()))?;
             if supports_function(url) {
-                let new_function = new_fn.read().unwrap();
+                let new_function = new_fn
+                    .read()
+                    .map_err(|error| PoisonedLock(error.to_string()))?;
                 return new_function(url);
             }
         }
 
         Err(UnsupportedRepository(url.to_string()))
+    }
+
+    /// Get the number of repositories in the registry.
+    fn len(&self) -> usize {
+        self.repositories.len()
+    }
+
+    /// Check if the registry is empty.
+    fn is_empty(&self) -> bool {
+        self.repositories.is_empty()
     }
 }
 
@@ -63,24 +80,48 @@ impl Default for RepositoryRegistry {
 
 /// Registers a repository. Newly registered repositories can override existing ones.
 ///
-/// # Panics
-/// * If the repository registry is poisoned.
+/// # Errors
+/// * If the registry is poisoned.
 #[allow(dead_code)]
-pub fn register(supports_fn: Box<SupportsFn>, new_fn: Box<NewFn>) {
-    let mut registry = REGISTRY.lock().unwrap();
+pub fn register(supports_fn: Box<SupportsFn>, new_fn: Box<NewFn>) -> Result<()> {
+    let mut registry = REGISTRY
+        .lock()
+        .map_err(|error| PoisonedLock(error.to_string()))?;
     registry.register(supports_fn, new_fn);
+    Ok(())
 }
 
 /// Gets a repository that supports the specified URL
 ///
 /// # Errors
 /// * If the URL is not supported.
-///
-/// # Panics
-/// * If the repository registry is poisoned.
 pub fn get(url: &str) -> Result<Box<dyn Repository>> {
-    let registry = REGISTRY.lock().unwrap();
+    let registry = REGISTRY
+        .lock()
+        .map_err(|error| PoisonedLock(error.to_string()))?;
     registry.get(url)
+}
+
+/// Get the number of repositories in the registry.
+///
+/// # Errors
+/// * If the registry is poisoned.
+pub fn len() -> Result<usize> {
+    let registry = REGISTRY
+        .lock()
+        .map_err(|error| PoisonedLock(error.to_string()))?;
+    Ok(registry.len())
+}
+
+/// Check if the registry is empty.
+///
+/// # Errors
+/// * If the registry is poisoned.
+pub fn is_empty() -> Result<bool> {
+    let registry = REGISTRY
+        .lock()
+        .map_err(|error| PoisonedLock(error.to_string()))?;
+    Ok(registry.is_empty())
 }
 
 #[cfg(test)]
@@ -89,12 +130,16 @@ mod tests {
 
     #[tokio::test]
     async fn test_register() -> Result<()> {
-        let repositories = REGISTRY.lock().unwrap().repositories.len();
-        assert!(!REGISTRY.lock().unwrap().repositories.is_empty());
-        REGISTRY.lock().unwrap().repositories.truncate(0);
-        assert_ne!(repositories, REGISTRY.lock().unwrap().repositories.len());
-        register(Box::new(GitHub::supports), Box::new(GitHub::new));
-        assert_eq!(repositories, REGISTRY.lock().unwrap().repositories.len());
+        let repositories = len()?;
+        assert!(!is_empty()?);
+        REGISTRY
+            .lock()
+            .map_err(|error| PoisonedLock(error.to_string()))?
+            .repositories
+            .truncate(0);
+        assert_ne!(repositories, len()?);
+        register(Box::new(GitHub::supports), Box::new(GitHub::new))?;
+        assert_eq!(repositories, len()?);
 
         let url = "https://github.com/theseus-rs/postgresql-binaries";
         let result = get(url);
