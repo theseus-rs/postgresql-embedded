@@ -106,7 +106,8 @@ impl Repository for Maven {
         let archive_url = format!("{url}/{version}/{artifact}-{version}.jar", url = self.url,);
 
         let mut hasher_result = None;
-        for extension in &["md5", "sha1", "sha256", "sha512"] {
+        // Try to find a hasher for the archive; the extensions are ordered by preference.
+        for extension in &["sha512", "sha256", "sha1", "md5"] {
             if let Ok(hasher_fn) = hasher::registry::get(&self.url, &(*extension).to_string()) {
                 hasher_result = Some((extension, hasher_fn));
             }

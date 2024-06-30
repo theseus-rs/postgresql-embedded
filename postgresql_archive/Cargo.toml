@@ -28,6 +28,7 @@ reqwest-tracing = { workspace = true }
 semver = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
+sha1 = { workspace = true }
 sha2 = { workspace = true }
 sha3 = { workspace = true }
 tar = { workspace = true }
