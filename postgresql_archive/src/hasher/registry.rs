@@ -73,19 +73,17 @@ impl Default for HasherRegistry {
         // The zonky maven central releases prior to version 13.2.0 only provide MD5/SHA-1 hashes.
         registry.register(
             |url, extension| {
-                Ok(
-                    url.contains("io/zonky/test/postgres/embedded-postgres-binaries")
-                        && extension == "sha1",
-                )
+                Ok(url.contains("zonky")
+                    && url.contains("embedded-postgres-binaries")
+                    && extension == "sha1")
             },
             sha1::hash,
         );
         registry.register(
             |url, extension| {
-                Ok(
-                    url.contains("io/zonky/test/postgres/embedded-postgres-binaries")
-                        && extension == "sha512",
-                )
+                Ok(url.contains("zonky")
+                    && url.contains("embedded-postgres-binaries")
+                    && extension == "sha512")
             },
             sha2_512::hash,
         );
