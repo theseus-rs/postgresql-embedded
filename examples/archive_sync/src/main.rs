@@ -2,10 +2,11 @@
 #![deny(clippy::pedantic)]
 
 use postgresql_archive::blocking::{extract, get_archive};
-use postgresql_archive::{Result, VersionReq, THESEUS_POSTGRESQL_BINARIES_URL};
+use postgresql_archive::configuration::theseus;
+use postgresql_archive::{Result, VersionReq};
 
 fn main() -> Result<()> {
-    let url = THESEUS_POSTGRESQL_BINARIES_URL;
+    let url = theseus::URL;
     let version_req = VersionReq::STAR;
     let (archive_version, archive) = get_archive(url, &version_req)?;
     let out_dir = tempfile::tempdir()?.into_path();

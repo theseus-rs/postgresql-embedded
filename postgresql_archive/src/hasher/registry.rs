@@ -1,6 +1,7 @@
-use crate::hasher::sha2_256;
+use crate::configuration::theseus;
+use crate::hasher::{sha2_256, sha2_512};
 use crate::Error::{PoisonedLock, UnsupportedHasher};
-use crate::{Result, THESEUS_POSTGRESQL_BINARIES_URL};
+use crate::Result;
 use lazy_static::lazy_static;
 use std::sync::{Arc, Mutex, RwLock};
 
@@ -66,10 +67,16 @@ impl Default for HasherRegistry {
     fn default() -> Self {
         let mut registry = Self::new();
         registry.register(
-            |url, extension| {
-                Ok(url.starts_with(THESEUS_POSTGRESQL_BINARIES_URL) && extension == "sha256")
-            },
+            |url, extension| Ok(url.starts_with(theseus::URL) && extension == "sha256"),
             sha2_256::hash,
+        );
+        registry.register(
+            |url, extension| {
+                Ok(url.contains("zonky")
+                    && url.contains("embedded-postgres-binaries")
+                    && extension == "sha512")
+            },
+            sha2_512::hash,
         );
         registry
     }
@@ -103,6 +110,7 @@ pub fn get<S: AsRef<str>>(url: S, extension: S) -> Result<HasherFn> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::configuration::zonky;
 
     fn test_hasher(extension: &str, expected: &str) -> Result<()> {
         let hasher = get("https://foo.com", extension)?;
@@ -132,15 +140,20 @@ mod tests {
 
     #[test]
     fn test_get_invalid_extension_error() {
-        let error = get(THESEUS_POSTGRESQL_BINARIES_URL, "foo").unwrap_err();
+        let error = get(theseus::URL, "foo").unwrap_err();
         assert_eq!(
-            format!("unsupported hasher for '{THESEUS_POSTGRESQL_BINARIES_URL}'"),
+            format!("unsupported hasher for '{}'", theseus::URL),
             error.to_string()
         );
     }
 
     #[test]
     fn test_get_theseus_postgresql_binaries() {
-        assert!(get(THESEUS_POSTGRESQL_BINARIES_URL, "sha256").is_ok());
+        assert!(get(theseus::URL, "sha256").is_ok());
+    }
+
+    #[test]
+    fn test_get_zonkyio_postgresql_binaries() {
+        assert!(get(zonky::URL, "sha512").is_ok());
     }
 }

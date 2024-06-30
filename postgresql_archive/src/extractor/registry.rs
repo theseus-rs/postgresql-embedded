@@ -1,6 +1,6 @@
-use crate::extractor::theseus_postgresql_binary;
+use crate::configuration::{theseus, zonky};
 use crate::Error::{PoisonedLock, UnsupportedExtractor};
-use crate::{Result, THESEUS_POSTGRESQL_BINARIES_URL};
+use crate::Result;
 use lazy_static::lazy_static;
 use std::path::Path;
 use std::sync::{Arc, Mutex, RwLock};
@@ -63,10 +63,8 @@ impl Default for RepositoryRegistry {
     /// Creates a new repository registry with the default repositories registered.
     fn default() -> Self {
         let mut registry = Self::new();
-        registry.register(
-            |url| Ok(url.starts_with(THESEUS_POSTGRESQL_BINARIES_URL)),
-            theseus_postgresql_binary::extract,
-        );
+        registry.register(|url| Ok(url.starts_with(theseus::URL)), theseus::extract);
+        registry.register(|url| Ok(url.starts_with(zonky::URL)), zonky::extract);
         registry
     }
 }
@@ -116,6 +114,6 @@ mod tests {
 
     #[test]
     fn test_get_theseus_postgresql_binaries() {
-        assert!(get(THESEUS_POSTGRESQL_BINARIES_URL).is_ok());
+        assert!(get(theseus::URL).is_ok());
     }
 }
