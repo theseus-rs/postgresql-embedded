@@ -1,5 +1,6 @@
 #[cfg(feature = "blocking")]
 use postgresql_archive::blocking::{extract, get_archive, get_version};
+#[cfg(feature = "blocking")]
 use postgresql_archive::configuration::theseus;
 #[cfg(feature = "blocking")]
 use postgresql_archive::VersionReq;
