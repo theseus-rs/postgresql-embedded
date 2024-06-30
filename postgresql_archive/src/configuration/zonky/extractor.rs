@@ -16,6 +16,7 @@ use zip::ZipArchive;
 ///
 /// # Errors
 /// Returns an error if the extraction fails.
+#[allow(clippy::case_sensitive_file_extension_comparisons)]
 #[allow(clippy::cast_precision_loss)]
 #[instrument(skip(bytes))]
 pub fn extract(bytes: &Vec<u8>, out_dir: &Path) -> Result<()> {
