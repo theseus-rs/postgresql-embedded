@@ -103,10 +103,6 @@
 //! at your option.
 //!
 //! PostgreSQL is covered under [The PostgreSQL License](https://opensource.org/licenses/postgresql).
-//!
-//! ## Notes
-//!
-//! Uses PostgreSQL binaries from [theseus-rs/postgresql-binaries](https://github.com/theseus-rs/postgresql-binaries).
 
 #![forbid(unsafe_code)]
 #![deny(clippy::pedantic)]

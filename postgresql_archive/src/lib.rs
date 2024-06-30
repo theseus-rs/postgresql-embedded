@@ -26,7 +26,7 @@
 //!
 //! #[tokio::main]
 //! async fn main() -> Result<()> {
-//! let url = theseus::URL;
+//!     let url = theseus::URL;
 //!     let (archive_version, archive) = get_archive(url, &VersionReq::STAR).await?;
 //!     let out_dir = std::env::temp_dir();
 //!     extract(url, &archive, &out_dir).await
@@ -62,33 +62,10 @@
 //!
 //! ## Supported platforms
 //!
-//! postgresql_archive supports all platforms provided by [theseus-rs/postgresql-binaries](https://github.com/theseus-rs/postgresql-binaries):
+//! `postgresql_archive` provides implementations for the following:
 //!
-//! | OS      | [Target](https://doc.rust-lang.org/nightly/rustc/platform-support.html) |
-//! |---------|-------------------------------------------------------------------------|
-//! | Linux   | aarch64-unknown-linux-gnu                                               |
-//! | Linux   | aarch64-unknown-linux-musl                                              |
-//! | Linux   | arm-unknown-linux-gnueabi                                               |
-//! | Linux   | arm-unknown-linux-gnueabihf                                             |
-//! | Linux   | arm-unknown-linux-musleabi                                              |
-//! | Linux   | arm-unknown-linux-musleabihf                                            |
-//! | Linux   | armv5te-unknown-linux-gnueabi                                           |
-//! | Linux   | armv7-unknown-linux-gnueabihf                                           |
-//! | Linux   | armv7-unknown-linux-musleabihf                                          |
-//! | Linux   | i586-unknown-linux-gnu                                                  |
-//! | Linux   | i586-unknown-linux-musl                                                 |
-//! | Linux   | i686-unknown-linux-gnu                                                  |
-//! | Linux   | i686-unknown-linux-musl                                                 |
-//! | Linux   | mips64-unknown-linux-gnuabi64                                           |
-//! | Linux   | powerpc64le-unknown-linux-gnu                                           |
-//! | Linux   | powerpc64le-unknown-linux-musl                                          |
-//! | Linux   | s390x-unknown-linux-gnu                                                 |
-//! | Linux   | s390x-unknown-linux-musl                                                |
-//! | Linux   | x86_64-unknown-linux-gnu                                                |
-//! | Linux   | x86_64-unknown-linux-musl                                               |
-//! | MacOS   | aarch64-apple-darwin                                                    |
-//! | MacOS   | x86_64-apple-darwin                                                     |
-//! | Windows | x86_64-pc-windows-msvc                                                  |
+//! * [theseus-rs/postgresql-binaries](https://github.com/theseus-rs/postgresql-binaries)
+//! * [zonkyio/embedded-postgres-binaries](https://github.com/zonkyio/embedded-postgres-binaries)
 //!
 //! ## Safety
 //!

@@ -9,8 +9,8 @@ use tracing::instrument;
 
 /// Zonky repository.
 ///
-/// This repository is used to interact with Maven repositories
-/// (e.g. <https://repo1.maven.org/maven2>).
+/// This repository is used to interact with Zonky Maven repositories
+/// (e.g. <https://repo1.maven.org/maven2/io/zonky/test/postgres">).
 #[derive(Debug)]
 pub struct Zonky {
     maven: Box<dyn Repository>,

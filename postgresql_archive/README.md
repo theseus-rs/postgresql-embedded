@@ -8,33 +8,37 @@
 [![License](https://img.shields.io/crates/l/postgresql_archive?)](https://github.com/theseus-rs/postgresql-embedded/tree/main/postgresql_archive#license)
 [![Semantic Versioning](https://img.shields.io/badge/%E2%9A%99%EF%B8%8F_SemVer-2.0.0-blue)](https://semver.org/spec/v2.0.0.html)
 
-A library for downloading and extracting PostgreSQL archives.
+A configurable library for downloading and extracting PostgreSQL archives.
 
 ## Examples
 
 ### Asynchronous API
 
 ```rust
-use postgresql_archive::{extract, get_archive, Result, LATEST};
+use postgresql_archive::{extract, get_archive, Result, VersionReq};
+use postgresql_archive::configuration::theseus;
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    let (archive_version, archive) = get_archive(&LATEST).await?;
+    let url = theseus::URL;
+    let (archive_version, archive) = get_archive(url, &VersionReq::STAR).await?;
     let out_dir = std::env::temp_dir();
-    extract(&archive, &out_dir).await
+    extract(url, &archive, &out_dir).await
 }
 ```
 
 ### Synchronous API
 
 ```rust
-use postgresql_archive::{Result, LATEST};
+use postgresql_archive::configuration::theseus;
+use postgresql_archive::{Result, VersionReq};
 use postgresql_archive::blocking::{extract, get_archive};
 
 fn main() -> Result<()> {
-    let (archive_version, archive) = get_archive(&LATEST)?;
+    let url = theseus::URL;
+    let (archive_version, archive) = get_archive(url, &VersionReq::STAR)?;
     let out_dir = std::env::temp_dir();
-    extract(&archive, &out_dir)
+    extract(url, &archive, &out_dir)
 }
 ```
 
@@ -53,36 +57,10 @@ The following features are available:
 
 ## Supported platforms
 
-`postgresql_archive` supports all platforms provided
-by [theseus-rs/postgresql-binaries](https://github.com/theseus-rs/postgresql-binaries).
+`postgresql_archive` provides implementations for the following:
 
-Currently supported platforms are:
-
-| OS      | [Target](https://doc.rust-lang.org/nightly/rustc/platform-support.html) |
-|---------|-------------------------------------------------------------------------|
-| Linux   | aarch64-unknown-linux-gnu                                               |
-| Linux   | aarch64-unknown-linux-musl                                              |
-| Linux   | arm-unknown-linux-gnueabi                                               |
-| Linux   | arm-unknown-linux-gnueabihf                                             |
-| Linux   | arm-unknown-linux-musleabi                                              |
-| Linux   | arm-unknown-linux-musleabihf                                            |
-| Linux   | armv5te-unknown-linux-gnueabi                                           |
-| Linux   | armv7-unknown-linux-gnueabihf                                           |
-| Linux   | armv7-unknown-linux-musleabihf                                          |
-| Linux   | i586-unknown-linux-gnu                                                  |
-| Linux   | i586-unknown-linux-musl                                                 |
-| Linux   | i686-unknown-linux-gnu                                                  |
-| Linux   | i686-unknown-linux-musl                                                 |
-| Linux   | mips64-unknown-linux-gnuabi64                                           |
-| Linux   | powerpc64le-unknown-linux-gnu                                           |
-| Linux   | powerpc64le-unknown-linux-musl                                          |
-| Linux   | s390x-unknown-linux-gnu                                                 |
-| Linux   | s390x-unknown-linux-musl                                                |
-| Linux   | x86_64-unknown-linux-gnu                                                |
-| Linux   | x86_64-unknown-linux-musl                                               |
-| MacOS   | aarch64-apple-darwin                                                    |
-| MacOS   | x86_64-apple-darwin                                                     |
-| Windows | x86_64-pc-windows-msvc                                                  |
+* [theseus-rs/postgresql-binaries](https://github.com/theseus-rs/postgresql-binaries)
+* [zonkyio/embedded-postgres-binaries](https://github.com/zonkyio/embedded-postgres-binaries)
 
 ## Safety
 
