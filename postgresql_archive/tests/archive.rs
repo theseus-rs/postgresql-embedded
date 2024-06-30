@@ -1,9 +1,9 @@
+use postgresql_archive::configuration::theseus;
 use postgresql_archive::extract;
 use postgresql_archive::{get_archive, get_version};
 use semver::VersionReq;
 use std::fs::{create_dir_all, remove_dir_all};
 use test_log::test;
-use postgresql_archive::configuration::theseus;
 
 #[test(tokio::test)]
 async fn test_get_version_not_found() -> postgresql_archive::Result<()> {
