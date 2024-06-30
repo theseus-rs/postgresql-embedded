@@ -1,5 +1,5 @@
 use crate::configuration::theseus;
-use crate::hasher::{sha2_256, sha2_512};
+use crate::hasher::{sha1, sha2_256, sha2_512};
 use crate::Error::{PoisonedLock, UnsupportedHasher};
 use crate::Result;
 use lazy_static::lazy_static;
@@ -69,6 +69,15 @@ impl Default for HasherRegistry {
         registry.register(
             |url, extension| Ok(url.starts_with(theseus::URL) && extension == "sha256"),
             sha2_256::hash,
+        );
+        // The zonky maven central releases prior to version 13.2.0 only provide MD5/SHA-1 hashes.
+        registry.register(
+            |url, extension| {
+                Ok(url.contains("zonky")
+                    && url.contains("embedded-postgres-binaries")
+                    && extension == "sha1")
+            },
+            sha1::hash,
         );
         registry.register(
             |url, extension| {
