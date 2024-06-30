@@ -1,13 +1,12 @@
 #![forbid(unsafe_code)]
 #![deny(clippy::pedantic)]
 
-use postgresql_archive::{
-    extract, get_archive, Result, VersionReq, THESEUS_POSTGRESQL_BINARIES_URL,
-};
+use postgresql_archive::configuration::theseus;
+use postgresql_archive::{extract, get_archive, Result, VersionReq};
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    let url = THESEUS_POSTGRESQL_BINARIES_URL;
+    let url = theseus::URL;
     let version_req = VersionReq::STAR;
     let (archive_version, archive) = get_archive(url, &version_req).await?;
     let out_dir = tempfile::tempdir()?.into_path();

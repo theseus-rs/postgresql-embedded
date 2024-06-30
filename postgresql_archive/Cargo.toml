@@ -19,6 +19,7 @@ http = { workspace = true }
 human_bytes = { workspace = true, default-features = false }
 lazy_static = { workspace = true }
 num-format = { workspace = true }
+quick-xml = { workspace = true, features = ["serialize"] }
 regex = { workspace = true }
 reqwest = { workspace = true, default-features = false, features = ["json"] }
 reqwest-middleware = { workspace = true }
@@ -36,6 +37,8 @@ thiserror = { workspace = true }
 tokio = { workspace = true, features = ["full"], optional = true }
 tracing = { workspace = true, features = ["log"] }
 url = { workspace = true }
+xz2 = { workspace = true }
+zip = { workspace = true }
 
 [dev-dependencies]
 criterion = { workspace = true }

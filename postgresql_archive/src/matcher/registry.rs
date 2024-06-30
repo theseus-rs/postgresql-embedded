@@ -1,6 +1,6 @@
-use crate::matcher::theseus_postgresql_binary;
+use crate::configuration::{theseus, zonky};
 use crate::Error::{PoisonedLock, UnsupportedMatcher};
-use crate::{Result, THESEUS_POSTGRESQL_BINARIES_URL};
+use crate::Result;
 use lazy_static::lazy_static;
 use semver::Version;
 use std::sync::{Arc, Mutex, RwLock};
@@ -65,10 +65,8 @@ impl Default for MatchersRegistry {
     /// Creates a new matcher registry with the default matchers registered.
     fn default() -> Self {
         let mut registry = Self::new();
-        registry.register(
-            |url| Ok(url == THESEUS_POSTGRESQL_BINARIES_URL),
-            theseus_postgresql_binary::matcher,
-        );
+        registry.register(|url| Ok(url == theseus::URL), theseus::matcher);
+        registry.register(|url| Ok(url == zonky::URL), zonky::matcher);
         registry
     }
 }
@@ -124,6 +122,11 @@ mod tests {
 
     #[test]
     fn test_get_theseus_postgresql_binaries() {
-        assert!(get(THESEUS_POSTGRESQL_BINARIES_URL).is_ok());
+        assert!(get(theseus::URL).is_ok());
+    }
+
+    #[test]
+    fn test_get_zonykio_postgresql_binaries() {
+        assert!(get(zonky::URL).is_ok());
     }
 }

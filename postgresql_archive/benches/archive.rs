@@ -1,6 +1,7 @@
 use criterion::{criterion_group, criterion_main, Criterion};
 use postgresql_archive::blocking::{extract, get_archive};
-use postgresql_archive::{Result, VersionReq, THESEUS_POSTGRESQL_BINARIES_URL};
+use postgresql_archive::configuration::theseus;
+use postgresql_archive::{Result, VersionReq};
 use std::fs::{create_dir_all, remove_dir_all};
 use std::time::Duration;
 
@@ -10,7 +11,7 @@ fn benchmarks(criterion: &mut Criterion) {
 
 fn bench_extract(criterion: &mut Criterion) -> Result<()> {
     let version_req = VersionReq::STAR;
-    let (_archive_version, archive) = get_archive(THESEUS_POSTGRESQL_BINARIES_URL, &version_req)?;
+    let (_archive_version, archive) = get_archive(theseus::URL, &version_req)?;
 
     criterion.bench_function("extract", |bencher| {
         bencher.iter(|| {
@@ -24,7 +25,7 @@ fn bench_extract(criterion: &mut Criterion) -> Result<()> {
 fn extract_archive(archive: &Vec<u8>) -> Result<()> {
     let out_dir = tempfile::tempdir()?.path().to_path_buf();
     create_dir_all(&out_dir)?;
-    extract(THESEUS_POSTGRESQL_BINARIES_URL, archive, &out_dir)?;
+    extract(theseus::URL, archive, &out_dir)?;
     remove_dir_all(&out_dir)?;
     Ok(())
 }

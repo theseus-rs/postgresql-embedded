@@ -1,6 +1,7 @@
 use crate::error::{Error, Result};
 use home::home_dir;
-use postgresql_archive::{VersionReq, THESEUS_POSTGRESQL_BINARIES_URL};
+use postgresql_archive::configuration::theseus;
+use postgresql_archive::VersionReq;
 use rand::distributions::Alphanumeric;
 use rand::Rng;
 use std::collections::HashMap;
@@ -92,7 +93,7 @@ impl Settings {
             .collect();
 
         Self {
-            releases_url: THESEUS_POSTGRESQL_BINARIES_URL.to_string(),
+            releases_url: theseus::URL.to_string(),
             version: default_version(),
             installation_dir: home_dir.join(".theseus").join("postgresql"),
             password_file,

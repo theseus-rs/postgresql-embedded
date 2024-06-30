@@ -1,7 +1,9 @@
+use crate::configuration::zonky::Zonky;
+use crate::configuration::{theseus, zonky};
 use crate::repository::github::repository::GitHub;
 use crate::repository::model::Repository;
 use crate::Error::{PoisonedLock, UnsupportedRepository};
-use crate::{Result, THESEUS_POSTGRESQL_BINARIES_URL};
+use crate::Result;
 use lazy_static::lazy_static;
 use std::sync::{Arc, Mutex, RwLock};
 
@@ -64,9 +66,10 @@ impl Default for RepositoryRegistry {
     fn default() -> Self {
         let mut registry = Self::new();
         registry.register(
-            |url| Ok(url.starts_with(THESEUS_POSTGRESQL_BINARIES_URL)),
+            |url| Ok(url.starts_with(theseus::URL)),
             Box::new(GitHub::new),
         );
+        registry.register(|url| Ok(url.starts_with(zonky::URL)), Box::new(Zonky::new));
         registry
     }
 }
@@ -155,6 +158,11 @@ mod tests {
 
     #[test]
     fn test_get_theseus_postgresql_binaries() {
-        assert!(get(THESEUS_POSTGRESQL_BINARIES_URL).is_ok());
+        assert!(get(theseus::URL).is_ok());
+    }
+
+    #[test]
+    fn test_get_zonkyio_postgresql_binaries() {
+        assert!(get(zonky::URL).is_ok());
     }
 }

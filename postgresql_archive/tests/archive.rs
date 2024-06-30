@@ -1,6 +1,7 @@
+use postgresql_archive::configuration::theseus::URL;
 #[allow(deprecated)]
 use postgresql_archive::extract;
-use postgresql_archive::{get_archive, get_version, THESEUS_POSTGRESQL_BINARIES_URL};
+use postgresql_archive::{get_archive, get_version};
 use semver::VersionReq;
 use std::fs::{create_dir_all, remove_dir_all};
 use test_log::test;
@@ -8,7 +9,7 @@ use test_log::test;
 #[test(tokio::test)]
 async fn test_get_version_not_found() -> postgresql_archive::Result<()> {
     let invalid_version_req = VersionReq::parse("=1.0.0")?;
-    let result = get_version(THESEUS_POSTGRESQL_BINARIES_URL, &invalid_version_req).await;
+    let result = get_version(URL, &invalid_version_req).await;
 
     assert!(result.is_err());
     Ok(())
@@ -17,7 +18,7 @@ async fn test_get_version_not_found() -> postgresql_archive::Result<()> {
 #[test(tokio::test)]
 async fn test_get_version() -> anyhow::Result<()> {
     let version_req = VersionReq::parse("=16.3.0")?;
-    let latest_version = get_version(THESEUS_POSTGRESQL_BINARIES_URL, &version_req).await?;
+    let latest_version = get_version(URL, &version_req).await?;
 
     assert!(version_req.matches(&latest_version));
     Ok(())
@@ -25,7 +26,7 @@ async fn test_get_version() -> anyhow::Result<()> {
 
 #[test(tokio::test)]
 async fn test_get_archive_and_extract() -> anyhow::Result<()> {
-    let url = THESEUS_POSTGRESQL_BINARIES_URL;
+    let url = URL;
     let version_req = VersionReq::STAR;
     let (archive_version, archive) = get_archive(url, &version_req).await?;
 
@@ -41,7 +42,7 @@ async fn test_get_archive_and_extract() -> anyhow::Result<()> {
 #[test(tokio::test)]
 async fn test_get_archive_version_not_found() -> postgresql_archive::Result<()> {
     let invalid_version_req = VersionReq::parse("=1.0.0")?;
-    let result = get_archive(THESEUS_POSTGRESQL_BINARIES_URL, &invalid_version_req).await;
+    let result = get_archive(URL, &invalid_version_req).await;
 
     assert!(result.is_err());
     Ok(())

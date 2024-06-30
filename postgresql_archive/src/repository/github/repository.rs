@@ -48,7 +48,7 @@ lazy_static! {
 /// in the format <https://github.com/owner/repository>
 /// (e.g. <https://github.com/theseus-rs/postgresql-binaries>).
 #[derive(Debug)]
-pub(crate) struct GitHub {
+pub struct GitHub {
     url: String,
     releases_url: String,
 }
@@ -143,8 +143,8 @@ impl GitHub {
 
         match result {
             Some(release) => {
-                let release_version = Self::get_version_from_tag_name(&release.tag_name)?;
-                debug!("Release {release_version} found for version requirement {version_req}");
+                let version = Self::get_version_from_tag_name(&release.tag_name)?;
+                debug!("Version {version} found for version requirement {version_req}");
                 Ok(release)
             }
             None => Err(VersionNotFound(version_req.to_string())),
@@ -267,29 +267,26 @@ impl Repository for GitHub {
     }
 }
 
-/// Middleware to add GitHub headers to the request. If a GitHub token is set, then it is added as a
+/// Middleware to add headers to the request. If a GitHub token is set, then it is added as a
 /// bearer token. This is used to authenticate with the GitHub API to increase the rate limit.
 #[derive(Debug)]
 struct GithubMiddleware;
 
 impl GithubMiddleware {
     #[allow(clippy::unnecessary_wraps)]
-    fn add_github_headers(request: &mut Request) -> Result<()> {
+    fn add_headers(request: &mut Request) -> Result<()> {
         let headers = request.headers_mut();
-
         headers.append(
             GITHUB_API_VERSION_HEADER,
             GITHUB_API_VERSION.parse().unwrap(),
         );
         headers.append(header::USER_AGENT, USER_AGENT.parse().unwrap());
-
         if let Some(token) = &*GITHUB_TOKEN {
             headers.append(
                 header::AUTHORIZATION,
                 format!("Bearer {token}").parse().unwrap(),
             );
         }
-
         Ok(())
     }
 }
@@ -302,7 +299,7 @@ impl Middleware for GithubMiddleware {
         extensions: &mut Extensions,
         next: Next<'_>,
     ) -> reqwest_middleware::Result<Response> {
-        match GithubMiddleware::add_github_headers(&mut request) {
+        match GithubMiddleware::add_headers(&mut request) {
             Ok(()) => next.run(request, extensions).await,
             Err(error) => Err(reqwest_middleware::Error::Middleware(error.into())),
         }
@@ -322,11 +319,11 @@ fn reqwest_client() -> ClientWithMiddleware {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::THESEUS_POSTGRESQL_BINARIES_URL;
+    use crate::configuration::theseus::URL;
 
     #[test]
     fn test_name() {
-        let github = GitHub::new(THESEUS_POSTGRESQL_BINARIES_URL).unwrap();
+        let github = GitHub::new(URL).unwrap();
         assert_eq!("GitHub", github.name());
     }
 
@@ -356,7 +353,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_get_version() -> Result<()> {
-        let github = GitHub::new(THESEUS_POSTGRESQL_BINARIES_URL)?;
+        let github = GitHub::new(URL)?;
         let version_req = VersionReq::STAR;
         let version = github.get_version(&version_req).await?;
         assert!(version > Version::new(0, 0, 0));
@@ -365,7 +362,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_get_specific_version() -> Result<()> {
-        let github = GitHub::new(THESEUS_POSTGRESQL_BINARIES_URL)?;
+        let github = GitHub::new(URL)?;
         let version_req = VersionReq::parse("=16.3.0")?;
         let version = github.get_version(&version_req).await?;
         assert_eq!(Version::new(16, 3, 0), version);
@@ -374,7 +371,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_get_specific_not_found() -> Result<()> {
-        let github = GitHub::new(THESEUS_POSTGRESQL_BINARIES_URL)?;
+        let github = GitHub::new(URL)?;
         let version_req = VersionReq::parse("=0.0.0")?;
         let error = github.get_version(&version_req).await.unwrap_err();
         assert_eq!("version not found for '=0.0.0'", error.to_string());
@@ -387,7 +384,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_get_archive() -> Result<()> {
-        let github = GitHub::new(THESEUS_POSTGRESQL_BINARIES_URL)?;
+        let github = GitHub::new(URL)?;
         let version_req = VersionReq::parse("=16.3.0")?;
         let archive = github.get_archive(&version_req).await?;
         assert_eq!(
