@@ -2,7 +2,7 @@ use postgresql_archive::configuration::zonky;
 use postgresql_archive::extract;
 use postgresql_archive::{get_archive, get_version};
 use semver::VersionReq;
-use std::fs::{create_dir_all, remove_dir_all};
+use std::fs::remove_dir_all;
 use test_log::test;
 
 #[test(tokio::test)]
@@ -32,7 +32,6 @@ async fn test_get_archive_and_extract() -> anyhow::Result<()> {
     assert!(version_req.matches(&archive_version));
 
     let out_dir = tempfile::tempdir()?.path().to_path_buf();
-    create_dir_all(&out_dir)?;
     extract(url, &archive, &out_dir).await?;
     remove_dir_all(&out_dir)?;
     Ok(())

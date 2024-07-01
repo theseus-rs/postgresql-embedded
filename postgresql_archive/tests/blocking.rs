@@ -5,7 +5,7 @@ use postgresql_archive::configuration::theseus;
 #[cfg(feature = "blocking")]
 use postgresql_archive::VersionReq;
 #[cfg(feature = "blocking")]
-use std::fs::{create_dir_all, remove_dir_all};
+use std::fs::remove_dir_all;
 #[cfg(feature = "blocking")]
 use test_log::test;
 
@@ -30,7 +30,6 @@ fn test_get_archive_and_extract() -> anyhow::Result<()> {
     assert!(version_req.matches(&archive_version));
 
     let out_dir = tempfile::tempdir()?.path().to_path_buf();
-    create_dir_all(&out_dir)?;
     extract(url, &archive, &out_dir)?;
     remove_dir_all(&out_dir)?;
     Ok(())
