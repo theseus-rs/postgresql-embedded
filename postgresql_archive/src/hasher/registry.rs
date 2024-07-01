@@ -1,5 +1,6 @@
 use crate::configuration::theseus;
-use crate::hasher::{sha1, sha2_256, sha2_512};
+use crate::hasher::{md5, sha1, sha2_256, sha2_512};
+use crate::repository::maven;
 use crate::Error::{PoisonedLock, UnsupportedHasher};
 use crate::Result;
 use lazy_static::lazy_static;
@@ -70,21 +71,21 @@ impl Default for HasherRegistry {
             |url, extension| Ok(url.starts_with(theseus::URL) && extension == "sha256"),
             sha2_256::hash,
         );
-        // The zonky maven central releases prior to version 13.2.0 only provide MD5/SHA-1 hashes.
+        // Register the Maven hashers: https://maven.apache.org/resolver/about-checksums.html#implemented-checksum-algorithms
         registry.register(
-            |url, extension| {
-                Ok(url.contains("zonky")
-                    && url.contains("embedded-postgres-binaries")
-                    && extension == "sha1")
-            },
+            |url, extension| Ok(url.starts_with(maven::URL) && extension == "md5"),
+            md5::hash,
+        );
+        registry.register(
+            |url, extension| Ok(url.starts_with(maven::URL) && extension == "sha1"),
             sha1::hash,
         );
         registry.register(
-            |url, extension| {
-                Ok(url.contains("zonky")
-                    && url.contains("embedded-postgres-binaries")
-                    && extension == "sha512")
-            },
+            |url, extension| Ok(url.starts_with(maven::URL) && extension == "sha256"),
+            sha2_256::hash,
+        );
+        registry.register(
+            |url, extension| Ok(url.starts_with(maven::URL) && extension == "sha512"),
             sha2_512::hash,
         );
         registry
@@ -119,7 +120,6 @@ pub fn get<S: AsRef<str>>(url: S, extension: S) -> Result<HasherFn> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::configuration::zonky;
 
     fn test_hasher(extension: &str, expected: &str) -> Result<()> {
         let hasher = get("https://foo.com", extension)?;
@@ -163,6 +163,6 @@ mod tests {
 
     #[test]
     fn test_get_zonkyio_postgresql_binaries() {
-        assert!(get(zonky::URL, "sha512").is_ok());
+        assert!(get(maven::URL, "sha512").is_ok());
     }
 }
