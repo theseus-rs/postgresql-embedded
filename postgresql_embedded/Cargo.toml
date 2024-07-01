@@ -24,6 +24,7 @@ postgresql_archive = { path = "../postgresql_archive", version = "0.12.0", defau
 postgresql_commands = { path = "../postgresql_commands", version = "0.12.0" }
 rand = { workspace = true }
 semver = { workspace = true }
+sqlx = { workspace = true, features = ["runtime-tokio"] }
 tempfile = { workspace = true }
 thiserror = { workspace = true }
 tokio = { workspace = true, features = ["full"], optional = true }
@@ -39,11 +40,18 @@ tokio = { workspace = true, features = ["full"] }
 default = ["rustls-tls"]
 blocking = ["tokio"]
 bundled = []
-native-tls = ["postgresql_archive/native-tls"]
-rustls-tls = ["postgresql_archive/rustls-tls"]
+native-tls = [
+    "postgresql_archive/native-tls",
+    "sqlx/tls-native-tls",
+]
+rustls-tls = [
+    "postgresql_archive/rustls-tls",
+    "sqlx/tls-rustls",
+]
 tokio = [
     "dep:tokio",
-    "postgresql_commands/tokio"
+    "postgresql_commands/tokio",
+    "sqlx/runtime-tokio",
 ]
 
 [package.metadata.release]

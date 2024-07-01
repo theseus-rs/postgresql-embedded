@@ -23,12 +23,11 @@ async fn test_zonky() -> Result<()> {
     postgresql.start().await?;
     assert_eq!(Status::Started, postgresql.status());
 
-    // TODO: consider updating following methods to use a Rust driver instead of the psql CLI
-    // let database_name = "test";
-    // assert!(!postgresql.database_exists(database_name).await?);
-    // postgresql.create_database(database_name).await?;
-    // assert!(postgresql.database_exists(database_name).await?);
-    // postgresql.drop_database(database_name).await?;
+    let database_name = "test";
+    assert!(!postgresql.database_exists(database_name).await?);
+    postgresql.create_database(database_name).await?;
+    assert!(postgresql.database_exists(database_name).await?);
+    postgresql.drop_database(database_name).await?;
 
     postgresql.stop().await?;
     assert_eq!(Status::Stopped, postgresql.status());

@@ -1,6 +1,6 @@
 use crate::error::Error::{DatabaseInitializationError, DatabaseStartError, DatabaseStopError};
 use crate::error::Result;
-use crate::settings::{Settings, BOOTSTRAP_SUPERUSER};
+use crate::settings::{Settings, BOOTSTRAP_DATABASE, BOOTSTRAP_SUPERUSER};
 use postgresql_archive::get_version;
 use postgresql_archive::{extract, get_archive};
 use postgresql_archive::{ExactVersion, ExactVersionReq};
@@ -8,12 +8,12 @@ use postgresql_commands::initdb::InitDbBuilder;
 use postgresql_commands::pg_ctl::Mode::{Start, Stop};
 use postgresql_commands::pg_ctl::PgCtlBuilder;
 use postgresql_commands::pg_ctl::ShutdownMode::Fast;
-use postgresql_commands::psql::PsqlBuilder;
 #[cfg(feature = "tokio")]
 use postgresql_commands::AsyncCommandExecutor;
 use postgresql_commands::CommandBuilder;
 #[cfg(not(feature = "tokio"))]
 use postgresql_commands::CommandExecutor;
+use sqlx::{PgPool, Row};
 use std::fs::{remove_dir_all, remove_file};
 use std::io::prelude::*;
 use std::net::TcpListener;
@@ -283,36 +283,39 @@ impl PostgreSQL {
         }
     }
 
+    /// Get a connection pool to the bootstrap database.
+    async fn get_pool(&self) -> Result<PgPool> {
+        let mut settings = self.settings.clone();
+        settings.username = BOOTSTRAP_SUPERUSER.to_string();
+        let database_url = settings.url(BOOTSTRAP_DATABASE);
+        let pool = PgPool::connect(database_url.as_str()).await?;
+        Ok(pool)
+    }
+
     /// Create a new database with the given name.
     #[instrument(skip(self))]
     pub async fn create_database<S>(&self, database_name: S) -> Result<()>
     where
         S: AsRef<str> + std::fmt::Debug,
     {
+        let database_name = database_name.as_ref();
         debug!(
-            "Creating database {} for {}:{}",
-            database_name.as_ref(),
-            self.settings.host,
-            self.settings.port
+            "Creating database {database_name} for {host}:{port}",
+            host = self.settings.host,
+            port = self.settings.port
         );
-        let psql = PsqlBuilder::from(&self.settings)
-            .env(PGDATABASE, "")
-            .command(format!("CREATE DATABASE \"{}\"", database_name.as_ref()))
-            .username(BOOTSTRAP_SUPERUSER)
-            .no_psqlrc();
-
-        match self.execute_command(psql).await {
-            Ok((_stdout, _stderr)) => {
-                debug!(
-                    "Created database {} for {}:{}",
-                    database_name.as_ref(),
-                    self.settings.host,
-                    self.settings.port
-                );
-                Ok(())
-            }
-            Err(error) => Err(CreateDatabaseError(error.into())),
-        }
+        let pool = self.get_pool().await?;
+        sqlx::query(format!("CREATE DATABASE \"{database_name}\"").as_str())
+            .execute(&pool)
+            .await
+            .map_err(|error| CreateDatabaseError(error.into()))?;
+        pool.close().await;
+        debug!(
+            "Created database {database_name} for {host}:{port}",
+            host = self.settings.host,
+            port = self.settings.port
+        );
+        Ok(())
     }
 
     /// Check if a database with the given name exists.
@@ -321,29 +324,22 @@ impl PostgreSQL {
     where
         S: AsRef<str> + std::fmt::Debug,
     {
+        let database_name = database_name.as_ref();
         debug!(
-            "Checking if database {} exists for {}:{}",
-            database_name.as_ref(),
-            self.settings.host,
-            self.settings.port
+            "Checking if database {database_name} exists for {host}:{port}",
+            host = self.settings.host,
+            port = self.settings.port
         );
-        let psql = PsqlBuilder::from(&self.settings)
-            .env(PGDATABASE, "")
-            .command(format!(
-                "SELECT 1 FROM pg_database WHERE datname='{}'",
-                database_name.as_ref()
-            ))
-            .username(BOOTSTRAP_SUPERUSER)
-            .no_psqlrc()
-            .tuples_only();
+        let pool = self.get_pool().await?;
+        let row = sqlx::query("SELECT COUNT(*) FROM pg_database WHERE datname = $1")
+            .bind(database_name.to_string())
+            .fetch_one(&pool)
+            .await
+            .map_err(|error| DatabaseExistsError(error.into()))?;
+        let count: i64 = row.get(0);
+        pool.close().await;
 
-        match self.execute_command(psql).await {
-            Ok((stdout, _stderr)) => match stdout.trim() {
-                "1" => Ok(true),
-                _ => Ok(false),
-            },
-            Err(error) => Err(DatabaseExistsError(error.into())),
-        }
+        Ok(count == 1)
     }
 
     /// Drop a database with the given name.
@@ -352,33 +348,24 @@ impl PostgreSQL {
     where
         S: AsRef<str> + std::fmt::Debug,
     {
+        let database_name = database_name.as_ref();
         debug!(
-            "Dropping database {} for {}:{}",
-            database_name.as_ref(),
-            self.settings.host,
-            self.settings.port
+            "Dropping database {database_name} for {host}:{port}",
+            host = self.settings.host,
+            port = self.settings.port
         );
-        let psql = PsqlBuilder::from(&self.settings)
-            .env(PGDATABASE, "")
-            .command(format!(
-                "DROP DATABASE IF EXISTS \"{}\"",
-                database_name.as_ref()
-            ))
-            .username(BOOTSTRAP_SUPERUSER)
-            .no_psqlrc();
-
-        match self.execute_command(psql).await {
-            Ok((_stdout, _stderr)) => {
-                debug!(
-                    "Dropped database {} for {}:{}",
-                    database_name.as_ref(),
-                    self.settings.host,
-                    self.settings.port
-                );
-                Ok(())
-            }
-            Err(error) => Err(DropDatabaseError(error.into())),
-        }
+        let pool = self.get_pool().await?;
+        sqlx::query(format!("DROP DATABASE IF EXISTS \"{database_name}\"").as_str())
+            .execute(&pool)
+            .await
+            .map_err(|error| DropDatabaseError(error.into()))?;
+        pool.close().await;
+        debug!(
+            "Dropped database {database_name} for {host}:{port}",
+            host = self.settings.host,
+            port = self.settings.port
+        );
+        Ok(())
     }
 
     #[cfg(not(feature = "tokio"))]

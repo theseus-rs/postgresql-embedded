@@ -15,6 +15,9 @@ pub enum Error {
     /// Error when the database could not be created
     #[error(transparent)]
     CreateDatabaseError(anyhow::Error),
+    /// Error when accessing the database
+    #[error(transparent)]
+    DatabaseError(#[from] sqlx::Error),
     /// Error when determining if the database exists
     #[error(transparent)]
     DatabaseExistsError(anyhow::Error),
