@@ -31,6 +31,8 @@ pub(crate) const ARCHIVE: &[u8] = include_bytes!(concat!(env!("OUT_DIR"), "/post
 
 /// `PostgreSQL` superuser
 pub const BOOTSTRAP_SUPERUSER: &str = "postgres";
+/// `PostgreSQL` database
+pub const BOOTSTRAP_DATABASE: &str = "postgres";
 
 /// Database settings
 #[derive(Clone, Debug, PartialEq)]
