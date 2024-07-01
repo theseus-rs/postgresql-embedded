@@ -25,7 +25,8 @@ In either case, PostgreSQL will run in a separate process space.
 - running PostgreSQL on ephemeral ports
 - async and blocking API
 - bundling the PostgreSQL archive in an executable
-- dynamic version resolution
+- semantic version resolution
+- support for custom PostgreSQL archives / binaries
 - ability to configure PostgreSQL startup options
 - URL based configuration
 - choice of native-tls vs rustls
