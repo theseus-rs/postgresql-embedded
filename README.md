@@ -70,8 +70,10 @@ PostgreSQL is covered under [The PostgreSQL License](https://opensource.org/lice
 
 ## Notes
 
-Uses PostgreSQL binaries from [theseus-rs/postgresql-binaries](https://github.com/theseus-rs/postgresql_binaries) by
-default.
+Supports using PostgreSQL binaries from:
+
+* [theseus-rs/postgresql-binaries](https://github.com/theseus-rs/postgresql-binaries) (default)
+* [zonkyio/embedded-postgres-binaries](https://github.com/zonkyio/embedded-postgres-binaries)
 
 ## Contribution
 
