@@ -60,6 +60,32 @@
 //! | `native-tls` | Enables native-tls support | No       |
 //! | `rustls-tls` | Enables rustls-tls support | Yes      |
 //!
+//! ### Configurations
+//!
+//! | Name      | Description                         | Default? |
+//! |-----------|-------------------------------------|----------|
+//! | `theseus` | Enables theseus PostgreSQL binaries | Yes      |
+//! | `zonky`   | Enables zonky PostgreSQL binaries   | No       |
+//!
+//! ### Hashers
+//!
+//! | Name   | Description          | Default? |
+//! |--------|----------------------|----------|
+//! | `md5`  | Enables md5 hashers  | No       |
+//! | `sha1` | Enables sha1 hashers | No       |
+//! | `sha2` | Enables sha2 hashers | Yes¹     |
+//!
+//! ¹ enabled by the `theseus` feature flag.
+//!
+//! ### Repositories
+//!
+//! | Name     | Description               | Default? |
+//! |----------|---------------------------|----------|
+//! | `github` | Enables github repository | Yes¹     |
+//! | `maven`  | Enables maven repository  | No       |
+//!
+//! ¹ enabled by the `theseus` feature flag.
+//!
 //! ## Supported platforms
 //!
 //! `postgresql_archive` provides implementations for the following:
