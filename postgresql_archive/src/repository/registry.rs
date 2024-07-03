@@ -1,5 +1,8 @@
-use crate::configuration::zonky::Zonky;
-use crate::configuration::{theseus, zonky};
+#[cfg(feature = "theseus")]
+use crate::configuration::theseus;
+#[cfg(feature = "zonky")]
+use crate::configuration::zonky;
+#[cfg(feature = "github")]
 use crate::repository::github::repository::GitHub;
 use crate::repository::model::Repository;
 use crate::Error::{PoisonedLock, UnsupportedRepository};
@@ -65,11 +68,16 @@ impl Default for RepositoryRegistry {
     /// Creates a new repository registry with the default repositories registered.
     fn default() -> Self {
         let mut registry = Self::new();
+        #[cfg(feature = "theseus")]
         registry.register(
             |url| Ok(url.starts_with(theseus::URL)),
             Box::new(GitHub::new),
         );
-        registry.register(|url| Ok(url.starts_with(zonky::URL)), Box::new(Zonky::new));
+        #[cfg(feature = "zonky")]
+        registry.register(
+            |url| Ok(url.starts_with(zonky::URL)),
+            Box::new(zonky::Zonky::new),
+        );
         registry
     }
 }
@@ -157,12 +165,14 @@ mod tests {
     }
 
     #[test]
+    #[cfg(feature = "theseus")]
     fn test_get_theseus_postgresql_binaries() {
         assert!(get(theseus::URL).is_ok());
     }
 
     #[test]
-    fn test_get_zonkyio_postgresql_binaries() {
+    #[cfg(feature = "zonky")]
+    fn test_get_zonky_postgresql_binaries() {
         assert!(get(zonky::URL).is_ok());
     }
 }

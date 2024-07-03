@@ -1,6 +1,5 @@
 use crate::error::{Error, Result};
 use home::home_dir;
-use postgresql_archive::configuration::theseus;
 use postgresql_archive::VersionReq;
 use rand::distributions::Alphanumeric;
 use rand::Rng;
@@ -94,8 +93,13 @@ impl Settings {
             .map(char::from)
             .collect();
 
+        #[cfg(feature = "theseus")]
+        let releases_url = postgresql_archive::configuration::theseus::URL.to_string();
+        #[cfg(not(feature = "theseus"))]
+        let releases_url = String::new();
+
         Self {
-            releases_url: theseus::URL.to_string(),
+            releases_url,
             version: default_version(),
             installation_dir: home_dir.join(".theseus").join("postgresql"),
             password_file,

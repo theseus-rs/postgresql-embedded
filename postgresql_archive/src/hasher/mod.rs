@@ -1,9 +1,9 @@
-pub mod blake2b_512;
-pub mod blake2s_256;
+#[cfg(feature = "md5")]
 pub mod md5;
 pub mod registry;
+#[cfg(feature = "sha1")]
 pub mod sha1;
+#[cfg(feature = "sha2")]
 pub mod sha2_256;
+#[cfg(feature = "sha2")]
 pub mod sha2_512;
-pub mod sha3_256;
-pub mod sha3_512;

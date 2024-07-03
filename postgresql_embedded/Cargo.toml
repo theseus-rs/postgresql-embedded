@@ -37,7 +37,7 @@ test-log = { workspace = true }
 tokio = { workspace = true, features = ["full"] }
 
 [features]
-default = ["rustls-tls"]
+default = ["rustls-tls", "theseus"]
 blocking = ["tokio"]
 bundled = []
 native-tls = [
@@ -48,10 +48,16 @@ rustls-tls = [
     "postgresql_archive/rustls-tls",
     "sqlx/tls-rustls",
 ]
+theseus = [
+    "postgresql_archive/theseus",
+]
 tokio = [
     "dep:tokio",
     "postgresql_commands/tokio",
     "sqlx/runtime-tokio",
+]
+zonky = [
+    "postgresql_archive/zonky",
 ]
 
 [package.metadata.release]

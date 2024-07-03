@@ -100,7 +100,9 @@ The following features are available:
 | `blocking`   | Enables the blocking API; requires `tokio`               | No       |
 | `native-tls` | Enables native-tls support                               | No       |
 | `rustls-tls` | Enables rustls-tls support                               | Yes      |
+| `theseus`    | Enables theseus PostgreSQL binaries                      | Yes      |
 | `tokio`      | Enables using tokio for async                            | No       |
+| `zonky`      | Enables zonky PostgreSQL binaries                        | No       |
 
 ## Safety
 
