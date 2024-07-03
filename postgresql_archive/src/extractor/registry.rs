@@ -1,4 +1,7 @@
-use crate::configuration::{theseus, zonky};
+#[cfg(feature = "theseus")]
+use crate::configuration::theseus;
+#[cfg(feature = "zonky")]
+use crate::configuration::zonky;
 use crate::Error::{PoisonedLock, UnsupportedExtractor};
 use crate::Result;
 use lazy_static::lazy_static;
@@ -63,7 +66,9 @@ impl Default for RepositoryRegistry {
     /// Creates a new repository registry with the default repositories registered.
     fn default() -> Self {
         let mut registry = Self::new();
+        #[cfg(feature = "theseus")]
         registry.register(|url| Ok(url.starts_with(theseus::URL)), theseus::extract);
+        #[cfg(feature = "zonky")]
         registry.register(|url| Ok(url.starts_with(zonky::URL)), zonky::extract);
         registry
     }
@@ -113,6 +118,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg(feature = "theseus")]
     fn test_get_theseus_postgresql_binaries() {
         assert!(get(theseus::URL).is_ok());
     }

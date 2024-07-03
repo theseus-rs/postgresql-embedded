@@ -7,5 +7,5 @@ version.workspace = true
 
 [dependencies]
 postgresql_archive = { path = "../../postgresql_archive" }
-postgresql_embedded = { path = "../../postgresql_embedded" }
+postgresql_embedded = { path = "../../postgresql_embedded", default-features = false, features = ["zonky"] }
 tokio = { workspace = true, features = ["full"] }

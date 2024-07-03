@@ -1,4 +1,7 @@
-use crate::configuration::{theseus, zonky};
+#[cfg(feature = "theseus")]
+use crate::configuration::theseus;
+#[cfg(feature = "zonky")]
+use crate::configuration::zonky;
 use crate::Error::{PoisonedLock, UnsupportedMatcher};
 use crate::Result;
 use lazy_static::lazy_static;
@@ -65,7 +68,9 @@ impl Default for MatchersRegistry {
     /// Creates a new matcher registry with the default matchers registered.
     fn default() -> Self {
         let mut registry = Self::new();
+        #[cfg(feature = "theseus")]
         registry.register(|url| Ok(url == theseus::URL), theseus::matcher);
+        #[cfg(feature = "zonky")]
         registry.register(|url| Ok(url == zonky::URL), zonky::matcher);
         registry
     }
@@ -121,12 +126,14 @@ mod tests {
     }
 
     #[test]
+    #[cfg(feature = "theseus")]
     fn test_get_theseus_postgresql_binaries() {
         assert!(get(theseus::URL).is_ok());
     }
 
     #[test]
-    fn test_get_zonykio_postgresql_binaries() {
+    #[cfg(feature = "zonky")]
+    fn test_get_zonyk_postgresql_binaries() {
         assert!(get(zonky::URL).is_ok());
     }
 }

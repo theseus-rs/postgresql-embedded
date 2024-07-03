@@ -1,7 +1,10 @@
+#[cfg(feature = "zonky")]
 use postgresql_archive::configuration::zonky;
+#[cfg(feature = "zonky")]
 use postgresql_embedded::{PostgreSQL, Result, Settings, Status};
 
 #[tokio::test]
+#[cfg(feature = "zonky")]
 async fn test_zonky() -> Result<()> {
     let settings = Settings {
         releases_url: zonky::URL.to_string(),

@@ -1,11 +1,18 @@
+#[cfg(feature = "zonky")]
 use postgresql_archive::configuration::zonky;
+#[cfg(feature = "zonky")]
 use postgresql_archive::extract;
+#[cfg(feature = "zonky")]
 use postgresql_archive::{get_archive, get_version};
+#[cfg(feature = "zonky")]
 use semver::VersionReq;
+#[cfg(feature = "zonky")]
 use std::fs::remove_dir_all;
+#[cfg(feature = "zonky")]
 use test_log::test;
 
 #[test(tokio::test)]
+#[cfg(feature = "zonky")]
 async fn test_get_version_not_found() -> postgresql_archive::Result<()> {
     let invalid_version_req = VersionReq::parse("=1.0.0")?;
     let result = get_version(zonky::URL, &invalid_version_req).await;
@@ -15,6 +22,7 @@ async fn test_get_version_not_found() -> postgresql_archive::Result<()> {
 }
 
 #[test(tokio::test)]
+#[cfg(feature = "zonky")]
 async fn test_get_version() -> anyhow::Result<()> {
     let version_req = VersionReq::parse("=16.2.0")?;
     let latest_version = get_version(zonky::URL, &version_req).await?;
@@ -24,6 +32,7 @@ async fn test_get_version() -> anyhow::Result<()> {
 }
 
 #[test(tokio::test)]
+#[cfg(feature = "zonky")]
 async fn test_get_archive_and_extract() -> anyhow::Result<()> {
     let url = zonky::URL;
     let version_req = VersionReq::STAR;
@@ -38,6 +47,7 @@ async fn test_get_archive_and_extract() -> anyhow::Result<()> {
 }
 
 #[test(tokio::test)]
+#[cfg(feature = "zonky")]
 async fn test_get_archive_version_not_found() -> postgresql_archive::Result<()> {
     let invalid_version_req = VersionReq::parse("=1.0.0")?;
     let result = get_archive(zonky::URL, &invalid_version_req).await;

@@ -1,7 +1,6 @@
 #![allow(dead_code)]
 
 use anyhow::Result;
-use postgresql_archive::configuration::theseus;
 use postgresql_archive::get_archive;
 use postgresql_archive::VersionReq;
 use std::fs::File;
@@ -15,7 +14,11 @@ use std::{env, fs};
 /// self-contained binary that does not require the PostgreSQL archive to be
 /// downloaded at runtime.
 pub(crate) async fn stage_postgresql_archive() -> Result<()> {
-    let releases_url = env::var("POSTGRESQL_RELEASES_URL").unwrap_or(theseus::URL.to_string());
+    #[cfg(feature = "theseus")]
+    let default_releases_url = postgresql_archive::configuration::theseus::URL.to_string();
+    #[cfg(not(feature = "theseus"))]
+    let default_releases_url = String::new();
+    let releases_url = env::var("POSTGRESQL_RELEASES_URL").unwrap_or(default_releases_url);
     println!("PostgreSQL releases URL: {releases_url}");
     let postgres_version_req = env::var("POSTGRESQL_VERSION").unwrap_or("*".to_string());
     let version_req = VersionReq::from_str(postgres_version_req.as_str())?;
