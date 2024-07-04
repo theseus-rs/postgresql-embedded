@@ -1,11 +1,15 @@
 #![forbid(unsafe_code)]
 #![deny(clippy::pedantic)]
 
-use postgresql_embedded::{PostgreSQL, Result};
+use postgresql_embedded::{PostgreSQL, Result, Settings, VersionReq};
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    let mut postgresql = PostgreSQL::default();
+    let settings = Settings {
+        version: VersionReq::parse("=16.3.0")?,
+        ..Default::default()
+    };
+    let mut postgresql = PostgreSQL::new(settings);
     postgresql.setup().await?;
     postgresql.start().await?;
 
