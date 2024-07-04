@@ -5,7 +5,9 @@ use crate::hasher::md5;
 #[cfg(feature = "sha1")]
 use crate::hasher::sha1;
 #[cfg(feature = "sha2")]
-use crate::hasher::{sha2_256, sha2_512};
+use crate::hasher::sha2_256;
+#[cfg(feature = "sha2")]
+use crate::hasher::sha2_512;
 #[cfg(feature = "maven")]
 use crate::repository::maven;
 use crate::Error::{PoisonedLock, UnsupportedHasher};
