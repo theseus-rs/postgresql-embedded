@@ -48,7 +48,7 @@ tokio = { workspace = true }
 
 [features]
 default = [
-    "rustls-tls",
+    "native-tls",
     "theseus",
 ]
 blocking = ["dep:tokio"]

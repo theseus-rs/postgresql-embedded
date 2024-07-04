@@ -52,8 +52,8 @@ The following features are available:
 | Name         | Description                | Default? |
 |--------------|----------------------------|----------|
 | `blocking`   | Enables the blocking API   | No       |
-| `native-tls` | Enables native-tls support | No       |
-| `rustls-tls` | Enables rustls-tls support | Yes      |
+| `native-tls` | Enables native-tls support | Yes      |
+| `rustls-tls` | Enables rustls-tls support | No       |
 
 ### Configurations
 
