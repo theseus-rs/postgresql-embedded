@@ -2,6 +2,7 @@ use crate::error::{Error, Result};
 use std::ffi::{OsStr, OsString};
 use std::fmt::Debug;
 use std::path::PathBuf;
+use std::process::Child;
 use std::time::Duration;
 use tracing::debug;
 
@@ -140,32 +141,46 @@ impl CommandExecutor for std::process::Command {
     /// Execute the command and return the stdout and stderr
     fn execute(&mut self) -> Result<(String, String)> {
         debug!("Executing command: {}", self.to_command_string());
-        let output = self.output()?;
-
         #[cfg(not(target_os = "windows"))]
-        let stdout = String::from_utf8_lossy(&output.stdout).into_owned();
+        {
+            let output = self.output()?;
+            let stdout = String::from_utf8_lossy(&output.stdout).into_owned();
+            let stderr = String::from_utf8_lossy(&output.stderr).into_owned();
+
+            debug!(
+                "Result: {}\nstdout: {}\nstderr: {}",
+                output
+                    .status
+                    .code()
+                    .map_or("None".to_string(), |c| c.to_string()),
+                stdout,
+                stderr
+            );
+
+            if output.status.success() {
+                Ok((stdout, stderr))
+            } else {
+                Err(Error::CommandError { stdout, stderr })
+            }
+        }
+
+        // TODO: Processes can hang on Windows when attempting to get stdout/stderr using code
+        // that works for Linux/MacOS; this implementation should be updated to retrieve the
+        // values of stdout/stderr without hanging
         #[cfg(target_os = "windows")]
-        let stdout = String::new();
-
-        #[cfg(not(target_os = "windows"))]
-        let stderr = String::from_utf8_lossy(&output.stderr).into_owned();
-        #[cfg(target_os = "windows")]
-        let stderr = String::new();
-
-        debug!(
-            "Result: {}\nstdout: {}\nstderr: {}",
-            output
-                .status
-                .code()
-                .map_or("None".to_string(), |c| c.to_string()),
-            stdout,
-            stderr
-        );
-
-        if output.status.success() {
-            Ok((stdout, stderr))
-        } else {
-            Err(Error::CommandError { stdout, stderr })
+        {
+            let mut process = self
+                .stdout(std::process::Stdio::piped())
+                .stderr(std::process::Stdio::piped())
+                .spawn()?;
+            let status = process.wait()?;
+            let stdout = String::new();
+            let stderr = String::new();
+            if status.success() {
+                Ok((stdout, stderr))
+            } else {
+                Err(Error::CommandError { stdout, stderr })
+            }
         }
     }
 }
@@ -183,11 +198,14 @@ impl AsyncCommandExecutor for tokio::process::Command {
 
         #[cfg(not(target_os = "windows"))]
         let stdout = String::from_utf8_lossy(&output.stdout).into_owned();
-        #[cfg(target_os = "windows")]
-        let stdout = String::new();
-
         #[cfg(not(target_os = "windows"))]
         let stderr = String::from_utf8_lossy(&output.stderr).into_owned();
+
+        // TODO: Processes can hang on Windows when attempting to get stdout/stderr using code
+        // that works for Linux/MacOS; this implementation should be updated to retrieve the
+        // values of stdout/stderr without hanging
+        #[cfg(target_os = "windows")]
+        let stdout = String::new();
         #[cfg(target_os = "windows")]
         let stderr = String::new();
 
