@@ -2,7 +2,6 @@ use crate::error::{Error, Result};
 use std::ffi::{OsStr, OsString};
 use std::fmt::Debug;
 use std::path::PathBuf;
-use std::process::Child;
 use std::time::Duration;
 use tracing::debug;
 
