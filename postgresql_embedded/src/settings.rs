@@ -109,7 +109,7 @@ impl Settings {
             username: BOOTSTRAP_SUPERUSER.to_string(),
             password,
             temporary: true,
-            timeout: Some(Duration::from_secs(30)),
+            timeout: Some(Duration::from_secs(5)),
             configuration: HashMap::new(),
         }
     }
@@ -289,7 +289,7 @@ mod tests {
                 .url("test")
                 .replace(settings.password.as_str(), "password")
         );
-        assert_eq!(Some(Duration::from_secs(30)), settings.timeout);
+        assert_eq!(Some(Duration::from_secs(5)), settings.timeout);
         assert!(settings.configuration.is_empty());
     }
 
