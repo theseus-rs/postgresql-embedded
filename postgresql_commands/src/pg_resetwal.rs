@@ -259,7 +259,12 @@ mod tests {
     #[test]
     fn test_builder_from() {
         let command = PgResetWalBuilder::from(&TestSettings).build();
-        assert_eq!(r#""./pg_resetwal""#, command.to_command_string());
+        #[cfg(not(target_os = "windows"))]
+        let command_prefix = r#""./pg_resetwal""#;
+        #[cfg(target_os = "windows")]
+        let command_prefix = r#"".\\pg_resetwal""#;
+
+        assert_eq!(format!("{command_prefix}"), command.to_command_string());
     }
 
     #[test]
@@ -281,9 +286,15 @@ mod tests {
             .wal_segsize("wal_segsize")
             .help()
             .build();
+        #[cfg(not(target_os = "windows"))]
+        let command_prefix = r#"PGDATABASE="database" "#;
+        #[cfg(target_os = "windows")]
+        let command_prefix = String::new();
 
         assert_eq!(
-            r#"PGDATABASE="database" "pg_resetwal" "--commit-timestamp-ids" "1,2" "--pgdata" "pgdata" "--epoch" "epoch" "--force" "--next-wal-file" "next_wal_file" "--multixact-ids" "3,4" "--dry-run" "--next-oid" "next_oid" "--multixact-offset" "multixact_offset" "--oldest-transaction-id" "oldest_transaction_id" "--version" "--next-transaction-id" "next_transaction_id" "--wal-segsize" "wal_segsize" "--help""#,
+            format!(
+                r#"{command_prefix}"pg_resetwal" "--commit-timestamp-ids" "1,2" "--pgdata" "pgdata" "--epoch" "epoch" "--force" "--next-wal-file" "next_wal_file" "--multixact-ids" "3,4" "--dry-run" "--next-oid" "next_oid" "--multixact-offset" "multixact_offset" "--oldest-transaction-id" "oldest_transaction_id" "--version" "--next-transaction-id" "next_transaction_id" "--wal-segsize" "wal_segsize" "--help""#
+            ),
             command.to_command_string()
         );
     }

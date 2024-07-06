@@ -539,8 +539,15 @@ mod tests {
     #[test]
     fn test_builder_from() {
         let command = PgAmCheckBuilder::from(&TestSettings).build();
+        #[cfg(not(target_os = "windows"))]
+        let command_prefix = r#"PGPASSWORD="password" "./pg_amcheck" "#;
+        #[cfg(target_os = "windows")]
+        let command_prefix = r#"".\\pg_amcheck" "#;
+
         assert_eq!(
-            r#"PGPASSWORD="password" "./pg_amcheck" "--host" "localhost" "--port" "5432" "--username" "postgres""#,
+            format!(
+                r#"{command_prefix}"--host" "localhost" "--port" "5432" "--username" "postgres""#
+            ),
             command.to_command_string()
         );
     }
@@ -586,9 +593,15 @@ mod tests {
             .install_missing()
             .help()
             .build();
+        #[cfg(not(target_os = "windows"))]
+        let command_prefix = r#"PGDATABASE="database" PGPASSWORD="password" "#;
+        #[cfg(target_os = "windows")]
+        let command_prefix = String::new();
 
         assert_eq!(
-            r#"PGDATABASE="database" PGPASSWORD="password" "pg_amcheck" "--all" "--database" "database" "--exclude-database" "exclude_database" "--index" "index" "--exclude-index" "exclude_index" "--relation" "relation" "--exclude-relation" "exclude_relation" "--schema" "schema" "--exclude-schema" "exclude_schema" "--table" "table" "--exclude-table" "exclude_table" "--no-dependent-indexes" "--no-dependent-toast" "--no-strict-names" "--exclude-toast-pointers" "--on-error-stop" "--skip" "skip" "--startblock" "start_block" "--endblock" "end_block" "--heapallindexed" "--parent-check" "--rootdescend" "--host" "localhost" "--port" "5432" "--username" "username" "--no-password" "--password" "--maintenance-db" "maintenance_db" "--echo" "--jobs" "jobs" "--progress" "--verbose" "--version" "--install-missing" "--help""#,
+            format!(
+                r#"{command_prefix}"pg_amcheck" "--all" "--database" "database" "--exclude-database" "exclude_database" "--index" "index" "--exclude-index" "exclude_index" "--relation" "relation" "--exclude-relation" "exclude_relation" "--schema" "schema" "--exclude-schema" "exclude_schema" "--table" "table" "--exclude-table" "exclude_table" "--no-dependent-indexes" "--no-dependent-toast" "--no-strict-names" "--exclude-toast-pointers" "--on-error-stop" "--skip" "skip" "--startblock" "start_block" "--endblock" "end_block" "--heapallindexed" "--parent-check" "--rootdescend" "--host" "localhost" "--port" "5432" "--username" "username" "--no-password" "--password" "--maintenance-db" "maintenance_db" "--echo" "--jobs" "jobs" "--progress" "--verbose" "--version" "--install-missing" "--help""#
+            ),
             command.to_command_string()
         );
     }

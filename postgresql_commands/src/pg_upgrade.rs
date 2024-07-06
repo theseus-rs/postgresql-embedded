@@ -332,7 +332,12 @@ mod tests {
     #[test]
     fn test_builder_from() {
         let command = PgUpgradeBuilder::from(&TestSettings).build();
-        assert_eq!(r#""./pg_upgrade""#, command.to_command_string());
+        #[cfg(not(target_os = "windows"))]
+        let command_prefix = r#""./pg_upgrade""#;
+        #[cfg(target_os = "windows")]
+        let command_prefix = r#"".\\pg_upgrade""#;
+
+        assert_eq!(format!("{command_prefix}"), command.to_command_string());
     }
 
     #[test]
@@ -360,9 +365,15 @@ mod tests {
             .copy()
             .help()
             .build();
+        #[cfg(not(target_os = "windows"))]
+        let command_prefix = r#"PGDATABASE="database" "#;
+        #[cfg(target_os = "windows")]
+        let command_prefix = String::new();
 
         assert_eq!(
-            r#"PGDATABASE="database" "pg_upgrade" "--old-bindir" "old" "--new-bindir" "new" "--check" "--old-datadir" "old_data" "--new-datadir" "new_data" "--jobs" "10" "--link" "--no-sync" "--old-options" "old" "--new-options" "new" "--old-port" "5432" "--new-port" "5433" "--retain" "--socketdir" "socket" "--username" "user" "--verbose" "--version" "--clone" "--copy" "--help""#,
+            format!(
+                r#"{command_prefix}"pg_upgrade" "--old-bindir" "old" "--new-bindir" "new" "--check" "--old-datadir" "old_data" "--new-datadir" "new_data" "--jobs" "10" "--link" "--no-sync" "--old-options" "old" "--new-options" "new" "--old-port" "5432" "--new-port" "5433" "--retain" "--socketdir" "socket" "--username" "user" "--verbose" "--version" "--clone" "--copy" "--help""#
+            ),
             command.to_command_string()
         );
     }

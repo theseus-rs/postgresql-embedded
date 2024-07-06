@@ -241,7 +241,12 @@ mod tests {
     #[test]
     fn test_builder_from() {
         let command = PgRewindBuilder::from(&TestSettings).build();
-        assert_eq!(r#""./pg_rewind""#, command.to_command_string());
+        #[cfg(not(target_os = "windows"))]
+        let command_prefix = r#""./pg_rewind""#;
+        #[cfg(target_os = "windows")]
+        let command_prefix = r#"".\\pg_rewind""#;
+
+        assert_eq!(format!("{command_prefix}"), command.to_command_string());
     }
 
     #[test]
@@ -262,9 +267,15 @@ mod tests {
             .version()
             .help()
             .build();
+        #[cfg(not(target_os = "windows"))]
+        let command_prefix = r#"PGDATABASE="database" "#;
+        #[cfg(target_os = "windows")]
+        let command_prefix = String::new();
 
         assert_eq!(
-            r#"PGDATABASE="database" "pg_rewind" "--restore-target-wal" "--target-pgdata" "target_pgdata" "--source-pgdata" "source_pgdata" "--source-server" "source_server" "--dry-run" "--no-sync" "--progress" "--write-recovery-conf" "--config-file" "config_file" "--debug" "--no-ensure-shutdown" "--version" "--help""#,
+            format!(
+                r#"{command_prefix}"pg_rewind" "--restore-target-wal" "--target-pgdata" "target_pgdata" "--source-pgdata" "source_pgdata" "--source-server" "source_server" "--dry-run" "--no-sync" "--progress" "--write-recovery-conf" "--config-file" "config_file" "--debug" "--no-ensure-shutdown" "--version" "--help""#
+            ),
             command.to_command_string()
         );
     }

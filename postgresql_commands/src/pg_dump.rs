@@ -849,8 +849,15 @@ mod tests {
     #[test]
     fn test_builder_from() {
         let command = PgDumpBuilder::from(&TestSettings).build();
+        #[cfg(not(target_os = "windows"))]
+        let command_prefix = r#"PGPASSWORD="password" "./pg_dump" "#;
+        #[cfg(target_os = "windows")]
+        let command_prefix = r#"".\\pg_dump" "#;
+
         assert_eq!(
-            r#"PGPASSWORD="password" "./pg_dump" "--host" "localhost" "--port" "5432" "--username" "postgres""#,
+            format!(
+                r#"{command_prefix}"--host" "localhost" "--port" "5432" "--username" "postgres""#
+            ),
             command.to_command_string()
         );
     }
@@ -921,8 +928,15 @@ mod tests {
             .pg_password("password")
             .role("role")
             .build();
+        #[cfg(not(target_os = "windows"))]
+        let command_prefix = r#"PGDATABASE="database" PGPASSWORD="password" "#;
+        #[cfg(target_os = "windows")]
+        let command_prefix = String::new();
+
         assert_eq!(
-            r#"PGDATABASE="database" PGPASSWORD="password" "pg_dump" "--data-only" "--large-objects" "--no-large-objects" "--clean" "--create" "--extension" "extension" "--encoding" "UTF8" "--file" "file" "--format" "format" "--jobs" "jobs" "--schema" "schema" "--exclude-schema" "exclude_schema" "--no-owner" "--no-reconnect" "--schema-only" "--superuser" "superuser" "--table" "table" "--exclude-table" "exclude_table" "--verbose" "--version" "--no-privileges" "--compression" "compression" "--binary-upgrade" "--column-inserts" "--attribute-inserts" "--disable-dollar-quoting" "--disable-triggers" "--enable-row-security" "--exclude-table-data-and-children" "exclude_table_data_and_children" "--extra-float-digits" "extra_float_digits" "--if-exists" "--include-foreign-data" "include_foreign_data" "--inserts" "--load-via-partition-root" "--lock-wait-timeout" "10" "--no-comments" "--no-publications" "--no-security-labels" "--no-subscriptions" "--no-table-access-method" "--no-tablespaces" "--no-toast-compression" "--no-unlogged-table-data" "--on-conflict-do-nothing" "--quote-all-identifiers" "--rows-per-insert" "100" "--section" "section" "--serializable-deferrable" "--snapshot" "snapshot" "--strict-names" "--table-and-children" "table_and_children" "--use-set-session-authorization" "--help" "--dbname" "dbname" "--host" "localhost" "--port" "5432" "--username" "postgres" "--no-password" "--password" "--role" "role""#,
+            format!(
+                r#"{command_prefix}"pg_dump" "--data-only" "--large-objects" "--no-large-objects" "--clean" "--create" "--extension" "extension" "--encoding" "UTF8" "--file" "file" "--format" "format" "--jobs" "jobs" "--schema" "schema" "--exclude-schema" "exclude_schema" "--no-owner" "--no-reconnect" "--schema-only" "--superuser" "superuser" "--table" "table" "--exclude-table" "exclude_table" "--verbose" "--version" "--no-privileges" "--compression" "compression" "--binary-upgrade" "--column-inserts" "--attribute-inserts" "--disable-dollar-quoting" "--disable-triggers" "--enable-row-security" "--exclude-table-data-and-children" "exclude_table_data_and_children" "--extra-float-digits" "extra_float_digits" "--if-exists" "--include-foreign-data" "include_foreign_data" "--inserts" "--load-via-partition-root" "--lock-wait-timeout" "10" "--no-comments" "--no-publications" "--no-security-labels" "--no-subscriptions" "--no-table-access-method" "--no-tablespaces" "--no-toast-compression" "--no-unlogged-table-data" "--on-conflict-do-nothing" "--quote-all-identifiers" "--rows-per-insert" "100" "--section" "section" "--serializable-deferrable" "--snapshot" "snapshot" "--strict-names" "--table-and-children" "table_and_children" "--use-set-session-authorization" "--help" "--dbname" "dbname" "--host" "localhost" "--port" "5432" "--username" "postgres" "--no-password" "--password" "--role" "role""#
+            ),
             command.to_command_string()
         );
     }

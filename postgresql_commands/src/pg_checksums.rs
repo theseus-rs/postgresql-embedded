@@ -203,7 +203,12 @@ mod tests {
     #[test]
     fn test_builder_from() {
         let command = PgChecksumsBuilder::from(&TestSettings).build();
-        assert_eq!(r#""./pg_checksums""#, command.to_command_string());
+        #[cfg(not(target_os = "windows"))]
+        let command_prefix = r#""./pg_checksums""#;
+        #[cfg(target_os = "windows")]
+        let command_prefix = r#"".\\pg_checksums""#;
+
+        assert_eq!(format!("{command_prefix}"), command.to_command_string());
     }
 
     #[test]
@@ -221,9 +226,15 @@ mod tests {
             .version()
             .help()
             .build();
+        #[cfg(not(target_os = "windows"))]
+        let command_prefix = r#"PGDATABASE="database" "#;
+        #[cfg(target_os = "windows")]
+        let command_prefix = String::new();
 
         assert_eq!(
-            r#"PGDATABASE="database" "pg_checksums" "--pgdata" "pgdata" "--check" "--disable" "--enable" "--filenode" "12345" "--no-sync" "--progress" "--verbose" "--version" "--help""#,
+            format!(
+                r#"{command_prefix}"pg_checksums" "--pgdata" "pgdata" "--check" "--disable" "--enable" "--filenode" "12345" "--no-sync" "--progress" "--verbose" "--version" "--help""#
+            ),
             command.to_command_string()
         );
     }

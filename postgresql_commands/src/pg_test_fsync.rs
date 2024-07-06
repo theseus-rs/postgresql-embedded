@@ -107,7 +107,12 @@ mod tests {
     #[test]
     fn test_builder_from() {
         let command = PgTestFsyncBuilder::from(&TestSettings).build();
-        assert_eq!(r#""./pg_test_fsync""#, command.to_command_string());
+        #[cfg(not(target_os = "windows"))]
+        let command_prefix = r#""./pg_test_fsync""#;
+        #[cfg(target_os = "windows")]
+        let command_prefix = r#"".\\pg_test_fsync""#;
+
+        assert_eq!(format!("{command_prefix}"), command.to_command_string());
     }
 
     #[test]
@@ -117,9 +122,13 @@ mod tests {
             .filename("filename")
             .secs_per_test(10)
             .build();
+        #[cfg(not(target_os = "windows"))]
+        let command_prefix = r#"PGDATABASE="database" "#;
+        #[cfg(target_os = "windows")]
+        let command_prefix = String::new();
 
         assert_eq!(
-            r#"PGDATABASE="database" "pg_test_fsync" "-f" "filename" "-s" "10""#,
+            format!(r#"{command_prefix}"pg_test_fsync" "-f" "filename" "-s" "10""#),
             command.to_command_string()
         );
     }

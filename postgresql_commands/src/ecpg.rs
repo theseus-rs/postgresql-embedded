@@ -230,7 +230,12 @@ mod tests {
     #[test]
     fn test_builder_from() {
         let command = EcpgBuilder::from(&TestSettings).build();
-        assert_eq!(r#""./ecpg""#, command.to_command_string());
+        #[cfg(not(target_os = "windows"))]
+        let command_prefix = r#""./ecpg""#;
+        #[cfg(target_os = "windows")]
+        let command_prefix = r#"".\\ecpg""#;
+
+        assert_eq!(format!("{command_prefix}"), command.to_command_string());
     }
 
     #[test]
@@ -250,9 +255,15 @@ mod tests {
             .version()
             .help()
             .build();
+        #[cfg(not(target_os = "windows"))]
+        let command_prefix = r#"PGDATABASE="database" "#;
+        #[cfg(target_os = "windows")]
+        let command_prefix = String::new();
 
         assert_eq!(
-            r#"PGDATABASE="database" "ecpg" "-c" "-C" "mode" "-D" "symbol" "-h" "-i" "-I" "directory" "-o" "outfile" "-r" "behavior" "--regression" "-t" "--version" "--help""#,
+            format!(
+                r#"{command_prefix}"ecpg" "-c" "-C" "mode" "-D" "symbol" "-h" "-i" "-I" "directory" "-o" "outfile" "-r" "behavior" "--regression" "-t" "--version" "--help""#
+            ),
             command.to_command_string()
         );
     }

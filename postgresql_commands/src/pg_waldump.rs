@@ -309,7 +309,12 @@ mod tests {
     #[test]
     fn test_builder_from() {
         let command = PgWalDumpBuilder::from(&TestSettings).build();
-        assert_eq!(r#""./pg_waldump""#, command.to_command_string());
+        #[cfg(not(target_os = "windows"))]
+        let command_prefix = r#""./pg_waldump""#;
+        #[cfg(target_os = "windows")]
+        let command_prefix = r#"".\\pg_waldump""#;
+
+        assert_eq!(format!("{command_prefix}"), command.to_command_string());
     }
 
     #[test]
@@ -335,9 +340,15 @@ mod tests {
             .save_fullpage("save_fullpage")
             .help()
             .build();
+        #[cfg(not(target_os = "windows"))]
+        let command_prefix = r#"PGDATABASE="database" "#;
+        #[cfg(target_os = "windows")]
+        let command_prefix = String::new();
 
         assert_eq!(
-            r#"PGDATABASE="database" "pg_waldump" "--bkp-details" "--block" "block" "--end" "end" "--follow" "--fork" "fork" "--limit" "limit" "--path" "path" "--quiet" "--rmgr" "rmgr" "--relation" "relation" "--start" "start" "--timeline" "timeline" "--version" "--fullpage" "--xid" "xid" "--stats" "stats" "--save-fullpage" "save_fullpage" "--help""#,
+            format!(
+                r#"{command_prefix}"pg_waldump" "--bkp-details" "--block" "block" "--end" "end" "--follow" "--fork" "fork" "--limit" "limit" "--path" "path" "--quiet" "--rmgr" "rmgr" "--relation" "relation" "--start" "start" "--timeline" "timeline" "--version" "--fullpage" "--xid" "xid" "--stats" "stats" "--save-fullpage" "save_fullpage" "--help""#
+            ),
             command.to_command_string()
         );
     }

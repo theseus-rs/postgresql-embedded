@@ -204,7 +204,12 @@ mod tests {
     #[test]
     fn test_builder_from() {
         let command = PgVerifyBackupBuilder::from(&TestSettings).build();
-        assert_eq!(r#""./pg_verifybackup""#, command.to_command_string());
+        #[cfg(not(target_os = "windows"))]
+        let command_prefix = r#""./pg_verifybackup""#;
+        #[cfg(target_os = "windows")]
+        let command_prefix = r#"".\\pg_verifybackup""#;
+
+        assert_eq!(format!("{command_prefix}"), command.to_command_string());
     }
 
     #[test]
@@ -222,9 +227,15 @@ mod tests {
             .version()
             .help()
             .build();
+        #[cfg(not(target_os = "windows"))]
+        let command_prefix = r#"PGDATABASE="database" "#;
+        #[cfg(target_os = "windows")]
+        let command_prefix = String::new();
 
         assert_eq!(
-            r#"PGDATABASE="database" "pg_verifybackup" "--exit-on-error" "--ignore" "ignore" "--manifest-path" "manifest-path" "--no-parse-wal" "--progress" "--quiet" "--skip-checksums" "--wal-directory" "wal_directory" "--version" "--help""#,
+            format!(
+                r#"{command_prefix}"pg_verifybackup" "--exit-on-error" "--ignore" "ignore" "--manifest-path" "manifest-path" "--no-parse-wal" "--progress" "--quiet" "--skip-checksums" "--wal-directory" "wal_directory" "--version" "--help""#
+            ),
             command.to_command_string()
         );
     }

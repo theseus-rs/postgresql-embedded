@@ -223,8 +223,15 @@ mod tests {
     #[test]
     fn test_builder_from() {
         let command = DropUserBuilder::from(&TestSettings).build();
+        #[cfg(not(target_os = "windows"))]
+        let command_prefix = r#"PGPASSWORD="password" "./dropuser" "#;
+        #[cfg(target_os = "windows")]
+        let command_prefix = r#"".\\dropuser" "#;
+
         assert_eq!(
-            r#"PGPASSWORD="password" "./dropuser" "--host" "localhost" "--port" "5432" "--username" "postgres""#,
+            format!(
+                r#"{command_prefix}"--host" "localhost" "--port" "5432" "--username" "postgres""#
+            ),
             command.to_command_string()
         );
     }
@@ -245,9 +252,15 @@ mod tests {
             .password()
             .pg_password("password")
             .build();
+        #[cfg(not(target_os = "windows"))]
+        let command_prefix = r#"PGDATABASE="database" PGPASSWORD="password" "#;
+        #[cfg(target_os = "windows")]
+        let command_prefix = String::new();
 
         assert_eq!(
-            r#"PGDATABASE="database" PGPASSWORD="password" "dropuser" "--echo" "--interactive" "--version" "--if-exists" "--help" "--host" "localhost" "--port" "5432" "--username" "postgres" "--no-password" "--password""#,
+            format!(
+                r#"{command_prefix}"dropuser" "--echo" "--interactive" "--version" "--if-exists" "--help" "--host" "localhost" "--port" "5432" "--username" "postgres" "--no-password" "--password""#
+            ),
             command.to_command_string()
         );
     }

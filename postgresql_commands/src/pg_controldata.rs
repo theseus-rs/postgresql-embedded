@@ -117,7 +117,12 @@ mod tests {
     #[test]
     fn test_builder_from() {
         let command = PgControlDataBuilder::from(&TestSettings).build();
-        assert_eq!(r#""./pg_controldata""#, command.to_command_string());
+        #[cfg(not(target_os = "windows"))]
+        let command_prefix = r#""./pg_controldata""#;
+        #[cfg(target_os = "windows")]
+        let command_prefix = r#"".\\pg_controldata""#;
+
+        assert_eq!(format!("{command_prefix}"), command.to_command_string());
     }
 
     #[test]
@@ -128,9 +133,13 @@ mod tests {
             .version()
             .help()
             .build();
+        #[cfg(not(target_os = "windows"))]
+        let command_prefix = r#"PGDATABASE="database" "#;
+        #[cfg(target_os = "windows")]
+        let command_prefix = String::new();
 
         assert_eq!(
-            r#"PGDATABASE="database" "pg_controldata" "--pgdata" "pgdata" "--version" "--help""#,
+            format!(r#"{command_prefix}"pg_controldata" "--pgdata" "pgdata" "--version" "--help""#),
             command.to_command_string()
         );
     }

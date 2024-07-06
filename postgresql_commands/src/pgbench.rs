@@ -666,8 +666,15 @@ mod tests {
     #[test]
     fn test_builder_from() {
         let command = PgBenchBuilder::from(&TestSettings).build();
+        #[cfg(not(target_os = "windows"))]
+        let command_prefix = r#""./pgbench" "#;
+        #[cfg(target_os = "windows")]
+        let command_prefix = r#"".\\pgbench" "#;
+
         assert_eq!(
-            r#""./pgbench" "--host" "localhost" "--port" "5432" "--username" "postgres""#,
+            format!(
+                r#"{command_prefix}"--host" "localhost" "--port" "5432" "--username" "postgres""#
+            ),
             command.to_command_string()
         );
     }
@@ -723,9 +730,15 @@ mod tests {
             .version()
             .help()
             .build();
+        #[cfg(not(target_os = "windows"))]
+        let command_prefix = r#"PGDATABASE="database" "#;
+        #[cfg(target_os = "windows")]
+        let command_prefix = String::new();
 
         assert_eq!(
-            r#"PGDATABASE="database" "pgbench" "--initialize" "--init-steps" "steps" "--fillfactor" "10" "--no-vacuum" "--quiet" "--scale" "10" "--foreign-keys" "--index-tablespace" "tablespace" "--partition-method" "method" "--partitions" "10" "--tablespace" "tablespace" "--unlogged-tables" "--builtin" "name" "--file" "filename" "--skip-some-updates" "--select-only" "--client" "10" "--connect" "--define" "var" "--jobs" "10" "--log" "--latency-limit" "10" "--protocol" "protocol" "--no-vacuum" "--progress" "10" "--report-per-command" "--rate" "10" "--scale" "10" "--transactions" "10" "--time" "10" "--vacuum-all" "--aggregate-interval" "10" "--failures-detailed" "--log-prefix" "prefix" "--max-tries" "10" "--progress-timestamp" "--random-seed" "seed" "--sampling-rate" "10" "--show-script" "name" "--verbose-errors" "--debug" "--host" "localhost" "--port" "5432" "--username" "username" "--version" "--help""#,
+            format!(
+                r#"{command_prefix}"pgbench" "--initialize" "--init-steps" "steps" "--fillfactor" "10" "--no-vacuum" "--quiet" "--scale" "10" "--foreign-keys" "--index-tablespace" "tablespace" "--partition-method" "method" "--partitions" "10" "--tablespace" "tablespace" "--unlogged-tables" "--builtin" "name" "--file" "filename" "--skip-some-updates" "--select-only" "--client" "10" "--connect" "--define" "var" "--jobs" "10" "--log" "--latency-limit" "10" "--protocol" "protocol" "--no-vacuum" "--progress" "10" "--report-per-command" "--rate" "10" "--scale" "10" "--transactions" "10" "--time" "10" "--vacuum-all" "--aggregate-interval" "10" "--failures-detailed" "--log-prefix" "prefix" "--max-tries" "10" "--progress-timestamp" "--random-seed" "seed" "--sampling-rate" "10" "--show-script" "name" "--verbose-errors" "--debug" "--host" "localhost" "--port" "5432" "--username" "username" "--version" "--help""#
+            ),
             command.to_command_string()
         );
     }
