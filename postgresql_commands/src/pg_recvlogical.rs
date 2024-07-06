@@ -388,8 +388,13 @@ mod tests {
     #[test]
     fn test_builder_from() {
         let command = PgRecvLogicalBuilder::from(&TestSettings).build();
+        #[cfg(not(target_os = "windows"))]
+        let command_prefix = r#"PGPASSWORD="password" "./pg_recvlogical" "#;
+        #[cfg(target_os = "windows")]
+        let command_prefix = r#"".\\pg_recvlogical" "#;
+
         assert_eq!(
-            r#"PGPASSWORD="password" "./pg_recvlogical" "--host" "localhost" "--port" "5432" "--username" "postgres""#,
+            format!(r#"{command_prefix}"--host" "localhost" "--port" "5432" "--username" "postgres""#),
             command.to_command_string()
         );
     }
@@ -423,9 +428,13 @@ mod tests {
             .password()
             .pg_password("password")
             .build();
+        #[cfg(not(target_os = "windows"))]
+        let command_prefix = r#"PGDATABASE="database" PGPASSWORD="password" "#;
+        #[cfg(target_os = "windows")]
+        let command_prefix = String::new();
 
         assert_eq!(
-            r#"PGDATABASE="database" PGPASSWORD="password" "pg_recvlogical" "--create-slot" "--drop-slot" "--start" "--endpos" "endpos" "--file" "file" "--fsync-interval" "fsync_interval" "--if-not-exists" "--startpos" "startpos" "--no-loop" "--option" "option" "--plugin" "plugin" "--status-interval" "status_interval" "--slot" "slot" "--two-phase" "--verbose" "--version" "--help" "--dbname" "dbname" "--host" "localhost" "--port" "5432" "--username" "username" "--no-password" "--password""#,
+            format!(r#"{command_prefix}"pg_recvlogical" "--create-slot" "--drop-slot" "--start" "--endpos" "endpos" "--file" "file" "--fsync-interval" "fsync_interval" "--if-not-exists" "--startpos" "startpos" "--no-loop" "--option" "option" "--plugin" "plugin" "--status-interval" "status_interval" "--slot" "slot" "--two-phase" "--verbose" "--version" "--help" "--dbname" "dbname" "--host" "localhost" "--port" "5432" "--username" "username" "--no-password" "--password""#),
             command.to_command_string()
         );
     }

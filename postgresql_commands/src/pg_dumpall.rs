@@ -666,8 +666,13 @@ mod tests {
     #[test]
     fn test_builder_from() {
         let command = PgDumpAllBuilder::from(&TestSettings).build();
+        #[cfg(not(target_os = "windows"))]
+        let command_prefix = r#"PGPASSWORD="password" "./pg_dumpall" "#;
+        #[cfg(target_os = "windows")]
+        let command_prefix = r#"".\\pg_dumpall" "#;
+
         assert_eq!(
-            r#"PGPASSWORD="password" "./pg_dumpall" "--host" "localhost" "--port" "5432" "--username" "postgres""#,
+            format!(r#"{command_prefix}"--host" "localhost" "--port" "5432" "--username" "postgres""#),
             command.to_command_string()
         );
     }
@@ -724,9 +729,13 @@ mod tests {
             .pg_password("password")
             .role("postgres")
             .build();
+        #[cfg(not(target_os = "windows"))]
+        let command_prefix = r#"PGDATABASE="database" PGPASSWORD="password" "#;
+        #[cfg(target_os = "windows")]
+        let command_prefix = String::new();
 
         assert_eq!(
-            r#"PGDATABASE="database" PGPASSWORD="password" "pg_dumpall" "--file" "dump.sql" "--verbose" "--version" "--lock-wait-timeout" "10" "--help" "--data-only" "--clean" "--encoding" "UTF8" "--globals-only" "--no-owner" "--roles-only" "--schema-only" "--superuser" "postgres" "--tablespaces-only" "--no-privileges" "--binary-upgrade" "--column-inserts" "--disable-dollar-quoting" "--disable-triggers" "--exclude-database" "exclude" "--extra-float-digits" "2" "--if-exists" "--inserts" "--load-via-partition-root" "--no-comments" "--no-publications" "--no-role-passwords" "--no-security-labels" "--no-subscriptions" "--no-sync" "--no-table-access-method" "--no-tablespaces" "--no-toast-compression" "--no-unlogged-table-data" "--on-conflict-do-nothing" "--quote-all-identifiers" "--rows-per-insert" "1000" "--use-set-session-authorization" "--dbname" "postgres" "--host" "localhost" "--database" "postgres" "--port" "5432" "--username" "postgres" "--no-password" "--password" "--role" "postgres""#,
+            format!(r#"{command_prefix}"pg_dumpall" "--file" "dump.sql" "--verbose" "--version" "--lock-wait-timeout" "10" "--help" "--data-only" "--clean" "--encoding" "UTF8" "--globals-only" "--no-owner" "--roles-only" "--schema-only" "--superuser" "postgres" "--tablespaces-only" "--no-privileges" "--binary-upgrade" "--column-inserts" "--disable-dollar-quoting" "--disable-triggers" "--exclude-database" "exclude" "--extra-float-digits" "2" "--if-exists" "--inserts" "--load-via-partition-root" "--no-comments" "--no-publications" "--no-role-passwords" "--no-security-labels" "--no-subscriptions" "--no-sync" "--no-table-access-method" "--no-tablespaces" "--no-toast-compression" "--no-unlogged-table-data" "--on-conflict-do-nothing" "--quote-all-identifiers" "--rows-per-insert" "1000" "--use-set-session-authorization" "--dbname" "postgres" "--host" "localhost" "--database" "postgres" "--port" "5432" "--username" "postgres" "--no-password" "--password" "--role" "postgres""#),
             command.to_command_string()
         );
     }

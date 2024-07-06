@@ -166,7 +166,12 @@ mod tests {
     #[test]
     fn test_builder_from() {
         let command = PgArchiveCleanupBuilder::from(&TestSettings).build();
-        assert_eq!(r#""./pg_archivecleanup""#, command.to_command_string());
+        #[cfg(not(target_os = "windows"))]
+        let command_prefix = r#""./pg_archivecleanup""#;
+        #[cfg(target_os = "windows")]
+        let command_prefix = r#"".\\pg_archivecleanup""#;
+
+        assert_eq!(format!("{command_prefix}"), command.to_command_string());
     }
 
     #[test]
@@ -181,9 +186,13 @@ mod tests {
             .archive_location("archive_location")
             .oldest_kept_wal_file("000000010000000000000001")
             .build();
+        #[cfg(not(target_os = "windows"))]
+        let command_prefix = r#"PGDATABASE="database" "#;
+        #[cfg(target_os = "windows")]
+        let command_prefix = String::new();
 
         assert_eq!(
-            r#"PGDATABASE="database" "pg_archivecleanup" "-d" "-n" "--version" "-x" "partial" "--help" "archive_location" "000000010000000000000001""#,
+            format!(r#"{command_prefix}"pg_archivecleanup" "-d" "-n" "--version" "-x" "partial" "--help" "archive_location" "000000010000000000000001""#),
             command.to_command_string()
         );
     }

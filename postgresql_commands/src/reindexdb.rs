@@ -349,8 +349,13 @@ mod tests {
     #[test]
     fn test_builder_from() {
         let command = ReindexDbBuilder::from(&TestSettings).build();
+        #[cfg(not(target_os = "windows"))]
+        let command_prefix = r#"PGPASSWORD="password" "./reindexdb" "#;
+        #[cfg(target_os = "windows")]
+        let command_prefix = r#"".\\reindexdb" "#;
+
         assert_eq!(
-            r#"PGPASSWORD="password" "./reindexdb" "--host" "localhost" "--port" "5432" "--username" "postgres""#,
+            format!(r#"{command_prefix}"--host" "localhost" "--port" "5432" "--username" "postgres""#),
             command.to_command_string()
         );
     }
@@ -381,9 +386,13 @@ mod tests {
             .pg_password("password")
             .maintenance_db("maintenance-db")
             .build();
+        #[cfg(not(target_os = "windows"))]
+        let command_prefix = r#"PGDATABASE="database" PGPASSWORD="password" "#;
+        #[cfg(target_os = "windows")]
+        let command_prefix = String::new();
 
         assert_eq!(
-            r#"PGDATABASE="database" PGPASSWORD="password" "reindexdb" "--all" "--concurrently" "--dbname" "dbname" "--echo" "--index" "index" "--jobs" "1" "--quiet" "--system" "--schema" "schema" "--table" "table" "--tablespace" "tablespace" "--verbose" "--version" "--help" "--host" "localhost" "--port" "5432" "--username" "username" "--no-password" "--password" "--maintenance-db" "maintenance-db""#,
+            format!(r#"{command_prefix}"reindexdb" "--all" "--concurrently" "--dbname" "dbname" "--echo" "--index" "index" "--jobs" "1" "--quiet" "--system" "--schema" "schema" "--table" "table" "--tablespace" "tablespace" "--verbose" "--version" "--help" "--host" "localhost" "--port" "5432" "--username" "username" "--no-password" "--password" "--maintenance-db" "maintenance-db""#),
             command.to_command_string()
         );
     }

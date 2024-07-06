@@ -94,7 +94,12 @@ mod tests {
     #[test]
     fn test_builder_from() {
         let command = PgTestTimingBuilder::from(&TestSettings).build();
-        assert_eq!(r#""./pg_test_timing""#, command.to_command_string());
+        #[cfg(not(target_os = "windows"))]
+        let command_prefix = r#""./pg_test_timing""#;
+        #[cfg(target_os = "windows")]
+        let command_prefix = r#"".\\pg_test_timing""#;
+
+        assert_eq!(format!("{command_prefix}"), command.to_command_string());
     }
 
     #[test]
@@ -103,9 +108,13 @@ mod tests {
             .env("PGDATABASE", "database")
             .duration("10")
             .build();
+        #[cfg(not(target_os = "windows"))]
+        let command_prefix = r#"PGDATABASE="database" "#;
+        #[cfg(target_os = "windows")]
+        let command_prefix = String::new();
 
         assert_eq!(
-            r#"PGDATABASE="database" "pg_test_timing" "-d" "10""#,
+            format!(r#"{command_prefix}"pg_test_timing" "-d" "10""#),
             command.to_command_string()
         );
     }

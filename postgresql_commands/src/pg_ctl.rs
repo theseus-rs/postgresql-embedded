@@ -334,7 +334,12 @@ mod tests {
     #[test]
     fn test_builder_from() {
         let command = PgCtlBuilder::from(&TestSettings).build();
-        assert_eq!(r#""./pg_ctl""#, command.to_command_string());
+        #[cfg(not(target_os = "windows"))]
+        let command_prefix = r#"./pg_ctl""#;
+        #[cfg(target_os = "windows")]
+        let command_prefix = r#"".\\pg_ctl""#;
+
+        assert_eq!(format!("{command_prefix}"), command.to_command_string());
     }
 
     #[test]
@@ -357,9 +362,13 @@ mod tests {
             .signal("HUP")
             .pid("12345")
             .build();
+        #[cfg(not(target_os = "windows"))]
+        let command_prefix = r#"PGDATABASE="database" "#;
+        #[cfg(target_os = "windows")]
+        let command_prefix = String::new();
 
         assert_eq!(
-            r#"PGDATABASE="database" "pg_ctl" "start" "--pgdata" "pgdata" "--silent" "--timeout" "60" "--version" "--wait" "--no-wait" "--help" "--core-files" "--log" "log" "-o" "-c log_connections=on" "-p" "path_to_postgres" "--mode" "smart" "HUP" "12345""#,
+            format!(r#"{command_prefix}"pg_ctl" "start" "--pgdata" "pgdata" "--silent" "--timeout" "60" "--version" "--wait" "--no-wait" "--help" "--core-files" "--log" "log" "-o" "-c log_connections=on" "-p" "path_to_postgres" "--mode" "smart" "HUP" "12345""#),
             command.to_command_string()
         );
     }

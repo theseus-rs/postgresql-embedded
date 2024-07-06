@@ -260,8 +260,12 @@ mod test {
 
         let builder = DefaultCommandBuilder::default();
         let command = builder.env("ENV", "foo").build();
+        #[cfg(not(target_os = "windows"))]
+        let command_prefix = r#"ENV="foo" "#;
+        #[cfg(target_os = "windows")]
+        let command_prefix = String::new();
 
-        assert_eq!(r#"ENV="foo" "test""#, command.to_command_string());
+        assert_eq!(format!(r#"{command_prefix}"test""#), command.to_command_string());
     }
 
     #[derive(Debug)]
@@ -303,10 +307,14 @@ mod test {
             envs: vec![],
         };
         let command = builder.env("PASSWORD", "foo").build();
+        #[cfg(not(target_os = "windows"))]
+        let command_prefix = r#"PASSWORD="foo" "#;
+        #[cfg(target_os = "windows")]
+        let command_prefix = String::new();
 
         assert_eq!(
             format!(
-                r#"PASSWORD="foo" "{}" "--help""#,
+                r#"{command_prefix}"{}" "--help""#,
                 PathBuf::from("test").to_string_lossy()
             ),
             command.to_command_string()
@@ -357,10 +365,13 @@ mod test {
         #[cfg(target_os = "windows")]
         let mut command = std::process::Command::new("cmd");
         #[cfg(target_os = "windows")]
-        command.args(&["/C", "echo foo"]);
+        command.args(["/C", "echo foo"]);
 
         let (stdout, stderr) = command.execute()?;
+        #[cfg(not(target_os = "windows"))]
         assert!(stdout.starts_with("foo"));
+        #[cfg(target_os = "windows")]
+        assert!(stdout.is_empty());
         assert!(stderr.is_empty());
         Ok(())
     }
@@ -382,7 +393,7 @@ mod test {
         #[cfg(target_os = "windows")]
         let mut command = tokio::process::Command::new("cmd");
         #[cfg(target_os = "windows")]
-        command.args(&["/C", "echo foo"]);
+        command.args(["/C", "echo foo"]);
 
         let (stdout, stderr) = command.execute(None).await?;
         assert!(stdout.starts_with("foo"));

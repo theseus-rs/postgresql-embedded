@@ -349,8 +349,13 @@ mod tests {
     #[test]
     fn test_builder_from() {
         let command = PgReceiveWalBuilder::from(&TestSettings).build();
+        #[cfg(not(target_os = "windows"))]
+        let command_prefix = r#"PGPASSWORD="password" "./pg_receivewal" "#;
+        #[cfg(target_os = "windows")]
+        let command_prefix = r#"".\\pg_receivewal" "#;
+
         assert_eq!(
-            r#"PGPASSWORD="password" "./pg_receivewal" "--host" "localhost" "--port" "5432" "--username" "postgres""#,
+            format!(r#"{command_prefix}"--host" "localhost" "--port" "5432" "--username" "postgres""#),
             command.to_command_string()
         );
     }
@@ -381,9 +386,13 @@ mod tests {
             .create_slot()
             .drop_slot()
             .build();
+        #[cfg(not(target_os = "windows"))]
+        let command_prefix = r#"PGDATABASE="database" PGPASSWORD="password" "#;
+        #[cfg(target_os = "windows")]
+        let command_prefix = String::new();
 
         assert_eq!(
-            r#"PGDATABASE="database" PGPASSWORD="password" "pg_receivewal" "--directory" "directory" "--endpos" "endpos" "--if-not-exists" "--no-loop" "--no-sync" "--status-interval" "status_interval" "--slot" "slot" "--synchronous" "--verbose" "--version" "--compress" "compress" "--help" "--dbname" "dbname" "--host" "localhost" "--port" "5432" "--username" "username" "--no-password" "--password" "--create-slot" "--drop-slot""#,
+            format!(r#"{command_prefix}"pg_receivewal" "--directory" "directory" "--endpos" "endpos" "--if-not-exists" "--no-loop" "--no-sync" "--status-interval" "status_interval" "--slot" "slot" "--synchronous" "--verbose" "--version" "--compress" "compress" "--help" "--dbname" "dbname" "--host" "localhost" "--port" "5432" "--username" "username" "--no-password" "--password" "--create-slot" "--drop-slot""#),
             command.to_command_string()
         );
     }

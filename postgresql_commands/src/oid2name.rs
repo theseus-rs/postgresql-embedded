@@ -260,8 +260,13 @@ mod tests {
     #[test]
     fn test_builder_from() {
         let command = Oid2NameBuilder::from(&TestSettings).build();
+        #[cfg(not(target_os = "windows"))]
+        let command_prefix = r#""./oid2name" "#;
+        #[cfg(target_os = "windows")]
+        let command_prefix = r#"".\\oid2name" "#;
+
         assert_eq!(
-            r#""./oid2name" "--host" "localhost" "--port" "5432" "--username" "postgres""#,
+            format!(r#"{command_prefix}"--host" "localhost" "--port" "5432" "--username" "postgres""#),
             command.to_command_string()
         );
     }
@@ -285,9 +290,13 @@ mod tests {
             .port(5432)
             .username("username")
             .build();
+        #[cfg(not(target_os = "windows"))]
+        let command_prefix = r#"PGDATABASE="database" "#;
+        #[cfg(target_os = "windows")]
+        let command_prefix = String::new();
 
         assert_eq!(
-            r#"PGDATABASE="database" "oid2name" "--filenode" "filenode" "--indexes" "--oid" "oid" "--quiet" "--tablespaces" "--system-objects" "--table" "table" "--version" "--extended" "--help" "--dbname" "dbname" "--host" "localhost" "--port" "5432" "--username" "username""#,
+            format!(r#"{command_prefix}"oid2name" "--filenode" "filenode" "--indexes" "--oid" "oid" "--quiet" "--tablespaces" "--system-objects" "--table" "table" "--version" "--extended" "--help" "--dbname" "dbname" "--host" "localhost" "--port" "5432" "--username" "username""#),
             command.to_command_string()
         );
     }

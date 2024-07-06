@@ -471,8 +471,13 @@ mod tests {
     #[test]
     fn test_builder_from() {
         let command = PostgresBuilder::from(&TestSettings).build();
+        #[cfg(not(target_os = "windows"))]
+        let command_prefix = r#""./postgres" "#;
+        #[cfg(target_os = "windows")]
+        let command_prefix = r#"".\\postgres" "#;
+
         assert_eq!(
-            r#""./postgres" "-h" "localhost" "-p" "5432""#,
+            format!(r#"{command_prefix}"-h" "localhost" "-p" "5432""#),
             command.to_command_string()
         );
     }
@@ -513,9 +518,13 @@ mod tests {
             .bootstrapping_mode()
             .check_mode()
             .build();
+        #[cfg(not(target_os = "windows"))]
+        let command_prefix = r#"PGDATABASE="database" "#;
+        #[cfg(target_os = "windows")]
+        let command_prefix = String::new();
 
         assert_eq!(
-            r#"PGDATABASE="database" "postgres" "-B" "100" "-c" "name=value" "-C" "name" "-d" "3" "-D" "data_dir" "-e" "-F" "-h" "localhost" "-i" "-k" "socket_location" "-N" "100" "-p" "5432" "-s" "-S" "100" "--version" "--describe-config" "--help" "-f" "type" "-O" "-P" "-t" "timings" "-T" "-W" "10" "--single" "dbname" "-d" "3" "-E" "-j" "-r" "output_file" "--boot" "--check""#,
+            format!(r#"{command_prefix}"postgres" "-B" "100" "-c" "name=value" "-C" "name" "-d" "3" "-D" "data_dir" "-e" "-F" "-h" "localhost" "-i" "-k" "socket_location" "-N" "100" "-p" "5432" "-s" "-S" "100" "--version" "--describe-config" "--help" "-f" "type" "-O" "-P" "-t" "timings" "-T" "-W" "10" "--single" "dbname" "-d" "3" "-E" "-j" "-r" "output_file" "--boot" "--check""#),
             command.to_command_string()
         );
     }
