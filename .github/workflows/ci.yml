@@ -55,6 +55,17 @@ jobs:
           tool: grcov
 
       - name: Tests
+        if: ${{ !startsWith(matrix.os, 'ubuntu-') }}
+        env:
+          CARGO_TERM_COLOR: always
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+          RUST_LOG: "info,postgresql_archive=debug,postgresql_commands=debug,postgresql_embedded=debug"
+          RUST_LOG_SPAN_EVENTS: full
+        run: |
+          cargo test --workspace
+
+      - name: Tests
+        if: ${{ startsWith(matrix.os, 'ubuntu-') }}
         env:
           CARGO_TERM_COLOR: always
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
