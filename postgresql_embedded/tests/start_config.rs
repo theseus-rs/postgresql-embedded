@@ -1,6 +1,6 @@
-use postgresql_embedded::{BOOTSTRAP_DATABASE, PostgreSQL, Settings};
-use std::collections::HashMap;
+use postgresql_embedded::{PostgreSQL, Settings, BOOTSTRAP_DATABASE};
 use sqlx::{PgPool, Row};
+use std::collections::HashMap;
 use test_log::test;
 
 #[test(tokio::test)]

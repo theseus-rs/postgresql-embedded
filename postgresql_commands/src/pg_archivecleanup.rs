@@ -192,7 +192,9 @@ mod tests {
         let command_prefix = String::new();
 
         assert_eq!(
-            format!(r#"{command_prefix}"pg_archivecleanup" "-d" "-n" "--version" "-x" "partial" "--help" "archive_location" "000000010000000000000001""#),
+            format!(
+                r#"{command_prefix}"pg_archivecleanup" "-d" "-n" "--version" "-x" "partial" "--help" "archive_location" "000000010000000000000001""#
+            ),
             command.to_command_string()
         );
     }

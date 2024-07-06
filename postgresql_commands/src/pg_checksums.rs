@@ -232,7 +232,9 @@ mod tests {
         let command_prefix = String::new();
 
         assert_eq!(
-            format!(r#"{command_prefix}"pg_checksums" "--pgdata" "pgdata" "--check" "--disable" "--enable" "--filenode" "12345" "--no-sync" "--progress" "--verbose" "--version" "--help""#),
+            format!(
+                r#"{command_prefix}"pg_checksums" "--pgdata" "pgdata" "--check" "--disable" "--enable" "--filenode" "12345" "--no-sync" "--progress" "--verbose" "--version" "--help""#
+            ),
             command.to_command_string()
         );
     }

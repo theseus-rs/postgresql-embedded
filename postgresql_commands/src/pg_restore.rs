@@ -640,7 +640,9 @@ mod tests {
         let command_prefix = r#"".\\pg_restore" "#;
 
         assert_eq!(
-            format!(r#"{command_prefix}"--host" "localhost" "--port" "5432" "--username" "postgres""#),
+            format!(
+                r#"{command_prefix}"--host" "localhost" "--port" "5432" "--username" "postgres""#
+            ),
             command.to_command_string()
         );
     }
@@ -700,7 +702,9 @@ mod tests {
         let command_prefix = String::new();
 
         assert_eq!(
-            format!(r#"{command_prefix}"pg_restore" "--dbname" "dbname" "--file" "file" "--format" "format" "--list" "--verbose" "--version" "--help" "--data-only" "--clean" "--create" "--exit-on-error" "--index" "index" "--jobs" "jobs" "--use-list" "use_list" "--schema" "schema" "--exclude-schema" "exclude_schema" "--no-owner" "--function" "function" "--schema-only" "--superuser" "superuser" "--table" "table" "--trigger" "trigger" "--no-privileges" "--single-transaction" "--disable-triggers" "--enable-row-security" "--if-exists" "--no-comments" "--no-data-for-failed-tables" "--no-publications" "--no-security-labels" "--no-subscriptions" "--no-table-access-method" "--no-tablespaces" "--section" "section" "--strict-names" "--use-set-session-authorization" "--host" "localhost" "--port" "5432" "--username" "username" "--no-password" "--password" "--role" "role""#),
+            format!(
+                r#"{command_prefix}"pg_restore" "--dbname" "dbname" "--file" "file" "--format" "format" "--list" "--verbose" "--version" "--help" "--data-only" "--clean" "--create" "--exit-on-error" "--index" "index" "--jobs" "jobs" "--use-list" "use_list" "--schema" "schema" "--exclude-schema" "exclude_schema" "--no-owner" "--function" "function" "--schema-only" "--superuser" "superuser" "--table" "table" "--trigger" "trigger" "--no-privileges" "--single-transaction" "--disable-triggers" "--enable-row-security" "--if-exists" "--no-comments" "--no-data-for-failed-tables" "--no-publications" "--no-security-labels" "--no-subscriptions" "--no-table-access-method" "--no-tablespaces" "--section" "section" "--strict-names" "--use-set-session-authorization" "--host" "localhost" "--port" "5432" "--username" "username" "--no-password" "--password" "--role" "role""#
+            ),
             command.to_command_string()
         );
     }

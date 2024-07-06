@@ -273,7 +273,9 @@ mod tests {
         let command_prefix = String::new();
 
         assert_eq!(
-            format!(r#"{command_prefix}"pg_rewind" "--restore-target-wal" "--target-pgdata" "target_pgdata" "--source-pgdata" "source_pgdata" "--source-server" "source_server" "--dry-run" "--no-sync" "--progress" "--write-recovery-conf" "--config-file" "config_file" "--debug" "--no-ensure-shutdown" "--version" "--help""#),
+            format!(
+                r#"{command_prefix}"pg_rewind" "--restore-target-wal" "--target-pgdata" "target_pgdata" "--source-pgdata" "source_pgdata" "--source-server" "source_server" "--dry-run" "--no-sync" "--progress" "--write-recovery-conf" "--config-file" "config_file" "--debug" "--no-ensure-shutdown" "--version" "--help""#
+            ),
             command.to_command_string()
         );
     }

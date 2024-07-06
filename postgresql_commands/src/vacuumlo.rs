@@ -230,7 +230,9 @@ mod tests {
         let command_prefix = r#"".\\vacuumlo" "#;
 
         assert_eq!(
-            format!(r#"{command_prefix}"--host" "localhost" "--port" "5432" "--username" "postgres""#),
+            format!(
+                r#"{command_prefix}"--host" "localhost" "--port" "5432" "--username" "postgres""#
+            ),
             command.to_command_string()
         );
     }
@@ -257,7 +259,9 @@ mod tests {
         let command_prefix = String::new();
 
         assert_eq!(
-            format!(r#"{command_prefix}"vacuumlo" "--limit" "100" "--dry-run" "--verbose" "--version" "--help" "--host" "localhost" "--port" "5432" "--username" "postgres" "--no-password" "--password""#),
+            format!(
+                r#"{command_prefix}"vacuumlo" "--limit" "100" "--dry-run" "--verbose" "--version" "--help" "--host" "localhost" "--port" "5432" "--username" "postgres" "--no-password" "--password""#
+            ),
             command.to_command_string()
         );
     }

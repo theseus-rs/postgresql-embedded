@@ -355,7 +355,9 @@ mod tests {
         let command_prefix = r#"".\\reindexdb" "#;
 
         assert_eq!(
-            format!(r#"{command_prefix}"--host" "localhost" "--port" "5432" "--username" "postgres""#),
+            format!(
+                r#"{command_prefix}"--host" "localhost" "--port" "5432" "--username" "postgres""#
+            ),
             command.to_command_string()
         );
     }
@@ -392,7 +394,9 @@ mod tests {
         let command_prefix = String::new();
 
         assert_eq!(
-            format!(r#"{command_prefix}"reindexdb" "--all" "--concurrently" "--dbname" "dbname" "--echo" "--index" "index" "--jobs" "1" "--quiet" "--system" "--schema" "schema" "--table" "table" "--tablespace" "tablespace" "--verbose" "--version" "--help" "--host" "localhost" "--port" "5432" "--username" "username" "--no-password" "--password" "--maintenance-db" "maintenance-db""#),
+            format!(
+                r#"{command_prefix}"reindexdb" "--all" "--concurrently" "--dbname" "dbname" "--echo" "--index" "index" "--jobs" "1" "--quiet" "--system" "--schema" "schema" "--table" "table" "--tablespace" "tablespace" "--verbose" "--version" "--help" "--host" "localhost" "--port" "5432" "--username" "username" "--no-password" "--password" "--maintenance-db" "maintenance-db""#
+            ),
             command.to_command_string()
         );
     }

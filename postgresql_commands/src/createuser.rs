@@ -462,7 +462,9 @@ mod tests {
         let command_prefix = r#"".\\createuser" "#;
 
         assert_eq!(
-            format!(r#"{command_prefix}"--host" "localhost" "--port" "5432" "--username" "postgres""#),
+            format!(
+                r#"{command_prefix}"--host" "localhost" "--port" "5432" "--username" "postgres""#
+            ),
             command.to_command_string()
         );
     }
@@ -508,7 +510,9 @@ mod tests {
         let command_prefix = String::new();
 
         assert_eq!(
-            format!(r#"{command_prefix}"createuser" "--with-admin" "admin" "--connection-limit" "10" "--createdb" "--no-createdb" "--echo" "--member-of" "member" "--inherit" "--no-inherit" "--login" "--no-login" "--with-member" "member" "--pwprompt" "--createrole" "--no-createrole" "--superuser" "--no-superuser" "--valid-until" "2021-12-31" "--version" "--interactive" "--bypassrls" "--no-bypassrls" "--replication" "--no-replication" "--help" "--host" "localhost" "--port" "5432" "--username" "username" "--no-password" "--password""#),
+            format!(
+                r#"{command_prefix}"createuser" "--with-admin" "admin" "--connection-limit" "10" "--createdb" "--no-createdb" "--echo" "--member-of" "member" "--inherit" "--no-inherit" "--login" "--no-login" "--with-member" "member" "--pwprompt" "--createrole" "--no-createrole" "--superuser" "--no-superuser" "--valid-until" "2021-12-31" "--version" "--interactive" "--bypassrls" "--no-bypassrls" "--replication" "--no-replication" "--help" "--host" "localhost" "--port" "5432" "--username" "username" "--no-password" "--password""#
+            ),
             command.to_command_string()
         );
     }

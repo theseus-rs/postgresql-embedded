@@ -346,7 +346,9 @@ mod tests {
         let command_prefix = String::new();
 
         assert_eq!(
-            format!(r#"{command_prefix}"pg_waldump" "--bkp-details" "--block" "block" "--end" "end" "--follow" "--fork" "fork" "--limit" "limit" "--path" "path" "--quiet" "--rmgr" "rmgr" "--relation" "relation" "--start" "start" "--timeline" "timeline" "--version" "--fullpage" "--xid" "xid" "--stats" "stats" "--save-fullpage" "save_fullpage" "--help""#),
+            format!(
+                r#"{command_prefix}"pg_waldump" "--bkp-details" "--block" "block" "--end" "end" "--follow" "--fork" "fork" "--limit" "limit" "--path" "path" "--quiet" "--rmgr" "rmgr" "--relation" "relation" "--start" "start" "--timeline" "timeline" "--version" "--fullpage" "--xid" "xid" "--stats" "stats" "--save-fullpage" "save_fullpage" "--help""#
+            ),
             command.to_command_string()
         );
     }

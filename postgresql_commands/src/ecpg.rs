@@ -261,7 +261,9 @@ mod tests {
         let command_prefix = String::new();
 
         assert_eq!(
-            format!(r#"{command_prefix}"ecpg" "-c" "-C" "mode" "-D" "symbol" "-h" "-i" "-I" "directory" "-o" "outfile" "-r" "behavior" "--regression" "-t" "--version" "--help""#),
+            format!(
+                r#"{command_prefix}"ecpg" "-c" "-C" "mode" "-D" "symbol" "-h" "-i" "-I" "directory" "-o" "outfile" "-r" "behavior" "--regression" "-t" "--version" "--help""#
+            ),
             command.to_command_string()
         );
     }

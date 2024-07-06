@@ -233,7 +233,9 @@ mod tests {
         let command_prefix = String::new();
 
         assert_eq!(
-            format!(r#"{command_prefix}"pg_verifybackup" "--exit-on-error" "--ignore" "ignore" "--manifest-path" "manifest-path" "--no-parse-wal" "--progress" "--quiet" "--skip-checksums" "--wal-directory" "wal_directory" "--version" "--help""#),
+            format!(
+                r#"{command_prefix}"pg_verifybackup" "--exit-on-error" "--ignore" "ignore" "--manifest-path" "manifest-path" "--no-parse-wal" "--progress" "--quiet" "--skip-checksums" "--wal-directory" "wal_directory" "--version" "--help""#
+            ),
             command.to_command_string()
         );
     }

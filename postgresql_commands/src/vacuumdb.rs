@@ -517,7 +517,9 @@ mod tests {
         let command_prefix = r#"".\\vacuumdb" "#;
 
         assert_eq!(
-            format!(r#"{command_prefix}"--host" "localhost" "--port" "5432" "--username" "postgres""#),
+            format!(
+                r#"{command_prefix}"--host" "localhost" "--port" "5432" "--username" "postgres""#
+            ),
             command.to_command_string()
         );
     }
@@ -567,7 +569,9 @@ mod tests {
         let command_prefix = String::new();
 
         assert_eq!(
-            format!(r#"{command_prefix}"vacuumdb" "--all" "--buffer-usage-limit" "buffer_usage_limit" "--dbname" "dbname" "--disable-page-skipping" "--echo" "--full" "--freeze" "--force-index-cleanup" "--jobs" "1" "--min-mxid-age" "min_mxid_age" "--min-xid-age" "min_xid_age" "--no-index-cleanup" "--no-process-main" "--no-process-toast" "--no-truncate" "--schema" "schema" "--exclude-schema" "exclude_schema" "--parallel" "1" "--quiet" "--skip-locked" "--table" "table" "--verbose" "--version" "--analyze" "--analyze-only" "--analyze-in-stages" "--help" "--host" "localhost" "--port" "5432" "--username" "username" "--no-password" "--password" "--maintenance-db" "maintenance_db""#),
+            format!(
+                r#"{command_prefix}"vacuumdb" "--all" "--buffer-usage-limit" "buffer_usage_limit" "--dbname" "dbname" "--disable-page-skipping" "--echo" "--full" "--freeze" "--force-index-cleanup" "--jobs" "1" "--min-mxid-age" "min_mxid_age" "--min-xid-age" "min_xid_age" "--no-index-cleanup" "--no-process-main" "--no-process-toast" "--no-truncate" "--schema" "schema" "--exclude-schema" "exclude_schema" "--parallel" "1" "--quiet" "--skip-locked" "--table" "table" "--verbose" "--version" "--analyze" "--analyze-only" "--analyze-in-stages" "--help" "--host" "localhost" "--port" "5432" "--username" "username" "--no-password" "--password" "--maintenance-db" "maintenance_db""#
+            ),
             command.to_command_string()
         );
     }

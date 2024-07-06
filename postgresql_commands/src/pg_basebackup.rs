@@ -520,7 +520,9 @@ mod tests {
         let command_prefix = r#"".\\pg_basebackup" "#;
 
         assert_eq!(
-            format!(r#"{command_prefix}"--host" "localhost" "--port" "5432" "--username" "postgres""#),
+            format!(
+                r#"{command_prefix}"--host" "localhost" "--port" "5432" "--username" "postgres""#
+            ),
             command.to_command_string()
         );
     }
@@ -570,7 +572,9 @@ mod tests {
         let command_prefix = String::new();
 
         assert_eq!(
-            format!(r#"{command_prefix}"pg_basebackup" "--pgdata" "pgdata" "--format" "plain" "--max-rate" "100M" "--write-recovery-conf" "--target" "localhost" "--tablespace-mapping" "tablespace_mapping" "--waldir" "waldir" "--wal-method" "stream" "--gzip" "--compress" "client" "--checkpoint" "fast" "--create-slot" "--label" "my_backup" "--no-clean" "--no-sync" "--progress" "--slot" "my_slot" "--verbose" "--version" "--manifest-checksums" "sha256" "--manifest-force-encode" "--no-estimate-size" "--no-manifest" "--no-slot" "--no-verify-checksums" "--help" "--dbname" "postgres" "--host" "localhost" "--port" "5432" "--status-interval" "10" "--username" "postgres" "--no-password" "--password""#),
+            format!(
+                r#"{command_prefix}"pg_basebackup" "--pgdata" "pgdata" "--format" "plain" "--max-rate" "100M" "--write-recovery-conf" "--target" "localhost" "--tablespace-mapping" "tablespace_mapping" "--waldir" "waldir" "--wal-method" "stream" "--gzip" "--compress" "client" "--checkpoint" "fast" "--create-slot" "--label" "my_backup" "--no-clean" "--no-sync" "--progress" "--slot" "my_slot" "--verbose" "--version" "--manifest-checksums" "sha256" "--manifest-force-encode" "--no-estimate-size" "--no-manifest" "--no-slot" "--no-verify-checksums" "--help" "--dbname" "postgres" "--host" "localhost" "--port" "5432" "--status-interval" "10" "--username" "postgres" "--no-password" "--password""#
+            ),
             command.to_command_string()
         );
     }

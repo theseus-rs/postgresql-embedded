@@ -148,5 +148,5 @@ lazy_static::lazy_static! {
     pub static ref V12: VersionReq = VersionReq::parse("=12").unwrap();
 }
 
-pub use settings::BOOTSTRAP_SUPERUSER;
 pub use settings::BOOTSTRAP_DATABASE;
+pub use settings::BOOTSTRAP_SUPERUSER;

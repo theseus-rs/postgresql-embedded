@@ -355,7 +355,9 @@ mod tests {
         let command_prefix = r#"".\\pg_receivewal" "#;
 
         assert_eq!(
-            format!(r#"{command_prefix}"--host" "localhost" "--port" "5432" "--username" "postgres""#),
+            format!(
+                r#"{command_prefix}"--host" "localhost" "--port" "5432" "--username" "postgres""#
+            ),
             command.to_command_string()
         );
     }
@@ -392,7 +394,9 @@ mod tests {
         let command_prefix = String::new();
 
         assert_eq!(
-            format!(r#"{command_prefix}"pg_receivewal" "--directory" "directory" "--endpos" "endpos" "--if-not-exists" "--no-loop" "--no-sync" "--status-interval" "status_interval" "--slot" "slot" "--synchronous" "--verbose" "--version" "--compress" "compress" "--help" "--dbname" "dbname" "--host" "localhost" "--port" "5432" "--username" "username" "--no-password" "--password" "--create-slot" "--drop-slot""#),
+            format!(
+                r#"{command_prefix}"pg_receivewal" "--directory" "directory" "--endpos" "endpos" "--if-not-exists" "--no-loop" "--no-sync" "--status-interval" "status_interval" "--slot" "slot" "--synchronous" "--verbose" "--version" "--compress" "compress" "--help" "--dbname" "dbname" "--host" "localhost" "--port" "5432" "--username" "username" "--no-password" "--password" "--create-slot" "--drop-slot""#
+            ),
             command.to_command_string()
         );
     }

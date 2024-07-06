@@ -385,7 +385,9 @@ mod tests {
         let command_prefix = r#"".\\createdb" "#;
 
         assert_eq!(
-            format!(r#"{command_prefix}"--host" "localhost" "--port" "5432" "--username" "postgres""#),
+            format!(
+                r#"{command_prefix}"--host" "localhost" "--port" "5432" "--username" "postgres""#
+            ),
             command.to_command_string()
         );
     }
@@ -424,7 +426,9 @@ mod tests {
         let command_prefix = String::new();
 
         assert_eq!(
-            format!(r#"{command_prefix}"createdb" "--tablespace" "pg_default" "--echo" "--encoding" "UTF8" "--locale" "en_US.UTF-8" "--lc-collate" "en_US.UTF-8" "--lc-ctype" "en_US.UTF-8" "--icu-locale" "en_US" "--icu-rules" "standard" "--locale-provider" "icu" "--owner" "postgres" "--strategy" "wal_log" "--template" "template0" "--version" "--help" "--host" "localhost" "--port" "5432" "--username" "postgres" "--no-password" "--password" "--maintenance-db" "postgres" "testdb" "Test Database""#),
+            format!(
+                r#"{command_prefix}"createdb" "--tablespace" "pg_default" "--echo" "--encoding" "UTF8" "--locale" "en_US.UTF-8" "--lc-collate" "en_US.UTF-8" "--lc-ctype" "en_US.UTF-8" "--icu-locale" "en_US" "--icu-rules" "standard" "--locale-provider" "icu" "--owner" "postgres" "--strategy" "wal_log" "--template" "template0" "--version" "--help" "--host" "localhost" "--port" "5432" "--username" "postgres" "--no-password" "--password" "--maintenance-db" "postgres" "testdb" "Test Database""#
+            ),
             command.to_command_string()
         );
     }

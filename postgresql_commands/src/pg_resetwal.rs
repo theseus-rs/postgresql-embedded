@@ -292,7 +292,9 @@ mod tests {
         let command_prefix = String::new();
 
         assert_eq!(
-            format!(r#"{command_prefix}"pg_resetwal" "--commit-timestamp-ids" "1,2" "--pgdata" "pgdata" "--epoch" "epoch" "--force" "--next-wal-file" "next_wal_file" "--multixact-ids" "3,4" "--dry-run" "--next-oid" "next_oid" "--multixact-offset" "multixact_offset" "--oldest-transaction-id" "oldest_transaction_id" "--version" "--next-transaction-id" "next_transaction_id" "--wal-segsize" "wal_segsize" "--help""#),
+            format!(
+                r#"{command_prefix}"pg_resetwal" "--commit-timestamp-ids" "1,2" "--pgdata" "pgdata" "--epoch" "epoch" "--force" "--next-wal-file" "next_wal_file" "--multixact-ids" "3,4" "--dry-run" "--next-oid" "next_oid" "--multixact-offset" "multixact_offset" "--oldest-transaction-id" "oldest_transaction_id" "--version" "--next-transaction-id" "next_transaction_id" "--wal-segsize" "wal_segsize" "--help""#
+            ),
             command.to_command_string()
         );
     }

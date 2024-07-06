@@ -425,7 +425,9 @@ mod tests {
         let command_prefix = String::new();
 
         assert_eq!(
-            format!(r#"{command_prefix}"pg_config" "--bindir" "bindir" "--docdir" "docdir" "--htmldir" "htmldir" "--includedir" "includedir" "--pkgincludedir" "pkgincludedir" "--includedir-server" "includedir_server" "--libdir" "libdir" "--pkglibdir" "pkglibdir" "--localedir" "localedir" "--mandir" "mandir" "--sharedir" "sharedir" "--sysconfdir" "sysconfdir" "--pgxs" "pgxs" "--configure" "--cc" "--cppflags" "--cflags" "--cflags_sl" "--ldflags" "--ldflags_ex" "--ldflags_sl" "--libs" "--version" "--help""#),
+            format!(
+                r#"{command_prefix}"pg_config" "--bindir" "bindir" "--docdir" "docdir" "--htmldir" "htmldir" "--includedir" "includedir" "--pkgincludedir" "pkgincludedir" "--includedir-server" "includedir_server" "--libdir" "libdir" "--pkglibdir" "pkglibdir" "--localedir" "localedir" "--mandir" "mandir" "--sharedir" "sharedir" "--sysconfdir" "sysconfdir" "--pgxs" "pgxs" "--configure" "--cc" "--cppflags" "--cflags" "--cflags_sl" "--ldflags" "--ldflags_ex" "--ldflags_sl" "--libs" "--version" "--help""#
+            ),
             command.to_command_string()
         );
     }

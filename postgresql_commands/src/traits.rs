@@ -265,7 +265,10 @@ mod test {
         #[cfg(target_os = "windows")]
         let command_prefix = String::new();
 
-        assert_eq!(format!(r#"{command_prefix}"test""#), command.to_command_string());
+        assert_eq!(
+            format!(r#"{command_prefix}"test""#),
+            command.to_command_string()
+        );
     }
 
     #[derive(Debug)]

@@ -524,7 +524,9 @@ mod tests {
         let command_prefix = String::new();
 
         assert_eq!(
-            format!(r#"{command_prefix}"postgres" "-B" "100" "-c" "name=value" "-C" "name" "-d" "3" "-D" "data_dir" "-e" "-F" "-h" "localhost" "-i" "-k" "socket_location" "-N" "100" "-p" "5432" "-s" "-S" "100" "--version" "--describe-config" "--help" "-f" "type" "-O" "-P" "-t" "timings" "-T" "-W" "10" "--single" "dbname" "-d" "3" "-E" "-j" "-r" "output_file" "--boot" "--check""#),
+            format!(
+                r#"{command_prefix}"postgres" "-B" "100" "-c" "name=value" "-C" "name" "-d" "3" "-D" "data_dir" "-e" "-F" "-h" "localhost" "-i" "-k" "socket_location" "-N" "100" "-p" "5432" "-s" "-S" "100" "--version" "--describe-config" "--help" "-f" "type" "-O" "-P" "-t" "timings" "-T" "-W" "10" "--single" "dbname" "-d" "3" "-E" "-j" "-r" "output_file" "--boot" "--check""#
+            ),
             command.to_command_string()
         );
     }

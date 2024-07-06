@@ -371,7 +371,9 @@ mod tests {
         let command_prefix = String::new();
 
         assert_eq!(
-            format!(r#"{command_prefix}"pg_upgrade" "--old-bindir" "old" "--new-bindir" "new" "--check" "--old-datadir" "old_data" "--new-datadir" "new_data" "--jobs" "10" "--link" "--no-sync" "--old-options" "old" "--new-options" "new" "--old-port" "5432" "--new-port" "5433" "--retain" "--socketdir" "socket" "--username" "user" "--verbose" "--version" "--clone" "--copy" "--help""#),
+            format!(
+                r#"{command_prefix}"pg_upgrade" "--old-bindir" "old" "--new-bindir" "new" "--check" "--old-datadir" "old_data" "--new-datadir" "new_data" "--jobs" "10" "--link" "--no-sync" "--old-options" "old" "--new-options" "new" "--old-port" "5432" "--new-port" "5433" "--retain" "--socketdir" "socket" "--username" "user" "--verbose" "--version" "--clone" "--copy" "--help""#
+            ),
             command.to_command_string()
         );
     }
