@@ -667,7 +667,7 @@ mod tests {
     fn test_builder_from() {
         let command = PgBenchBuilder::from(&TestSettings).build();
         #[cfg(not(target_os = "windows"))]
-        let command_prefix = r#"./pgbench" "#;
+        let command_prefix = r#""./pgbench" "#;
         #[cfg(target_os = "windows")]
         let command_prefix = r#"".\\pgbench" "#;
 

@@ -335,7 +335,7 @@ mod tests {
     fn test_builder_from() {
         let command = PgCtlBuilder::from(&TestSettings).build();
         #[cfg(not(target_os = "windows"))]
-        let command_prefix = r#"./pg_ctl""#;
+        let command_prefix = r#""./pg_ctl""#;
         #[cfg(target_os = "windows")]
         let command_prefix = r#"".\\pg_ctl""#;
 

@@ -187,7 +187,7 @@ mod tests {
     fn test_builder_from() {
         let command = PgIsReadyBuilder::from(&TestSettings).build();
         #[cfg(not(target_os = "windows"))]
-        let command_prefix = r#"PGPASSWORD="password" "./pg_isready" "#;
+        let command_prefix = r#""./pg_isready" "#;
         #[cfg(target_os = "windows")]
         let command_prefix = r#"".\\pg_isready" "#;
 

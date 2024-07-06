@@ -505,7 +505,7 @@ mod tests {
             .pg_password("password")
             .build();
         #[cfg(not(target_os = "windows"))]
-        let command_prefix = r#"PGPASSWORD="password" "#;
+        let command_prefix = r#"PGDATABASE="database" PGPASSWORD="password" "#;
         #[cfg(target_os = "windows")]
         let command_prefix = String::new();
 

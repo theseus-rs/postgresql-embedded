@@ -231,7 +231,7 @@ mod tests {
     fn test_builder_from() {
         let command = EcpgBuilder::from(&TestSettings).build();
         #[cfg(not(target_os = "windows"))]
-        let command_prefix = r#"PGPASSWORD="password" "./ecpg""#;
+        let command_prefix = r#""./ecpg""#;
         #[cfg(target_os = "windows")]
         let command_prefix = r#"".\\ecpg""#;
 
