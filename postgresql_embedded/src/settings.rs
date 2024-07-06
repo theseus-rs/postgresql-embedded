@@ -109,7 +109,7 @@ impl Settings {
             username: BOOTSTRAP_SUPERUSER.to_string(),
             password,
             temporary: true,
-            timeout: Some(Duration::from_secs(5)),
+            timeout: Some(Duration::from_secs(30)),
             configuration: HashMap::new(),
         }
     }
