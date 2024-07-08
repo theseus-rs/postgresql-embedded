@@ -78,14 +78,19 @@ determined by the `POSTGRESQL_VERSION` environment variable. If the `POSTGRESQL_
 environment variable is not set, then `postgresql_archive::LATEST` will be used to determine the
 version of the PostgreSQL binaries to download.
 
-When downloading the PostgreSQL binaries, either during build, or at runtime, the `GITHUB_TOKEN`
-environment variable can be set to a GitHub personal access token to increase the rate limit for
-downloading the PostgreSQL binaries. The `GITHUB_TOKEN` environment variable is not required.
+When downloading the theseus PostgreSQL binaries, either during build, or at runtime, the
+`GITHUB_TOKEN` environment variable can be set to a GitHub personal access token to increase
+the rate limit for downloading the PostgreSQL binaries. The `GITHUB_TOKEN` environment
+variable is not required.
 
 At runtime, the PostgreSQL binaries are cached by default in the following directories:
 
 - Unix: `$HOME/.theseus/postgresql`
 - Windows: `%USERPROFILE%\.theseus\postgresql`
+
+Performance can be improved by Using a specific version of the PostgreSQL binaries (e.g. `=16.3.0`).
+After the first download, the PostgreSQL binaries will be cached and reused for subsequent runs.
+Further, the repository will no longer be queried to calculate the version match.
 
 ## Feature flags
 
