@@ -9,19 +9,19 @@ use std::path::PathBuf;
 pub struct PgConfigBuilder {
     program_dir: Option<PathBuf>,
     envs: Vec<(OsString, OsString)>,
-    bindir: Option<OsString>,
-    docdir: Option<OsString>,
-    htmldir: Option<OsString>,
-    includedir: Option<OsString>,
-    pkgincludedir: Option<OsString>,
-    includedir_server: Option<OsString>,
-    libdir: Option<OsString>,
-    pkglibdir: Option<OsString>,
-    localedir: Option<OsString>,
-    mandir: Option<OsString>,
-    sharedir: Option<OsString>,
-    sysconfdir: Option<OsString>,
-    pgxs: Option<OsString>,
+    bindir: bool,
+    docdir: bool,
+    htmldir: bool,
+    includedir: bool,
+    pkgincludedir: bool,
+    includedir_server: bool,
+    libdir: bool,
+    pkglibdir: bool,
+    localedir: bool,
+    mandir: bool,
+    sharedir: bool,
+    sysconfdir: bool,
+    pgxs: bool,
     configure: bool,
     cc: bool,
     cppflags: bool,
@@ -56,92 +56,92 @@ impl PgConfigBuilder {
 
     /// Set the bindir
     #[must_use]
-    pub fn bindir<S: AsRef<OsStr>>(mut self, bindir: S) -> Self {
-        self.bindir = Some(bindir.as_ref().to_os_string());
+    pub fn bindir(mut self) -> Self {
+        self.bindir = true;
         self
     }
 
     /// Set the docdir
     #[must_use]
-    pub fn docdir<S: AsRef<OsStr>>(mut self, docdir: S) -> Self {
-        self.docdir = Some(docdir.as_ref().to_os_string());
+    pub fn docdir(mut self) -> Self {
+        self.docdir = true;
         self
     }
 
     /// Set the htmldir
     #[must_use]
-    pub fn htmldir<S: AsRef<OsStr>>(mut self, htmldir: S) -> Self {
-        self.htmldir = Some(htmldir.as_ref().to_os_string());
+    pub fn htmldir(mut self) -> Self {
+        self.htmldir = true;
         self
     }
 
     /// Set the includedir
     #[must_use]
-    pub fn includedir<S: AsRef<OsStr>>(mut self, includedir: S) -> Self {
-        self.includedir = Some(includedir.as_ref().to_os_string());
+    pub fn includedir(mut self) -> Self {
+        self.includedir = true;
         self
     }
 
     /// Set the pkgincludedir
     #[must_use]
-    pub fn pkgincludedir<S: AsRef<OsStr>>(mut self, pkgincludedir: S) -> Self {
-        self.pkgincludedir = Some(pkgincludedir.as_ref().to_os_string());
+    pub fn pkgincludedir(mut self) -> Self {
+        self.pkgincludedir = true;
         self
     }
 
     /// Set the `includedir_server`
     #[must_use]
-    pub fn includedir_server<S: AsRef<OsStr>>(mut self, includedir_server: S) -> Self {
-        self.includedir_server = Some(includedir_server.as_ref().to_os_string());
+    pub fn includedir_server(mut self) -> Self {
+        self.includedir_server = true;
         self
     }
 
     /// Set the libdir
     #[must_use]
-    pub fn libdir<S: AsRef<OsStr>>(mut self, libdir: S) -> Self {
-        self.libdir = Some(libdir.as_ref().to_os_string());
+    pub fn libdir(mut self) -> Self {
+        self.libdir = true;
         self
     }
 
     /// Set the pkglibdir
     #[must_use]
-    pub fn pkglibdir<S: AsRef<OsStr>>(mut self, pkglibdir: S) -> Self {
-        self.pkglibdir = Some(pkglibdir.as_ref().to_os_string());
+    pub fn pkglibdir(mut self) -> Self {
+        self.pkglibdir = true;
         self
     }
 
     /// Set the localedir
     #[must_use]
-    pub fn localedir<S: AsRef<OsStr>>(mut self, localedir: S) -> Self {
-        self.localedir = Some(localedir.as_ref().to_os_string());
+    pub fn localedir(mut self) -> Self {
+        self.localedir = true;
         self
     }
 
     /// Set the mandir
     #[must_use]
-    pub fn mandir<S: AsRef<OsStr>>(mut self, mandir: S) -> Self {
-        self.mandir = Some(mandir.as_ref().to_os_string());
+    pub fn mandir(mut self) -> Self {
+        self.mandir = true;
         self
     }
 
     /// Set the sharedir
     #[must_use]
-    pub fn sharedir<S: AsRef<OsStr>>(mut self, sharedir: S) -> Self {
-        self.sharedir = Some(sharedir.as_ref().to_os_string());
+    pub fn sharedir(mut self) -> Self {
+        self.sharedir = true;
         self
     }
 
     /// Set the sysconfdir
     #[must_use]
-    pub fn sysconfdir<S: AsRef<OsStr>>(mut self, sysconfdir: S) -> Self {
-        self.sysconfdir = Some(sysconfdir.as_ref().to_os_string());
+    pub fn sysconfdir(mut self) -> Self {
+        self.sysconfdir = true;
         self
     }
 
     /// Set the pgxs
     #[must_use]
-    pub fn pgxs<S: AsRef<OsStr>>(mut self, pgxs: S) -> Self {
-        self.pgxs = Some(pgxs.as_ref().to_os_string());
+    pub fn pgxs(mut self) -> Self {
+        self.pgxs = true;
         self
     }
 
@@ -238,69 +238,56 @@ impl CommandBuilder for PgConfigBuilder {
     fn get_args(&self) -> Vec<OsString> {
         let mut args: Vec<OsString> = Vec::new();
 
-        if let Some(bindir) = &self.bindir {
+        if self.bindir {
             args.push("--bindir".into());
-            args.push(bindir.into());
         }
 
-        if let Some(docdir) = &self.docdir {
+        if self.docdir {
             args.push("--docdir".into());
-            args.push(docdir.into());
         }
 
-        if let Some(htmldir) = &self.htmldir {
+        if self.htmldir {
             args.push("--htmldir".into());
-            args.push(htmldir.into());
         }
 
-        if let Some(includedir) = &self.includedir {
+        if self.includedir {
             args.push("--includedir".into());
-            args.push(includedir.into());
         }
 
-        if let Some(pkgincludedir) = &self.pkgincludedir {
+        if self.pkgincludedir {
             args.push("--pkgincludedir".into());
-            args.push(pkgincludedir.into());
         }
 
-        if let Some(includedir_server) = &self.includedir_server {
+        if self.includedir_server {
             args.push("--includedir-server".into());
-            args.push(includedir_server.into());
         }
 
-        if let Some(libdir) = &self.libdir {
+        if self.libdir {
             args.push("--libdir".into());
-            args.push(libdir.into());
         }
 
-        if let Some(pkglibdir) = &self.pkglibdir {
+        if self.pkglibdir {
             args.push("--pkglibdir".into());
-            args.push(pkglibdir.into());
         }
 
-        if let Some(localedir) = &self.localedir {
+        if self.localedir {
             args.push("--localedir".into());
-            args.push(localedir.into());
         }
 
-        if let Some(mandir) = &self.mandir {
+        if self.mandir {
             args.push("--mandir".into());
-            args.push(mandir.into());
         }
 
-        if let Some(sharedir) = &self.sharedir {
+        if self.sharedir {
             args.push("--sharedir".into());
-            args.push(sharedir.into());
         }
 
-        if let Some(sysconfdir) = &self.sysconfdir {
+        if self.sysconfdir {
             args.push("--sysconfdir".into());
-            args.push(sysconfdir.into());
         }
 
-        if let Some(pgxs) = &self.pgxs {
+        if self.pgxs {
             args.push("--pgxs".into());
-            args.push(pgxs.into());
         }
 
         if self.configure {
@@ -394,19 +381,19 @@ mod tests {
     fn test_builder() {
         let command = PgConfigBuilder::new()
             .env("PGDATABASE", "database")
-            .bindir("bindir")
-            .docdir("docdir")
-            .htmldir("htmldir")
-            .includedir("includedir")
-            .pkgincludedir("pkgincludedir")
-            .includedir_server("includedir_server")
-            .libdir("libdir")
-            .pkglibdir("pkglibdir")
-            .localedir("localedir")
-            .mandir("mandir")
-            .sharedir("sharedir")
-            .sysconfdir("sysconfdir")
-            .pgxs("pgxs")
+            .bindir()
+            .docdir()
+            .htmldir()
+            .includedir()
+            .pkgincludedir()
+            .includedir_server()
+            .libdir()
+            .pkglibdir()
+            .localedir()
+            .mandir()
+            .sharedir()
+            .sysconfdir()
+            .pgxs()
             .configure()
             .cc()
             .cppflags()
@@ -426,7 +413,7 @@ mod tests {
 
         assert_eq!(
             format!(
-                r#"{command_prefix}"pg_config" "--bindir" "bindir" "--docdir" "docdir" "--htmldir" "htmldir" "--includedir" "includedir" "--pkgincludedir" "pkgincludedir" "--includedir-server" "includedir_server" "--libdir" "libdir" "--pkglibdir" "pkglibdir" "--localedir" "localedir" "--mandir" "mandir" "--sharedir" "sharedir" "--sysconfdir" "sysconfdir" "--pgxs" "pgxs" "--configure" "--cc" "--cppflags" "--cflags" "--cflags_sl" "--ldflags" "--ldflags_ex" "--ldflags_sl" "--libs" "--version" "--help""#
+                r#"{command_prefix}"pg_config" "--bindir" "--docdir" "--htmldir" "--includedir" "--pkgincludedir" "--includedir-server" "--libdir" "--pkglibdir" "--localedir" "--mandir" "--sharedir" "--sysconfdir" "--pgxs" "--configure" "--cc" "--cppflags" "--cflags" "--cflags_sl" "--ldflags" "--ldflags_ex" "--ldflags_sl" "--libs" "--version" "--help""#
             ),
             command.to_command_string()
         );

@@ -6,6 +6,7 @@ use crate::hasher::md5;
 use crate::hasher::sha1;
 #[cfg(feature = "sha2")]
 use crate::hasher::sha2_256;
+#[allow(unused_imports)]
 #[cfg(feature = "sha2")]
 use crate::hasher::sha2_512;
 #[cfg(feature = "maven")]
@@ -75,6 +76,7 @@ impl HasherRegistry {
 impl Default for HasherRegistry {
     /// Creates a new hasher registry with the default hashers registered.
     fn default() -> Self {
+        #[allow(unused_mut)]
         let mut registry = Self::new();
         #[cfg(feature = "theseus")]
         registry.register(
