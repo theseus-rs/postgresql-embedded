@@ -1,5 +1,5 @@
-use std::env;
 use crate::error::{Error, Result};
+use std::env::consts::OS;
 use std::ffi::{OsStr, OsString};
 use std::fmt::Debug;
 use std::path::PathBuf;
@@ -147,7 +147,7 @@ impl CommandExecutor for std::process::Command {
         let stderr: String;
         let status: ExitStatus;
 
-        if env::consts::OS == "windows" && program.as_str().ends_with("pg_ctl") {
+        if OS == "windows" && program.as_str().ends_with("pg_ctl") {
             // TODO: Processes can hang on Windows when attempting to get stdout/stderr using code
             // that works for Linux/MacOS; this implementation should be updated to retrieve the
             // values of stdout/stderr without hanging
@@ -166,9 +166,7 @@ impl CommandExecutor for std::process::Command {
         }
         debug!(
             "Result: {}\nstdout: {}\nstderr: {}",
-            status
-                .code()
-                .map_or("None".to_string(), |c| c.to_string()),
+            status.code().map_or("None".to_string(), |c| c.to_string()),
             stdout,
             stderr
         );
@@ -191,11 +189,11 @@ impl AsyncCommandExecutor for tokio::process::Command {
             Some(duration) => tokio::time::timeout(duration, self.output()).await?,
             None => self.output().await,
         }?;
-        let program = self.get_program().to_string_lossy().to_string();
+        let program = self.as_std().get_program().to_string_lossy().to_string();
         let stdout: String;
         let stderr: String;
 
-        if std::env::OS == "windows" && program.as_str().ends_with("pg_ctl") {
+        if OS == "windows" && program.as_str().ends_with("pg_ctl") {
             // TODO: Processes can hang on Windows when attempting to get stdout/stderr using code
             // that works for Linux/MacOS; this implementation should be updated to retrieve the
             // values of stdout/stderr without hanging
