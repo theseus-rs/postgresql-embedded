@@ -1,7 +1,9 @@
+use std::env;
 use crate::error::{Error, Result};
 use std::ffi::{OsStr, OsString};
 use std::fmt::Debug;
 use std::path::PathBuf;
+use std::process::ExitStatus;
 use std::time::Duration;
 use tracing::debug;
 
@@ -140,46 +142,41 @@ impl CommandExecutor for std::process::Command {
     /// Execute the command and return the stdout and stderr
     fn execute(&mut self) -> Result<(String, String)> {
         debug!("Executing command: {}", self.to_command_string());
-        #[cfg(not(target_os = "windows"))]
-        {
-            let output = self.output()?;
-            let stdout = String::from_utf8_lossy(&output.stdout).into_owned();
-            let stderr = String::from_utf8_lossy(&output.stderr).into_owned();
+        let program = self.get_program().to_string_lossy().to_string();
+        let stdout: String;
+        let stderr: String;
+        let status: ExitStatus;
 
-            debug!(
-                "Result: {}\nstdout: {}\nstderr: {}",
-                output
-                    .status
-                    .code()
-                    .map_or("None".to_string(), |c| c.to_string()),
-                stdout,
-                stderr
-            );
-
-            if output.status.success() {
-                Ok((stdout, stderr))
-            } else {
-                Err(Error::CommandError { stdout, stderr })
-            }
-        }
-
-        // TODO: Processes can hang on Windows when attempting to get stdout/stderr using code
-        // that works for Linux/MacOS; this implementation should be updated to retrieve the
-        // values of stdout/stderr without hanging
-        #[cfg(target_os = "windows")]
-        {
+        if env::consts::OS == "windows" && program.as_str().ends_with("pg_ctl") {
+            // TODO: Processes can hang on Windows when attempting to get stdout/stderr using code
+            // that works for Linux/MacOS; this implementation should be updated to retrieve the
+            // values of stdout/stderr without hanging
             let mut process = self
                 .stdout(std::process::Stdio::piped())
                 .stderr(std::process::Stdio::piped())
                 .spawn()?;
-            let status = process.wait()?;
-            let stdout = String::new();
-            let stderr = String::new();
-            if status.success() {
-                Ok((stdout, stderr))
-            } else {
-                Err(Error::CommandError { stdout, stderr })
-            }
+            stdout = String::new();
+            stderr = String::new();
+            status = process.wait()?;
+        } else {
+            let output = self.output()?;
+            stdout = String::from_utf8_lossy(&output.stdout).into_owned();
+            stderr = String::from_utf8_lossy(&output.stderr).into_owned();
+            status = output.status;
+        }
+        debug!(
+            "Result: {}\nstdout: {}\nstderr: {}",
+            status
+                .code()
+                .map_or("None".to_string(), |c| c.to_string()),
+            stdout,
+            stderr
+        );
+
+        if status.success() {
+            Ok((stdout, stderr))
+        } else {
+            Err(Error::CommandError { stdout, stderr })
         }
     }
 }
@@ -194,19 +191,20 @@ impl AsyncCommandExecutor for tokio::process::Command {
             Some(duration) => tokio::time::timeout(duration, self.output()).await?,
             None => self.output().await,
         }?;
+        let program = self.get_program().to_string_lossy().to_string();
+        let stdout: String;
+        let stderr: String;
 
-        #[cfg(not(target_os = "windows"))]
-        let stdout = String::from_utf8_lossy(&output.stdout).into_owned();
-        #[cfg(not(target_os = "windows"))]
-        let stderr = String::from_utf8_lossy(&output.stderr).into_owned();
-
-        // TODO: Processes can hang on Windows when attempting to get stdout/stderr using code
-        // that works for Linux/MacOS; this implementation should be updated to retrieve the
-        // values of stdout/stderr without hanging
-        #[cfg(target_os = "windows")]
-        let stdout = String::new();
-        #[cfg(target_os = "windows")]
-        let stderr = String::new();
+        if std::env::OS == "windows" && program.as_str().ends_with("pg_ctl") {
+            // TODO: Processes can hang on Windows when attempting to get stdout/stderr using code
+            // that works for Linux/MacOS; this implementation should be updated to retrieve the
+            // values of stdout/stderr without hanging
+            stdout = String::new();
+            stderr = String::new();
+        } else {
+            stdout = String::from_utf8_lossy(&output.stdout).into_owned();
+            stderr = String::from_utf8_lossy(&output.stderr).into_owned();
+        }
 
         debug!(
             "Result: {}\nstdout: {}\nstderr: {}",
