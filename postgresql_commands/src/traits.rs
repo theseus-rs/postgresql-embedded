@@ -148,9 +148,7 @@ impl CommandExecutor for std::process::Command {
         let status: ExitStatus;
 
         if OS == "windows" && program.as_str().ends_with("pg_ctl") {
-            // TODO: Processes can hang on Windows when attempting to get stdout/stderr using code
-            // that works for Linux/MacOS; this implementation should be updated to retrieve the
-            // values of stdout/stderr without hanging
+            // The pg_ctl process can hang on Windows when attempting to get stdout/stderr.
             let mut process = self
                 .stdout(std::process::Stdio::piped())
                 .stderr(std::process::Stdio::piped())
@@ -194,9 +192,7 @@ impl AsyncCommandExecutor for tokio::process::Command {
         let stderr: String;
 
         if OS == "windows" && program.as_str().ends_with("pg_ctl") {
-            // TODO: Processes can hang on Windows when attempting to get stdout/stderr using code
-            // that works for Linux/MacOS; this implementation should be updated to retrieve the
-            // values of stdout/stderr without hanging
+            // The pg_ctl process can hang on Windows when attempting to get stdout/stderr.
             stdout = String::new();
             stderr = String::new();
         } else {
