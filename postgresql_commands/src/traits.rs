@@ -363,10 +363,7 @@ mod test {
         command.args(["/C", "echo foo"]);
 
         let (stdout, stderr) = command.execute()?;
-        #[cfg(not(target_os = "windows"))]
         assert!(stdout.starts_with("foo"));
-        #[cfg(target_os = "windows")]
-        assert!(stdout.is_empty());
         assert!(stderr.is_empty());
         Ok(())
     }
