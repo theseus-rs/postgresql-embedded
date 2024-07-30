@@ -20,7 +20,7 @@ async fn test_get_available_extensions() -> Result<()> {
     Ok(())
 }
 
-// #[cfg(all(target_os = "linux", feature = "tensor-chord"))]
+#[cfg(all(target_os = "linux", feature = "tensor-chord"))]
 #[tokio::test]
 async fn test_lifecycle() -> Result<()> {
     let installation_dir = tempfile::tempdir()?.path().to_path_buf();
