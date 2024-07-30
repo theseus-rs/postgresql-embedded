@@ -154,3 +154,44 @@ pub static V12: LazyLock<VersionReq> = LazyLock::new(|| VersionReq::parse("=12")
 
 pub use settings::BOOTSTRAP_DATABASE;
 pub use settings::BOOTSTRAP_SUPERUSER;
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_version() {
+        let version = VersionReq::parse("=16.3.0").unwrap();
+        assert_eq!(version.to_string(), "=16.3.0");
+    }
+
+    #[test]
+    fn test_version_latest() {
+        assert_eq!(LATEST.to_string(), "*");
+    }
+
+    #[test]
+    fn test_version_16() {
+        assert_eq!(V16.to_string(), "=16");
+    }
+
+    #[test]
+    fn test_version_15() {
+        assert_eq!(V15.to_string(), "=15");
+    }
+
+    #[test]
+    fn test_version_14() {
+        assert_eq!(V14.to_string(), "=14");
+    }
+
+    #[test]
+    fn test_version_13() {
+        assert_eq!(V13.to_string(), "=13");
+    }
+
+    #[test]
+    fn test_version_12() {
+        assert_eq!(V12.to_string(), "=12");
+    }
+}
