@@ -17,7 +17,11 @@ pub fn matcher(name: &str, _version: &Version) -> Result<bool> {
         "macos" => "darwin",
         _ => "linux",
     };
-    let arch = consts::ARCH;
+    let arch = match consts::ARCH {
+        "x86_64" => "amd64",
+        "aarch64" => "arm64",
+        _ => consts::ARCH,
+    };
     let suffix = format!(".pg{postgresql_version}.{os}_{arch}.tar.gz");
     Ok(name.ends_with(suffix.as_str()))
 }
@@ -34,7 +38,11 @@ mod tests {
             "macos" => "darwin",
             _ => "linux",
         };
-        let arch = consts::ARCH;
+        let arch = match consts::ARCH {
+            "x86_64" => "amd64",
+            "aarch64" => "arm64",
+            _ => consts::ARCH,
+        };
         let name = format!("steampipe_postgres_csv.pg{postgresql_version}.{os}_{arch}.tar.gz");
 
         assert!(matcher(name.as_str(), &version)?, "{}", name);
@@ -49,7 +57,11 @@ mod tests {
             "macos" => "darwin",
             _ => "linux",
         };
-        let arch = consts::ARCH;
+        let arch = match consts::ARCH {
+            "x86_64" => "amd64",
+            "aarch64" => "arm64",
+            _ => consts::ARCH,
+        };
         let names = vec![
             format!("foo_csv.pg{postgresql_version}.{os}_{arch}.tar.gz"),
             format!("steampipe_postgres_csv.pg.{os}_{arch}.tar.gz"),

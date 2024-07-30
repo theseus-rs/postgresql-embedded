@@ -81,7 +81,7 @@ impl Repository for Steampipe {
 
         for file in archive.entries()? {
             let mut file = file?;
-            let file_path = file.path()?.to_path_buf();
+            let file_path = PathBuf::from(file.path()?.file_name().unwrap_or_default());
             let file_name = file_path.to_string_lossy();
 
             if file_name.ends_with(".dylib") || file_name.ends_with(".so") {

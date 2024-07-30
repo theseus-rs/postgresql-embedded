@@ -1,25 +1,10 @@
-use anyhow::Result;
-use postgresql_extensions::get_available_extensions;
-
+#[cfg(all(target_os = "linux", feature = "steampipe"))]
 #[tokio::test]
-async fn test_get_available_extensions() -> Result<()> {
-    let extensions = get_available_extensions().await?;
-    #[cfg(feature = "steampipe")]
-    assert!(extensions
-        .iter()
-        .any(|extension| extension.namespace() == "steampipe"));
-    #[cfg(feature = "tensor-chord")]
-    assert!(extensions
-        .iter()
-        .any(|extension| extension.namespace() == "tensor-chord"));
-    Ok(())
-}
-
-#[cfg(all(target_os = "linux", feature = "tensor-chord"))]
-#[tokio::test]
-async fn test_lifecycle() -> Result<()> {
+async fn test_lifecycle() -> anyhow::Result<()> {
     let installation_dir = tempfile::tempdir()?.path().to_path_buf();
+    let postgresql_version = semver::VersionReq::parse("=15.7.0")?;
     let settings = postgresql_embedded::Settings {
+        version: postgresql_version,
         installation_dir: installation_dir.clone(),
         ..Default::default()
     };
@@ -28,9 +13,9 @@ async fn test_lifecycle() -> Result<()> {
     postgresql.setup().await?;
 
     let settings = postgresql.settings();
-    let namespace = "tensor-chord";
-    let name = "pgvecto.rs";
-    let version = semver::VersionReq::parse("=0.3.0")?;
+    let namespace = "steampipe";
+    let name = "csv";
+    let version = semver::VersionReq::parse("=0.12.0")?;
 
     let installed_extensions = postgresql_extensions::get_installed_extensions(settings).await?;
     assert!(installed_extensions.is_empty());

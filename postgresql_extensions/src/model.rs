@@ -208,8 +208,6 @@ impl postgresql_commands::Settings for TestSettings {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use tempfile::NamedTempFile;
-    use tokio::fs::remove_file;
 
     #[test]
     fn test_available_extension() {
@@ -232,7 +230,7 @@ mod tests {
     #[cfg(target_os = "linux")]
     #[tokio::test]
     async fn test_installed_configuration_io() -> Result<()> {
-        let temp_file = NamedTempFile::new()?;
+        let temp_file = tempfile::NamedTempFile::new()?;
         let file = temp_file.as_ref();
         let extensions = vec![InstalledExtension::new(
             "namespace",
@@ -244,7 +242,7 @@ mod tests {
         expected_configuration.write(file).await?;
         let configuration = InstalledConfiguration::read(file).await?;
         assert_eq!(expected_configuration, configuration);
-        remove_file(file).await?;
+        tokio::fs::remove_file(file).await?;
         Ok(())
     }
 
