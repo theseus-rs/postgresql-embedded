@@ -5,4 +5,4 @@ pub mod steampipe;
 #[cfg(feature = "tensor-chord")]
 pub mod tensor_chord;
 
-pub use model::{Extension, Repository};
+pub use model::Repository;
