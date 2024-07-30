@@ -7,13 +7,10 @@ use crate::repository::github::repository::GitHub;
 use crate::repository::model::Repository;
 use crate::Error::{PoisonedLock, UnsupportedRepository};
 use crate::Result;
-use lazy_static::lazy_static;
-use std::sync::{Arc, Mutex, RwLock};
+use std::sync::{Arc, LazyLock, Mutex, RwLock};
 
-lazy_static! {
-    static ref REGISTRY: Arc<Mutex<RepositoryRegistry>> =
-        Arc::new(Mutex::new(RepositoryRegistry::default()));
-}
+static REGISTRY: LazyLock<Arc<Mutex<RepositoryRegistry>>> =
+    LazyLock::new(|| Arc::new(Mutex::new(RepositoryRegistry::default())));
 
 type SupportsFn = fn(&str) -> Result<bool>;
 type NewFn = dyn Fn(&str) -> Result<Box<dyn Repository>> + Send + Sync;

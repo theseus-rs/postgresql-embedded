@@ -16,7 +16,6 @@ flate2 = { workspace = true, optional = true }
 hex = { workspace = true }
 http = { workspace = true }
 human_bytes = { workspace = true, default-features = false }
-lazy_static = { workspace = true }
 md-5 = { workspace = true, optional = true }
 num-format = { workspace = true }
 quick-xml = { workspace = true, features = ["serialize"], optional = true }

@@ -113,9 +113,6 @@
 #![allow(clippy::doc_markdown)]
 #![allow(clippy::module_name_repetitions)]
 
-#[macro_use]
-extern crate lazy_static;
-
 mod archive;
 #[cfg(feature = "blocking")]
 pub mod blocking;

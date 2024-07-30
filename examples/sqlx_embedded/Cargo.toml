@@ -8,5 +8,5 @@ version.workspace = true
 [dependencies]
 anyhow = { workspace = true }
 postgresql_embedded = { path = "../../postgresql_embedded" }
-sqlx = { version = "0.7.4", default-features = true, features = ["postgres", "runtime-tokio"] }
+sqlx = { workspace = true, features = ["runtime-tokio"] }
 tokio = { workspace = true, features = ["full"] }

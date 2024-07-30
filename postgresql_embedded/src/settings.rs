@@ -9,21 +9,19 @@ use std::env::current_dir;
 use std::ffi::OsString;
 use std::path::PathBuf;
 use std::str::FromStr;
+#[cfg(feature = "bundled")]
+use std::sync::LazyLock;
 use std::time::Duration;
 use url::Url;
 
 #[cfg(feature = "bundled")]
-lazy_static::lazy_static! {
-    #[allow(clippy::unwrap_used)]
-    pub(crate) static ref ARCHIVE_VERSION: VersionReq = {
-        let version_string = include_str!(
-            concat!(std::env!("OUT_DIR"), "/postgresql.version")
-        );
-        let version_req = VersionReq::from_str(&format!("={version_string}")).unwrap();
-        tracing::debug!("Bundled installation archive version {version_string}");
-        version_req
-    };
-}
+#[allow(clippy::unwrap_used)]
+pub(crate) static ARCHIVE_VERSION: LazyLock<VersionReq> = LazyLock::new(|| {
+    let version_string = include_str!(concat!(std::env!("OUT_DIR"), "/postgresql.version"));
+    let version_req = VersionReq::from_str(&format!("={version_string}")).unwrap();
+    tracing::debug!("Bundled installation archive version {version_string}");
+    version_req
+});
 
 #[cfg(feature = "bundled")]
 pub(crate) const ARCHIVE: &[u8] = include_bytes!(concat!(env!("OUT_DIR"), "/postgresql.tar.gz"));

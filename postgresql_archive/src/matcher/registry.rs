@@ -4,14 +4,11 @@ use crate::configuration::theseus;
 use crate::configuration::zonky;
 use crate::Error::{PoisonedLock, UnsupportedMatcher};
 use crate::Result;
-use lazy_static::lazy_static;
 use semver::Version;
-use std::sync::{Arc, Mutex, RwLock};
+use std::sync::{Arc, LazyLock, Mutex, RwLock};
 
-lazy_static! {
-    static ref REGISTRY: Arc<Mutex<MatchersRegistry>> =
-        Arc::new(Mutex::new(MatchersRegistry::default()));
-}
+static REGISTRY: LazyLock<Arc<Mutex<MatchersRegistry>>> =
+    LazyLock::new(|| Arc::new(Mutex::new(MatchersRegistry::default())));
 
 pub type SupportsFn = fn(&str) -> Result<bool>;
 pub type MatcherFn = fn(&str, &Version) -> Result<bool>;

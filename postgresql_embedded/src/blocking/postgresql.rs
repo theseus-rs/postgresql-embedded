@@ -1,10 +1,8 @@
 use crate::{Result, Settings, Status};
-use lazy_static::lazy_static;
+use std::sync::LazyLock;
 use tokio::runtime::Runtime;
 
-lazy_static! {
-    static ref RUNTIME: Runtime = Runtime::new().unwrap();
-}
+static RUNTIME: LazyLock<Runtime> = LazyLock::new(|| Runtime::new().unwrap());
 
 /// `PostgreSQL` server
 #[derive(Clone, Debug, Default)]

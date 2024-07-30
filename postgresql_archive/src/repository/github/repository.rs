@@ -18,29 +18,28 @@ use reqwest_tracing::TracingMiddleware;
 use semver::{Version, VersionReq};
 use std::env;
 use std::str::FromStr;
+use std::sync::LazyLock;
 use tracing::{debug, instrument, warn};
 use url::Url;
 
 const GITHUB_API_VERSION_HEADER: &str = "X-GitHub-Api-Version";
 const GITHUB_API_VERSION: &str = "2022-11-28";
 
-lazy_static! {
-    static ref GITHUB_TOKEN: Option<String> = match env::var("GITHUB_TOKEN") {
-        Ok(token) => {
-            debug!("GITHUB_TOKEN environment variable found");
-            Some(token)
-        }
-        Err(_) => None,
-    };
-}
+static GITHUB_TOKEN: LazyLock<Option<String>> = LazyLock::new(|| match env::var("GITHUB_TOKEN") {
+    Ok(token) => {
+        debug!("GITHUB_TOKEN environment variable found");
+        Some(token)
+    }
+    Err(_) => None,
+});
 
-lazy_static! {
-    static ref USER_AGENT: String = format!(
+static USER_AGENT: LazyLock<String> = LazyLock::new(|| {
+    format!(
         "{PACKAGE}/{VERSION}",
         PACKAGE = env!("CARGO_PKG_NAME"),
         VERSION = env!("CARGO_PKG_VERSION")
-    );
-}
+    )
+});
 
 /// GitHub repository.
 ///

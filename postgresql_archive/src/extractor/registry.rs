@@ -4,14 +4,11 @@ use crate::configuration::theseus;
 use crate::configuration::zonky;
 use crate::Error::{PoisonedLock, UnsupportedExtractor};
 use crate::Result;
-use lazy_static::lazy_static;
 use std::path::Path;
-use std::sync::{Arc, Mutex, RwLock};
+use std::sync::{Arc, LazyLock, Mutex, RwLock};
 
-lazy_static! {
-    static ref REGISTRY: Arc<Mutex<RepositoryRegistry>> =
-        Arc::new(Mutex::new(RepositoryRegistry::default()));
-}
+static REGISTRY: LazyLock<Arc<Mutex<RepositoryRegistry>>> =
+    LazyLock::new(|| Arc::new(Mutex::new(RepositoryRegistry::default())));
 
 type SupportsFn = fn(&str) -> Result<bool>;
 type ExtractFn = fn(&Vec<u8>, &Path) -> Result<()>;
