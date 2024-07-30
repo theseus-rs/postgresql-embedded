@@ -1,6 +1,8 @@
 use crate::Result;
 use semver::Version;
 use serde::{Deserialize, Serialize};
+use serde_json::ser::PrettyFormatter;
+use serde_json::Serializer;
 #[cfg(test)]
 use std::ffi::OsString;
 use std::fmt::Display;
@@ -59,6 +61,12 @@ pub struct InstalledConfiguration {
 }
 
 impl InstalledConfiguration {
+    /// Creates a new installed configuration.
+    #[must_use]
+    pub fn new(extensions: Vec<InstalledExtension>) -> Self {
+        Self { extensions }
+    }
+
     /// Reads the configuration from the specified `path`.
     ///
     /// # Errors
@@ -86,17 +94,22 @@ impl InstalledConfiguration {
     /// # Errors
     /// * If an error occurs while writing the configuration.
     pub async fn write<P: Into<PathBuf>>(&self, path: P) -> Result<()> {
+        let mut buffer = Vec::new();
+        let formatter = PrettyFormatter::with_indent(b"  ");
+        let mut serializer = Serializer::with_formatter(&mut buffer, formatter);
+
+        self.serialize(&mut serializer)?;
+
         #[cfg(feature = "tokio")]
         {
             let mut file = tokio::fs::File::create(path.into()).await?;
-            let contents = serde_json::to_vec(&self)?;
-            file.write_all(&contents).await?;
+            file.write_all(&buffer).await?;
         }
         #[cfg(not(feature = "tokio"))]
         {
             let file = std::fs::File::create(path.into())?;
             let writer = std::io::BufWriter::new(file);
-            serde_json::to_writer(writer, &self)?;
+            serde_json::to_writer(writer, &buffer)?;
         }
         Ok(())
     }
@@ -196,6 +209,7 @@ impl postgresql_commands::Settings for TestSettings {
 mod tests {
     use super::*;
     use tempfile::NamedTempFile;
+    use tokio::fs::remove_file;
 
     #[test]
     fn test_available_extension() {
@@ -211,25 +225,26 @@ mod tests {
 
     #[test]
     fn test_installed_configuration() {
-        let installed_configuration = InstalledConfiguration { extensions: vec![] };
+        let installed_configuration = InstalledConfiguration::new(vec![]);
         assert!(installed_configuration.extensions.is_empty());
     }
 
+    #[cfg(target_os = "linux")]
     #[tokio::test]
     async fn test_installed_configuration_io() -> Result<()> {
         let temp_file = NamedTempFile::new()?;
         let file = temp_file.as_ref();
-        let expected_configuration = InstalledConfiguration {
-            extensions: vec![InstalledExtension::new(
-                "namespace",
-                "name",
-                Version::new(1, 0, 0),
-                vec![PathBuf::from("file")],
-            )],
-        };
+        let extensions = vec![InstalledExtension::new(
+            "namespace",
+            "name",
+            Version::new(1, 0, 0),
+            vec![PathBuf::from("file")],
+        )];
+        let expected_configuration = InstalledConfiguration::new(extensions);
         expected_configuration.write(file).await?;
         let configuration = InstalledConfiguration::read(file).await?;
         assert_eq!(expected_configuration, configuration);
+        remove_file(file).await?;
         Ok(())
     }
 

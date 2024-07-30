@@ -160,9 +160,10 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_version() {
-        let version = VersionReq::parse("=16.3.0").unwrap();
+    fn test_version() -> Result<()> {
+        let version = VersionReq::parse("=16.3.0")?;
         assert_eq!(version.to_string(), "=16.3.0");
+        Ok(())
     }
 
     #[test]

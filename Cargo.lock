@@ -1713,10 +1713,12 @@ dependencies = [
 name = "postgresql_extensions"
 version = "0.14.2"
 dependencies = [
+ "anyhow",
  "async-trait",
  "flate2",
  "postgresql_archive",
  "postgresql_commands",
+ "postgresql_embedded",
  "reqwest",
  "reqwest-middleware",
  "reqwest-retry",

@@ -55,12 +55,12 @@ impl Default for RepositoryRegistry {
         #[cfg(feature = "steampipe")]
         {
             registry.register("steampipe", Box::new(Steampipe::new));
-            Steampipe::initialize();
+            let _ = Steampipe::initialize();
         }
         #[cfg(feature = "tensor-chord")]
         {
             registry.register("tensor-chord", Box::new(TensorChord::new));
-            TensorChord::initialize();
+            let _ = TensorChord::initialize();
         }
         registry
     }

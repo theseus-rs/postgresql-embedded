@@ -22,7 +22,7 @@ pub fn get_available_extensions() -> Result<Vec<AvailableExtension>> {
 ///
 /// # Errors
 /// * If an error occurs while getting the installed extensions.
-pub fn get_installed_extensions(settings: &dyn Settings) -> Result<Vec<InstalledExtension>> {
+pub fn get_installed_extensions(settings: &impl Settings) -> Result<Vec<InstalledExtension>> {
     RUNTIME
         .handle()
         .block_on(async move { crate::get_installed_extensions(settings).await })
@@ -33,7 +33,7 @@ pub fn get_installed_extensions(settings: &dyn Settings) -> Result<Vec<Installed
 /// # Errors
 /// * If an error occurs while installing the extension.
 pub fn install(
-    settings: &dyn Settings,
+    settings: &impl Settings,
     namespace: &str,
     name: &str,
     version: &VersionReq,
@@ -47,7 +47,7 @@ pub fn install(
 ///
 /// # Errors
 /// * If an error occurs while uninstalling the extension.
-pub fn uninstall(settings: &dyn Settings, namespace: &str, name: &str) -> Result<()> {
+pub fn uninstall(settings: &impl Settings, namespace: &str, name: &str) -> Result<()> {
     RUNTIME
         .handle()
         .block_on(async move { crate::uninstall(settings, namespace, name).await })

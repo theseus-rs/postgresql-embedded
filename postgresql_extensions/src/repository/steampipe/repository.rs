@@ -4,6 +4,7 @@ use crate::repository::{steampipe, Repository};
 use crate::Result;
 use async_trait::async_trait;
 use flate2::bufread::GzDecoder;
+use postgresql_archive::repository::github::repository::GitHub;
 use postgresql_archive::{get_archive, matcher};
 use semver::{Version, VersionReq};
 use std::fmt::Debug;
@@ -27,8 +28,16 @@ impl Steampipe {
     }
 
     /// Initializes the repository.
-    pub fn initialize() {
-        let _ = matcher::registry::register(|url| Ok(url == URL), steampipe::matcher);
+    ///
+    /// # Errors
+    /// * If the repository cannot be initialized.
+    pub fn initialize() -> Result<()> {
+        matcher::registry::register(|url| Ok(url.starts_with(URL)), steampipe::matcher)?;
+        postgresql_archive::repository::registry::register(
+            |url| Ok(url.starts_with(URL)),
+            Box::new(GitHub::new),
+        )?;
+        Ok(())
     }
 }
 

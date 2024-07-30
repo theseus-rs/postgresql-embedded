@@ -35,7 +35,7 @@ pub async fn get_available_extensions() -> Result<Vec<AvailableExtension>> {
 /// # Errors
 /// * If an error occurs while getting the installed extensions.
 #[instrument(level = "debug", skip(settings))]
-pub async fn get_installed_extensions(settings: &dyn Settings) -> Result<Vec<InstalledExtension>> {
+pub async fn get_installed_extensions(settings: &impl Settings) -> Result<Vec<InstalledExtension>> {
     let configuration_file = get_configuration_file(settings).await?;
     if !configuration_file.exists() {
         debug!("No configuration file found: {configuration_file:?}");
@@ -53,7 +53,7 @@ pub async fn get_installed_extensions(settings: &dyn Settings) -> Result<Vec<Ins
 /// * If an error occurs while installing the extension.
 #[instrument(level = "debug", skip(settings))]
 pub async fn install(
-    settings: &dyn Settings,
+    settings: &impl Settings,
     namespace: &str,
     name: &str,
     version: &VersionReq,
@@ -67,11 +67,6 @@ pub async fn install(
         uninstall(settings, namespace, name).await?;
     };
 
-    let configuration_file = get_configuration_file(settings).await?;
-    if !configuration_file.exists() {
-        debug!("No configuration file found: {configuration_file:?}; creating new file");
-    }
-
     let repository = registry::get(namespace)?;
     let (version, archive) = repository.get_archive(name, version).await?;
     let library_dir = get_library_path(settings).await?;
@@ -80,8 +75,14 @@ pub async fn install(
         .install(name, library_dir, extension_dir, &archive)
         .await?;
 
+    let configuration_file = get_configuration_file(settings).await?;
+    let mut configuration = if configuration_file.exists() {
+        InstalledConfiguration::read(&configuration_file).await?
+    } else {
+        debug!("No configuration file found: {configuration_file:?}; creating new file");
+        InstalledConfiguration::default()
+    };
     let installed_extension = InstalledExtension::new(namespace, name, version, files);
-    let configuration = &mut InstalledConfiguration::read(&configuration_file).await?;
     configuration.extensions_mut().push(installed_extension);
     configuration.write(configuration_file).await?;
     Ok(())
@@ -92,17 +93,18 @@ pub async fn install(
 /// # Errors
 /// * If an error occurs while uninstalling the extension.
 #[instrument(level = "debug", skip(settings))]
-pub async fn uninstall(settings: &dyn Settings, namespace: &str, name: &str) -> Result<()> {
+pub async fn uninstall(settings: &impl Settings, namespace: &str, name: &str) -> Result<()> {
     let configuration_file = get_configuration_file(settings).await?;
     if !configuration_file.exists() {
         debug!("No configuration file found: {configuration_file:?}; nothing to uninstall");
         return Ok(());
     }
 
-    let configuration = &mut InstalledConfiguration::read(configuration_file).await?;
+    let configuration = &mut InstalledConfiguration::read(&configuration_file).await?;
+    let mut extensions = Vec::new();
     for extension in configuration.extensions() {
         if extension.namespace() != namespace || extension.name() != name {
-            continue;
+            extensions.push(extension.clone());
         }
 
         for file in extension.files() {
@@ -116,9 +118,8 @@ pub async fn uninstall(settings: &dyn Settings, namespace: &str, name: &str) -> 
         }
     }
 
-    configuration
-        .extensions_mut()
-        .retain(|extension| extension.namespace() != namespace || extension.name() != name);
+    let configuration = InstalledConfiguration::new(extensions);
+    configuration.write(configuration_file).await?;
 
     Ok(())
 }
