@@ -15,11 +15,24 @@
 //! ### Asynchronous API
 //!
 //! ```rust
+//! use postgresql_extensions::{get_available_extensions, Result};
+//!
+//! #[tokio::main]
+//! async fn main() -> Result<()> {
+//!     let extensions = get_available_extensions().await?;
+//!     Ok(())
+//! }
 //! ```
 //!
 //! ### Synchronous API
 //!
 //! ```rust
+//! #[cfg(feature = "blocking")] {
+//! use postgresql_extensions::Result;
+//! use postgresql_extensions::blocking::get_available_extensions;
+//!
+//! let extensions = get_available_extensions()?;
+//! }
 //! ```
 //!
 //! ## Feature flags
@@ -57,8 +70,8 @@
 //!
 //! Licensed under either of
 //!
-//! * Apache License, Version 2.0, ([LICENSE-APACHE](LICENSE-APACHE) or https://www.apache.org/licenses/LICENSE-2.0)
-//! * MIT license ([LICENSE-MIT](LICENSE-MIT) or https://opensource.org/licenses/MIT)
+//! * Apache License, Version 2.0, ([LICENSE-APACHE](LICENSE-APACHE) or <https://www.apache.org/licenses/LICENSE-2.0>)
+//! * MIT license ([LICENSE-MIT](LICENSE-MIT) or <https://opensource.org/licenses/MIT>)
 //!
 //! at your option.
 //!
