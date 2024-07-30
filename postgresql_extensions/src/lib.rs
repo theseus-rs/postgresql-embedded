@@ -31,7 +31,7 @@
 //! use postgresql_extensions::Result;
 //! use postgresql_extensions::blocking::get_available_extensions;
 //!
-//! let extensions = get_available_extensions()?;
+//! let extensions = get_available_extensions().unwrap();
 //! }
 //! ```
 //!
