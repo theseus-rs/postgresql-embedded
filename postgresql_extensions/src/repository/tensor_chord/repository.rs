@@ -55,8 +55,13 @@ impl Repository for TensorChord {
         Ok(extensions)
     }
 
-    async fn get_archive(&self, name: &str, version: &VersionReq) -> Result<(Version, Vec<u8>)> {
-        let url = format!("{URL}/{name}");
+    async fn get_archive(
+        &self,
+        postgresql_version: &str,
+        name: &str,
+        version: &VersionReq,
+    ) -> Result<(Version, Vec<u8>)> {
+        let url = format!("{URL}/{name}?postgresql_version={postgresql_version}");
         let archive = get_archive(url.as_str(), version).await?;
         Ok(archive)
     }

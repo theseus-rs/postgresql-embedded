@@ -3,12 +3,14 @@ use crate::repository::registry;
 use crate::repository::registry::get_repositories;
 use crate::{InstalledConfiguration, InstalledExtension, Result};
 use postgresql_commands::pg_config::PgConfigBuilder;
+use postgresql_commands::postgres::PostgresBuilder;
 #[cfg(feature = "tokio")]
 use postgresql_commands::AsyncCommandExecutor;
 use postgresql_commands::CommandBuilder;
 #[cfg(not(feature = "tokio"))]
 use postgresql_commands::CommandExecutor;
 use postgresql_commands::Settings;
+use regex::Regex;
 use semver::VersionReq;
 use std::path::PathBuf;
 use tracing::{debug, instrument};
@@ -67,8 +69,11 @@ pub async fn install(
         uninstall(settings, namespace, name).await?;
     };
 
+    let postgresql_version = get_postgresql_version(settings).await?;
     let repository = registry::get(namespace)?;
-    let (version, archive) = repository.get_archive(name, version).await?;
+    let (version, archive) = repository
+        .get_archive(postgresql_version.as_str(), name, version)
+        .await?;
     let library_dir = get_library_path(settings).await?;
     let extension_dir = get_extension_path(settings).await?;
     let files = repository
@@ -192,6 +197,34 @@ async fn get_extension_path(settings: &dyn Settings) -> Result<PathBuf> {
     let shared_path = get_shared_path(settings).await?;
     let extension_path = shared_path.join("extension");
     Ok(extension_path)
+}
+
+/// Gets the PostgreSQL version.
+///
+/// # Errors
+/// * If an error occurs while getting the PostgreSQL version.
+#[allow(dead_code)]
+async fn get_postgresql_version(settings: &dyn Settings) -> Result<String> {
+    let command = PostgresBuilder::new()
+        .program_dir(settings.get_binary_dir())
+        .version();
+    let (stdout, _stderr) = execute_command(command).await?;
+    let re = Regex::new(r"PostgreSQL\)\s(\d+\.\d+)")?;
+    let Some(captures) = re.captures(&stdout) else {
+        return Err(regex::Error::Syntax(format!(
+            "Failed to obtain postgresql version from {stdout}"
+        ))
+        .into());
+    };
+    let Some(version) = captures.get(1) else {
+        return Err(regex::Error::Syntax(format!(
+            "Failed to match postgresql version from {stdout}"
+        ))
+        .into());
+    };
+    let version = version.as_str();
+    debug!("Obtained PostgreSQL version from postgres command: {version}");
+    Ok(version.to_string())
 }
 
 #[cfg(not(feature = "tokio"))]

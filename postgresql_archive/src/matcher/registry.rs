@@ -11,7 +11,7 @@ static REGISTRY: LazyLock<Arc<Mutex<MatchersRegistry>>> =
     LazyLock::new(|| Arc::new(Mutex::new(MatchersRegistry::default())));
 
 pub type SupportsFn = fn(&str) -> Result<bool>;
-pub type MatcherFn = fn(&str, &Version) -> Result<bool>;
+pub type MatcherFn = fn(&str, &str, &Version) -> Result<bool>;
 
 /// Singleton struct to store matchers
 #[allow(clippy::type_complexity)]
@@ -107,13 +107,13 @@ mod tests {
     fn test_register() -> Result<()> {
         register(
             |url| Ok(url == "https://foo.com"),
-            |name, _| Ok(name == "foo"),
+            |_url, name, _version| Ok(name == "foo"),
         )?;
 
         let matcher = get("https://foo.com")?;
         let version = Version::new(16, 3, 0);
 
-        assert!(matcher("foo", &version)?);
+        assert!(matcher("", "foo", &version)?);
         Ok(())
     }
 

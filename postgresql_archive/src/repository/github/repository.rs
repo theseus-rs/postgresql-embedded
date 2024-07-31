@@ -164,7 +164,7 @@ impl GitHub {
         let matcher = matcher::registry::get(&self.url)?;
         let mut release_asset: Option<Asset> = None;
         for asset in &release.assets {
-            if matcher(asset.name.as_str(), version)? {
+            if matcher(&self.url, asset.name.as_str(), version)? {
                 release_asset = Some(asset.clone());
                 break;
             }

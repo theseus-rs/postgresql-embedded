@@ -14,6 +14,7 @@ async-trait = { workspace = true }
 flate2 = { workspace = true, optional = true }
 postgresql_archive = { path = "../postgresql_archive", version = "0.14.2", default-features = false }
 postgresql_commands = { path = "../postgresql_commands", version = "0.14.2", default-features = false }
+regex = { workspace = true }
 reqwest = { workspace = true, default-features = false, features = ["json"] }
 reqwest-middleware = { workspace = true }
 reqwest-retry = { workspace = true }
@@ -28,6 +29,7 @@ thiserror = { workspace = true }
 tokio = { workspace = true, features = ["full"], optional = true }
 tracing = { workspace = true, features = ["log"] }
 zip = { workspace = true, optional = true }
+url = { workspace = true }
 
 [dev-dependencies]
 anyhow = { workspace = true }

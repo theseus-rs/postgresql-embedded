@@ -58,7 +58,7 @@ tokio = "1.39.2"
 tracing = "0.1.40"
 url = "2.5.2"
 xz2 = "0.1.7"
-zip = "2.1.5"
+zip = "2.1.6"
 
 [workspace.metadata.release]
 shared-version = true

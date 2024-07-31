@@ -145,6 +145,7 @@ mod tests {
 
         async fn get_archive(
             &self,
+            _postgresql_version: &str,
             _name: &str,
             _version: &VersionReq,
         ) -> Result<(Version, Vec<u8>)> {

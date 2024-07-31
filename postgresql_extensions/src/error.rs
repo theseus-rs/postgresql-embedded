@@ -16,6 +16,9 @@ pub enum Error {
     /// Poisoned lock
     #[error("poisoned lock '{0}'")]
     PoisonedLock(String),
+    /// Error when a regex operation fails
+    #[error(transparent)]
+    RegexError(#[from] regex::Error),
     /// Error when a deserialization or serialization operation fails
     #[error(transparent)]
     SerdeError(#[from] serde_json::Error),

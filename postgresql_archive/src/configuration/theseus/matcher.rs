@@ -5,7 +5,7 @@ use semver::Version;
 /// # Errors
 /// * If the asset matcher fails.
 #[allow(clippy::unnecessary_wraps)]
-pub fn matcher(name: &str, version: &Version) -> crate::Result<bool> {
+pub fn matcher(_url: &str, name: &str, version: &Version) -> crate::Result<bool> {
     let target = target_triple::TARGET;
     let expected_name = format!("postgresql-{version}-{target}.tar.gz");
     Ok(name == expected_name)
@@ -18,16 +18,18 @@ mod tests {
 
     #[test]
     fn test_asset_match_success() -> Result<()> {
+        let url = "";
         let version = Version::parse("16.3.0")?;
         let target = target_triple::TARGET;
         let name = format!("postgresql-{version}-{target}.tar.gz");
 
-        assert!(matcher(name.as_str(), &version)?, "{}", name);
+        assert!(matcher(url, name.as_str(), &version)?, "{}", name);
         Ok(())
     }
 
     #[test]
     fn test_asset_match_errors() -> Result<()> {
+        let url = "";
         let version = Version::parse("16.3.0")?;
         let target = target_triple::TARGET;
         let names = vec![
@@ -39,7 +41,7 @@ mod tests {
         ];
 
         for name in names {
-            assert!(!matcher(name.as_str(), &version)?, "{}", name);
+            assert!(!matcher(url, name.as_str(), &version)?, "{}", name);
         }
         Ok(())
     }
