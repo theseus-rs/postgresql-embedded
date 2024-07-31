@@ -208,6 +208,17 @@ impl postgresql_commands::Settings for TestSettings {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use postgresql_commands::Settings;
+
+    #[test]
+    fn test_settings() {
+        let settings = TestSettings;
+        assert_eq!(settings.get_binary_dir(), PathBuf::from("."));
+        assert_eq!(settings.get_host(), "localhost");
+        assert_eq!(settings.get_port(), 5432);
+        assert_eq!(settings.get_username(), "postgres");
+        assert_eq!(settings.get_password(), "password");
+    }
 
     #[test]
     fn test_available_extension() {

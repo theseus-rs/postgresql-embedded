@@ -50,10 +50,10 @@
 //!
 //! ### Repositories
 //!
-//! | Name          | Description                             | Default? |
-//! |---------------|-----------------------------------------|----------|
-//! | `steampipe`   | Enables steampipe PostgreSQL extensions | No       |
-//! | `tensor-chord` | Enables tensor-chord PostgreSQL binaries | No       |
+//! | Name           | Description                               | Default? |
+//! |----------------|-------------------------------------------|----------|
+//! | `steampipe`    | Enables Steampipe PostgreSQL extensions   | No       |
+//! | `tensor-chord` | Enables TensorChord PostgreSQL extensions | No       |
 //!
 //! ## Supported platforms
 //!
