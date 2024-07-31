@@ -10,9 +10,6 @@ use url::Url;
 /// * If the asset matcher fails.
 #[allow(clippy::unnecessary_wraps)]
 pub fn matcher(url: &str, name: &str, _version: &Version) -> Result<bool> {
-    if !name.starts_with("steampipe_postgres_") {
-        return Ok(false);
-    }
     let Ok(url) = Url::parse(url) else {
         return Ok(false);
     };
@@ -24,6 +21,9 @@ pub fn matcher(url: &str, name: &str, _version: &Version) -> Result<bool> {
         None => return Ok(false),
         Some((major, _)) => major,
     };
+    if !name.starts_with("steampipe_postgres_") {
+        return Ok(false);
+    }
     let os = match consts::OS {
         "macos" => "darwin",
         _ => "linux",
