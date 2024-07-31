@@ -24,17 +24,27 @@ pub fn matcher(url: &str, name: &str, _version: &Version) -> Result<bool> {
     if !name.starts_with("steampipe_postgres_") {
         return Ok(false);
     }
-    let os = match consts::OS {
+    let os = get_os();
+    let arch = get_arch();
+    let suffix = format!(".pg{postgresql_version}.{os}_{arch}.tar.gz");
+    Ok(name.ends_with(suffix.as_str()))
+}
+
+/// Get the OS name for the Steampipe binary.
+fn get_os() -> &'static str {
+    match consts::OS {
         "macos" => "darwin",
         _ => "linux",
-    };
-    let arch = match consts::ARCH {
+    }
+}
+
+/// Get the architecture name for the Steampipe binary.
+fn get_arch() -> &'static str {
+    match consts::ARCH {
         "x86_64" => "amd64",
         "aarch64" => "arm64",
         _ => consts::ARCH,
-    };
-    let suffix = format!(".pg{postgresql_version}.{os}_{arch}.tar.gz");
-    Ok(name.ends_with(suffix.as_str()))
+    }
 }
 
 #[cfg(test)]
@@ -50,15 +60,8 @@ mod tests {
             steampipe::URL
         );
         let version = Version::parse("0.12.0")?;
-        let os = match consts::OS {
-            "macos" => "darwin",
-            _ => "linux",
-        };
-        let arch = match consts::ARCH {
-            "x86_64" => "amd64",
-            "aarch64" => "arm64",
-            _ => consts::ARCH,
-        };
+        let os = get_os();
+        let arch = get_arch();
         let name =
             format!("steampipe_postgres_csv.pg{postgresql_major_version}.{os}_{arch}.tar.gz");
 
@@ -93,15 +96,8 @@ mod tests {
             steampipe::URL
         );
         let version = Version::parse("0.12.0")?;
-        let os = match consts::OS {
-            "macos" => "darwin",
-            _ => "linux",
-        };
-        let arch = match consts::ARCH {
-            "x86_64" => "amd64",
-            "aarch64" => "arm64",
-            _ => consts::ARCH,
-        };
+        let os = get_os();
+        let arch = get_arch();
         let names = vec![
             format!("foo_csv.pg{postgresql_major_version}.{os}_{arch}.tar.gz"),
             format!("steampipe_postgres_csv.pg.{os}_{arch}.tar.gz"),
