@@ -1,0 +1,13 @@
+[package]
+edition.workspace = true
+name = "vector_extension"
+publish = false
+license.workspace = true
+version.workspace = true
+
+[dependencies]
+anyhow = { workspace = true }
+postgresql_extensions = { path = "../../postgresql_extensions" }
+postgresql_embedded = { path = "../../postgresql_embedded" }
+sqlx = { workspace = true, features = ["runtime-tokio"] }
+tokio = { workspace = true, features = ["full"] }
