@@ -1,11 +1,11 @@
 use crate::Result;
 use semver::Version;
 use serde::{Deserialize, Serialize};
-use serde_json::ser::PrettyFormatter;
-use serde_json::Serializer;
 #[cfg(test)]
 use std::ffi::OsString;
 use std::fmt::Display;
+#[cfg(not(feature = "tokio"))]
+use std::io::Write;
 use std::path::PathBuf;
 #[cfg(feature = "tokio")]
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
@@ -94,22 +94,17 @@ impl InstalledConfiguration {
     /// # Errors
     /// * If an error occurs while writing the configuration.
     pub async fn write<P: Into<PathBuf>>(&self, path: P) -> Result<()> {
-        let mut buffer = Vec::new();
-        let formatter = PrettyFormatter::with_indent(b"  ");
-        let mut serializer = Serializer::with_formatter(&mut buffer, formatter);
-
-        self.serialize(&mut serializer)?;
+        let content = serde_json::to_string_pretty(&self)?;
 
         #[cfg(feature = "tokio")]
         {
             let mut file = tokio::fs::File::create(path.into()).await?;
-            file.write_all(&buffer).await?;
+            file.write_all(content.as_bytes()).await?;
         }
         #[cfg(not(feature = "tokio"))]
         {
-            let file = std::fs::File::create(path.into())?;
-            let writer = std::io::BufWriter::new(file);
-            serde_json::to_writer(writer, &buffer)?;
+            let mut file = std::fs::File::create(path.into())?;
+            file.write_all(content.as_bytes())?;
         }
         Ok(())
     }
