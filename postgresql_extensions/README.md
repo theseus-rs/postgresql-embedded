@@ -15,11 +15,25 @@ A configurable library for managing PostgreSQL extensions.
 ### Asynchronous API
 
 ```rust
+use postgresql_extensions::{get_available_extensions, Result};
+
+#[tokio::main]
+async fn main() -> Result<()> {
+    let extensions = get_available_extensions().await?;
+    Ok(())
+}
 ```
 
 ### Synchronous API
 
 ```rust
+use postgresql_extensions::Result;
+use postgresql_extensions::blocking::get_available_extensions;
+
+async fn main() -> Result<()> {
+    let extensions = get_available_extensions().await?;
+    Ok(())
+}
 ```
 
 ## Feature flags

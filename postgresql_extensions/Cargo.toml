@@ -55,5 +55,11 @@ tokio = [
     "postgresql_commands/tokio",
     "dep:tokio"
 ]
-native-tls = ["reqwest/native-tls"]
-rustls-tls = ["reqwest/rustls-tls-native-roots"]
+native-tls = [
+    "postgresql_archive/native-tls",
+    "reqwest/native-tls",
+]
+rustls-tls = [
+    "postgresql_archive/rustls-tls",
+    "reqwest/rustls-tls-native-roots",
+]
