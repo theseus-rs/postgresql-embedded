@@ -1,5 +1,4 @@
-#[cfg(any(target_os = "linux", target_os = "macos"))]
-#[cfg(feature = "steampipe")]
+#[cfg(all(target_os = "linux", feature = "steampipe"))]
 #[tokio::test]
 async fn test_lifecycle() -> anyhow::Result<()> {
     let installation_dir = tempfile::tempdir()?.path().to_path_buf();
