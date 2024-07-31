@@ -37,7 +37,7 @@ async fn main() -> Result<()> {
 
     println!("Configuring the vector extension");
     sqlx::query("CREATE EXTENSION vectors")
-        .execute(pool)
+        .execute(&pool)
         .await?;
 
     println!("Stopping database");
