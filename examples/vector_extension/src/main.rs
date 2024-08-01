@@ -91,8 +91,8 @@ async fn create_table(pool: &PgPool) -> Result<()> {
             embedding vector(3) NOT NULL
         )
     "})
-        .execute(pool)
-        .await?;
+    .execute(pool)
+    .await?;
     Ok(())
 }
 
