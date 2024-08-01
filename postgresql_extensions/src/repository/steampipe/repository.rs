@@ -1,6 +1,7 @@
 use crate::model::AvailableExtension;
 use crate::repository::steampipe::URL;
 use crate::repository::{steampipe, Repository};
+use crate::Error::ExtensionNotFound;
 use crate::Result;
 use async_trait::async_trait;
 use flate2::bufread::GzDecoder;
@@ -67,7 +68,14 @@ impl Repository for Steampipe {
         name: &str,
         version: &VersionReq,
     ) -> Result<(Version, Vec<u8>)> {
-        let url = format!("{URL}/steampipe-plugin-{name}?postgresql_version={postgresql_version}");
+        let Some(extension) = steampipe::extensions::get()
+            .iter()
+            .find(|extension| extension.name == name)
+        else {
+            let extension = format!("{}:{}:{}", self.name(), name, version);
+            return Err(ExtensionNotFound(extension));
+        };
+        let url = format!("{}?postgresql_version={postgresql_version}", extension.url);
         let archive = get_archive(url.as_str(), version).await?;
         Ok(archive)
     }
@@ -120,7 +128,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_get_extensions() -> Result<()> {
+    async fn test_get_available_extensions() -> Result<()> {
         let repository = Steampipe;
         let extensions = repository.get_available_extensions().await?;
         let extension = &extensions[0];
@@ -131,6 +139,19 @@ mod tests {
             extension.description()
         );
         assert_eq!(143, extensions.len());
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_get_archive_error() -> anyhow::Result<()> {
+        let repository = Steampipe;
+        let postgresql_version = "15.7";
+        let name = "does-not-exist";
+        let version = VersionReq::parse("=0.12.0")?;
+        let result = repository
+            .get_archive(postgresql_version, name, &version)
+            .await;
+        assert!(result.is_err());
         Ok(())
     }
 }
