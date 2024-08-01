@@ -1,12 +1,16 @@
 [package]
 edition.workspace = true
-name = "sqlx_embedded"
+name = "vector_extension"
 publish = false
 license.workspace = true
 version.workspace = true
 
 [dependencies]
 anyhow = { workspace = true }
+indoc = { workspace = true }
+postgresql_extensions = { path = "../../postgresql_extensions" }
 postgresql_embedded = { path = "../../postgresql_embedded" }
 sqlx = { workspace = true, features = ["runtime-tokio"] }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
 tokio = { workspace = true, features = ["full"] }

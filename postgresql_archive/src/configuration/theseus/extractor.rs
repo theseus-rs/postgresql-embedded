@@ -128,7 +128,7 @@ pub fn extract(bytes: &Vec<u8>, out_dir: &Path) -> Result<()> {
 /// # Errors
 /// * If the lock file cannot be acquired.
 #[instrument(level = "debug")]
-fn acquire_lock(out_dir: &Path) -> crate::Result<PathBuf> {
+fn acquire_lock(out_dir: &Path) -> Result<PathBuf> {
     let lock_file = out_dir.join("postgresql-archive.lock");
 
     if lock_file.is_file() {

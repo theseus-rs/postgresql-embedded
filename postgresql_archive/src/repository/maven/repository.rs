@@ -13,15 +13,16 @@ use reqwest_retry::RetryTransientMiddleware;
 use reqwest_tracing::TracingMiddleware;
 use semver::{Version, VersionReq};
 use std::env;
+use std::sync::LazyLock;
 use tracing::{debug, instrument, warn};
 
-lazy_static! {
-    static ref USER_AGENT: String = format!(
+static USER_AGENT: LazyLock<String> = LazyLock::new(|| {
+    format!(
         "{PACKAGE}/{VERSION}",
         PACKAGE = env!("CARGO_PKG_NAME"),
         VERSION = env!("CARGO_PKG_VERSION")
-    );
-}
+    )
+});
 
 /// Maven repository.
 ///

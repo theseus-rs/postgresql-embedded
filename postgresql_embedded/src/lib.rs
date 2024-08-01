@@ -128,30 +128,71 @@ pub use error::{Error, Result};
 pub use postgresql::{PostgreSQL, Status};
 pub use postgresql_archive::{Version, VersionReq};
 pub use settings::Settings;
+use std::sync::LazyLock;
 
-lazy_static::lazy_static! {
-    /// The latest PostgreSQL version requirement
-    pub static ref LATEST: VersionReq = VersionReq::STAR;
+/// The latest PostgreSQL version requirement
+pub static LATEST: VersionReq = VersionReq::STAR;
 
-    /// The latest PostgreSQL version 16
-    pub static ref V16: VersionReq = VersionReq::parse("=16").unwrap();
+/// The latest PostgreSQL version 16
+pub static V16: LazyLock<VersionReq> = LazyLock::new(|| VersionReq::parse("=16").unwrap());
 
-    /// The latest PostgreSQL version 15
-    pub static ref V15: VersionReq = VersionReq::parse("=15").unwrap();
+/// The latest PostgreSQL version 15
+pub static V15: LazyLock<VersionReq> = LazyLock::new(|| VersionReq::parse("=15").unwrap());
 
-    /// The latest PostgreSQL version 14
-    pub static ref V14: VersionReq = VersionReq::parse("=14").unwrap();
+/// The latest PostgreSQL version 14
+pub static V14: LazyLock<VersionReq> = LazyLock::new(|| VersionReq::parse("=14").unwrap());
 
-    /// The latest PostgreSQL version 13
-    pub static ref V13: VersionReq = VersionReq::parse("=13").unwrap();
+/// The latest PostgreSQL version 13
+pub static V13: LazyLock<VersionReq> = LazyLock::new(|| VersionReq::parse("=13").unwrap());
 
-    /// The latest PostgreSQL version 12
-    #[deprecated(
-        since = "0.1.0",
-        note = "See https://www.postgresql.org/developer/roadmap/"
-    )]
-    pub static ref V12: VersionReq = VersionReq::parse("=12").unwrap();
-}
+/// The latest PostgreSQL version 12
+#[deprecated(
+    since = "0.1.0",
+    note = "See https://www.postgresql.org/developer/roadmap/"
+)]
+pub static V12: LazyLock<VersionReq> = LazyLock::new(|| VersionReq::parse("=12").unwrap());
 
 pub use settings::BOOTSTRAP_DATABASE;
 pub use settings::BOOTSTRAP_SUPERUSER;
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_version() -> Result<()> {
+        let version = VersionReq::parse("=16.3.0")?;
+        assert_eq!(version.to_string(), "=16.3.0");
+        Ok(())
+    }
+
+    #[test]
+    fn test_version_latest() {
+        assert_eq!(LATEST.to_string(), "*");
+    }
+
+    #[test]
+    fn test_version_16() {
+        assert_eq!(V16.to_string(), "=16");
+    }
+
+    #[test]
+    fn test_version_15() {
+        assert_eq!(V15.to_string(), "=15");
+    }
+
+    #[test]
+    fn test_version_14() {
+        assert_eq!(V14.to_string(), "=14");
+    }
+
+    #[test]
+    fn test_version_13() {
+        assert_eq!(V13.to_string(), "=13");
+    }
+
+    #[test]
+    fn test_version_12() {
+        assert_eq!(V12.to_string(), "=12");
+    }
+}

@@ -18,29 +18,28 @@ use reqwest_tracing::TracingMiddleware;
 use semver::{Version, VersionReq};
 use std::env;
 use std::str::FromStr;
+use std::sync::LazyLock;
 use tracing::{debug, instrument, warn};
 use url::Url;
 
 const GITHUB_API_VERSION_HEADER: &str = "X-GitHub-Api-Version";
 const GITHUB_API_VERSION: &str = "2022-11-28";
 
-lazy_static! {
-    static ref GITHUB_TOKEN: Option<String> = match env::var("GITHUB_TOKEN") {
-        Ok(token) => {
-            debug!("GITHUB_TOKEN environment variable found");
-            Some(token)
-        }
-        Err(_) => None,
-    };
-}
+static GITHUB_TOKEN: LazyLock<Option<String>> = LazyLock::new(|| match env::var("GITHUB_TOKEN") {
+    Ok(token) => {
+        debug!("GITHUB_TOKEN environment variable found");
+        Some(token)
+    }
+    Err(_) => None,
+});
 
-lazy_static! {
-    static ref USER_AGENT: String = format!(
+static USER_AGENT: LazyLock<String> = LazyLock::new(|| {
+    format!(
         "{PACKAGE}/{VERSION}",
         PACKAGE = env!("CARGO_PKG_NAME"),
         VERSION = env!("CARGO_PKG_VERSION")
-    );
-}
+    )
+});
 
 /// GitHub repository.
 ///
@@ -165,7 +164,7 @@ impl GitHub {
         let matcher = matcher::registry::get(&self.url)?;
         let mut release_asset: Option<Asset> = None;
         for asset in &release.assets {
-            if matcher(asset.name.as_str(), version)? {
+            if matcher(&self.url, asset.name.as_str(), version)? {
                 release_asset = Some(asset.clone());
                 break;
             }

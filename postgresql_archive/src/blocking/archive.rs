@@ -1,10 +1,9 @@
 use crate::{Version, VersionReq};
 use std::path::Path;
+use std::sync::LazyLock;
 use tokio::runtime::Runtime;
 
-lazy_static! {
-    static ref RUNTIME: Runtime = Runtime::new().unwrap();
-}
+static RUNTIME: LazyLock<Runtime> = LazyLock::new(|| Runtime::new().unwrap());
 
 /// Gets the version for the specified [version requirement](VersionReq). If a version for the
 /// [version requirement](VersionReq) is not found, then an error is returned.

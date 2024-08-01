@@ -13,13 +13,10 @@ use crate::hasher::sha2_512;
 use crate::repository::maven;
 use crate::Error::{PoisonedLock, UnsupportedHasher};
 use crate::Result;
-use lazy_static::lazy_static;
-use std::sync::{Arc, Mutex, RwLock};
+use std::sync::{Arc, LazyLock, Mutex, RwLock};
 
-lazy_static! {
-    static ref REGISTRY: Arc<Mutex<HasherRegistry>> =
-        Arc::new(Mutex::new(HasherRegistry::default()));
-}
+static REGISTRY: LazyLock<Arc<Mutex<HasherRegistry>>> =
+    LazyLock::new(|| Arc::new(Mutex::new(HasherRegistry::default())));
 
 pub type SupportsFn = fn(&str, &str) -> Result<bool>;
 pub type HasherFn = fn(&Vec<u8>) -> Result<String>;

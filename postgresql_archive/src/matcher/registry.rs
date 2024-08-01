@@ -4,17 +4,14 @@ use crate::configuration::theseus;
 use crate::configuration::zonky;
 use crate::Error::{PoisonedLock, UnsupportedMatcher};
 use crate::Result;
-use lazy_static::lazy_static;
 use semver::Version;
-use std::sync::{Arc, Mutex, RwLock};
+use std::sync::{Arc, LazyLock, Mutex, RwLock};
 
-lazy_static! {
-    static ref REGISTRY: Arc<Mutex<MatchersRegistry>> =
-        Arc::new(Mutex::new(MatchersRegistry::default()));
-}
+static REGISTRY: LazyLock<Arc<Mutex<MatchersRegistry>>> =
+    LazyLock::new(|| Arc::new(Mutex::new(MatchersRegistry::default())));
 
 pub type SupportsFn = fn(&str) -> Result<bool>;
-pub type MatcherFn = fn(&str, &Version) -> Result<bool>;
+pub type MatcherFn = fn(&str, &str, &Version) -> Result<bool>;
 
 /// Singleton struct to store matchers
 #[allow(clippy::type_complexity)]
@@ -110,13 +107,13 @@ mod tests {
     fn test_register() -> Result<()> {
         register(
             |url| Ok(url == "https://foo.com"),
-            |name, _| Ok(name == "foo"),
+            |_url, name, _version| Ok(name == "foo"),
         )?;
 
         let matcher = get("https://foo.com")?;
         let version = Version::new(16, 3, 0);
 
-        assert!(matcher("foo", &version)?);
+        assert!(matcher("", "foo", &version)?);
         Ok(())
     }
 

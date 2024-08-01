@@ -1,0 +1,67 @@
+[package]
+authors.workspace = true
+categories.workspace = true
+description = "A library for managing PostgreSQL extensions"
+edition.workspace = true
+keywords.workspace = true
+license.workspace = true
+name = "postgresql_extensions"
+repository = "https://github.com/theseus-rs/postgresql-embedded"
+version.workspace = true
+
+[dependencies]
+async-trait = { workspace = true }
+flate2 = { workspace = true, optional = true }
+postgresql_archive = { path = "../postgresql_archive", version = "0.14.2", default-features = false }
+postgresql_commands = { path = "../postgresql_commands", version = "0.14.2", default-features = false }
+regex = { workspace = true }
+reqwest = { workspace = true, default-features = false, features = ["json"] }
+reqwest-middleware = { workspace = true }
+reqwest-retry = { workspace = true }
+reqwest-tracing = { workspace = true }
+semver = { workspace = true, features = ["serde"] }
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true, optional = true }
+tar = { workspace = true, optional = true }
+target-triple = { workspace = true, optional = true }
+tempfile = { workspace = true }
+thiserror = { workspace = true }
+tokio = { workspace = true, features = ["full"], optional = true }
+tracing = { workspace = true, features = ["log"] }
+zip = { workspace = true, optional = true }
+url = { workspace = true }
+
+[dev-dependencies]
+anyhow = { workspace = true }
+postgresql_embedded = { path = "../postgresql_embedded", version = "0.14.2" }
+test-log = { workspace = true }
+tokio = { workspace = true, features = ["full"] }
+
+[features]
+default = [
+    "native-tls",
+    "steampipe",
+    "tensor-chord",
+]
+blocking = ["tokio"]
+steampipe = [
+    "dep:flate2",
+    "dep:serde_json",
+    "dep:tar",
+]
+tensor-chord = [
+    "dep:target-triple",
+    "dep:zip",
+]
+tokio = [
+    "postgresql_commands/tokio",
+    "dep:tokio"
+]
+native-tls = [
+    "postgresql_archive/native-tls",
+    "reqwest/native-tls",
+]
+rustls-tls = [
+    "postgresql_archive/rustls-tls",
+    "reqwest/rustls-tls-native-roots",
+]

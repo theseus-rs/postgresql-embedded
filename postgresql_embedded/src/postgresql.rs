@@ -370,6 +370,7 @@ impl PostgreSQL {
 
     #[cfg(not(feature = "tokio"))]
     /// Execute a command and return the stdout and stderr as strings.
+    #[instrument(level = "debug", skip(self, command_builder), fields(program = ?command_builder.get_program()))]
     async fn execute_command<B: CommandBuilder>(
         &self,
         command_builder: B,

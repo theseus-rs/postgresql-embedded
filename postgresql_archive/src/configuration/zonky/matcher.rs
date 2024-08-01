@@ -7,7 +7,7 @@ use std::env;
 /// # Errors
 /// * If the asset matcher fails.
 #[allow(clippy::unnecessary_wraps)]
-pub fn matcher(name: &str, version: &Version) -> Result<bool> {
+pub fn matcher(_url: &str, name: &str, version: &Version) -> Result<bool> {
     let os = get_os();
     let arch = get_arch();
     let expected_name = format!("embedded-postgres-binaries-{os}-{arch}-{version}.jar");
@@ -41,17 +41,19 @@ mod tests {
 
     #[test]
     fn test_asset_match_success() -> Result<()> {
+        let url = "";
         let os = get_os();
         let arch = get_arch();
         let version = Version::parse("16.3.0")?;
         let name = format!("embedded-postgres-binaries-{os}-{arch}-{version}.jar");
 
-        assert!(matcher(name.as_str(), &version)?, "{}", name);
+        assert!(matcher(url, name.as_str(), &version)?, "{}", name);
         Ok(())
     }
 
     #[test]
     fn test_asset_match_errors() -> Result<()> {
+        let url = "";
         let os = get_os();
         let arch = get_arch();
         let version = Version::parse("16.3.0")?;
@@ -64,7 +66,7 @@ mod tests {
         ];
 
         for name in names {
-            assert!(!matcher(name.as_str(), &version)?, "{}", name);
+            assert!(!matcher(url, name.as_str(), &version)?, "{}", name);
         }
         Ok(())
     }
