@@ -6,10 +6,13 @@ pub type Result<T, E = Error> = core::result::Result<T, E>;
 pub enum Error {
     /// Archive error
     #[error(transparent)]
-    ArchiveFound(#[from] postgresql_archive::Error),
+    ArchiveError(#[from] postgresql_archive::Error),
     /// Error when a command fails
     #[error(transparent)]
     CommandError(#[from] postgresql_commands::Error),
+    /// Extension not found
+    #[error("extension not found '{0}'")]
+    ExtensionNotFound(String),
     /// Error when an IO operation fails
     #[error(transparent)]
     IoError(#[from] std::io::Error),
