@@ -3,9 +3,10 @@
 
 use anyhow::Result;
 use indoc::indoc;
-use postgresql_embedded::{PostgreSQL, Settings, VersionReq};
-use sqlx::PgPool;
+use sqlx::{PgPool, Row};
 use tracing::info;
+
+use postgresql_embedded::{PostgreSQL, Settings, VersionReq};
 
 /// Example of how to install and configure the vector extension.
 ///
@@ -58,6 +59,27 @@ async fn main() -> Result<()> {
 
     info!("Creating data");
     create_data(&pool).await?;
+
+    info!("Squared Euclidean Distance");
+    execute_query(
+        &pool,
+        "SELECT '[1, 2, 3]'::vector <-> '[3, 2, 1]'::vector AS value;",
+    )
+    .await?;
+
+    info!("Negative Dot Product");
+    execute_query(
+        &pool,
+        "SELECT '[1, 2, 3]'::vector <#> '[3, 2, 1]'::vector AS value;",
+    )
+    .await?;
+
+    info!("Cosine Distance");
+    execute_query(
+        &pool,
+        "SELECT '[1, 2, 3]'::vector <=> '[3, 2, 1]'::vector AS value;",
+    )
+    .await?;
 
     info!("Stopping database");
     postgresql.stop().await?;
@@ -114,6 +136,13 @@ async fn create_data(pool: &PgPool) -> Result<()> {
     "})
     .execute(pool)
     .await?;
+    Ok(())
+}
+
+async fn execute_query(pool: &PgPool, query: &str) -> Result<()> {
+    let row = sqlx::query(query).fetch_one(pool).await?;
+    let value: f32 = row.try_get("value")?;
+    info!("{}: {}", query, value);
     Ok(())
 }
 
