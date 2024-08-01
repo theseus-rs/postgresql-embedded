@@ -48,10 +48,12 @@ steampipe = [
     "dep:flate2",
     "dep:serde_json",
     "dep:tar",
+    "postgresql_archive/github",
 ]
 tensor-chord = [
     "dep:target-triple",
     "dep:zip",
+    "postgresql_archive/github",
 ]
 tokio = [
     "postgresql_commands/tokio",
