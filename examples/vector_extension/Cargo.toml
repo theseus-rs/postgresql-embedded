@@ -8,8 +8,8 @@ version.workspace = true
 [dependencies]
 anyhow = { workspace = true }
 indoc = { workspace = true }
-postgresql_extensions = { path = "../../postgresql_extensions" }
 postgresql_embedded = { path = "../../postgresql_embedded" }
+postgresql_extensions = { path = "../../postgresql_extensions" }
 sqlx = { workspace = true, features = ["runtime-tokio"] }
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true }
