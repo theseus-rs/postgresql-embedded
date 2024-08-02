@@ -34,7 +34,7 @@ pub fn matcher(url: &str, name: &str, _version: &Version) -> Result<bool> {
 fn get_os() -> &'static str {
     match consts::OS {
         "macos" => "darwin",
-        _ => "linux",
+        _ => consts::OS,
     }
 }
 
