@@ -1,5 +1,9 @@
 use crate::repository::model::Repository;
+#[cfg(feature = "portal-corp")]
+use crate::repository::portal_corp::repository::PortalCorp;
+#[cfg(feature = "steampipe")]
 use crate::repository::steampipe::repository::Steampipe;
+#[cfg(feature = "tensor-chord")]
 use crate::repository::tensor_chord::repository::TensorChord;
 use crate::Error::{PoisonedLock, UnsupportedNamespace};
 use crate::Result;
@@ -52,6 +56,11 @@ impl Default for RepositoryRegistry {
     /// Creates a new repository registry with the default repositories registered.
     fn default() -> Self {
         let mut registry = Self::new();
+        #[cfg(feature = "portal-corp")]
+        {
+            registry.register("portal-corp", Box::new(PortalCorp::new));
+            let _ = PortalCorp::initialize();
+        }
         #[cfg(feature = "steampipe")]
         {
             registry.register("steampipe", Box::new(Steampipe::new));
@@ -180,6 +189,12 @@ mod tests {
     }
 
     #[test]
+    #[cfg(feature = "portal-corp")]
+    fn test_get_portal_corp_extensions() {
+        assert!(get("portal-corp").is_ok());
+    }
+
+    #[test]
     #[cfg(feature = "steampipe")]
     fn test_get_steampipe_extensions() {
         assert!(get("steampipe").is_ok());
@@ -194,6 +209,8 @@ mod tests {
     #[test]
     fn test_get_namespaces() {
         let namespaces = get_namespaces().unwrap();
+        #[cfg(feature = "portal-corp")]
+        assert!(namespaces.contains(&"portal-corp".to_string()));
         #[cfg(feature = "steampipe")]
         assert!(namespaces.contains(&"steampipe".to_string()));
         #[cfg(feature = "tensor-chord")]

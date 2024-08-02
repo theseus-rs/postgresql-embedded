@@ -40,10 +40,16 @@ tokio = { workspace = true, features = ["full"] }
 [features]
 default = [
     "native-tls",
+    "portal-corp",
     "steampipe",
     "tensor-chord",
 ]
 blocking = ["tokio"]
+portal-corp = [
+    "dep:target-triple",
+    "dep:zip",
+    "postgresql_archive/github",
+]
 steampipe = [
     "dep:flate2",
     "dep:serde_json",
