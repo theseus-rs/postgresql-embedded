@@ -87,7 +87,10 @@ impl Repository for PortalCorp {
             let file_path = PathBuf::from(file_path.file_name().unwrap_or_default());
             let file_name = file_path.to_string_lossy();
 
-            if file_name.ends_with(".dylib") || file_name.ends_with(".so") {
+            if file_name.ends_with(".dll")
+                || file_name.ends_with(".dylib")
+                || file_name.ends_with(".so")
+            {
                 let mut out = Vec::new();
                 io::copy(&mut file, &mut out)?;
                 let path = PathBuf::from(&library_dir).join(file_path);
