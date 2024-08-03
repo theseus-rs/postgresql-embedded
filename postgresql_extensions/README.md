@@ -53,8 +53,9 @@ The following features are available:
 
 | Name           | Description                               | Default? |
 |----------------|-------------------------------------------|----------|
-| `steampipe`    | Enables Steampipe PostgreSQL extensions   | No       |
-| `tensor-chord` | Enables TensorChord PostgreSQL extensions | No       |
+| `portal-corp`  | Enables PortalCorp PostgreSQL extensions  | Yes      |
+| `steampipe`    | Enables Steampipe PostgreSQL extensions   | Yes      |
+| `tensor-chord` | Enables TensorChord PostgreSQL extensions | Yes      |
 
 ## Supported platforms
 
