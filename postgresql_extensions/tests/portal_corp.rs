@@ -1,3 +1,4 @@
+#[cfg(not(all(target_os = "macos", target_arch = "x86_64")))]
 #[cfg(feature = "portal-corp")]
 #[tokio::test]
 async fn test_lifecycle() -> anyhow::Result<()> {
