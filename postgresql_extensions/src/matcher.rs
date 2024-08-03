@@ -5,20 +5,6 @@ use std::collections::HashMap;
 use std::env::consts;
 use url::Url;
 
-/// .zip asset matcher that matches the asset name to the postgresql major version, target triple or
-/// OS/CPU architecture.
-///
-/// # Errors
-/// * If the asset matcher fails.
-#[allow(clippy::case_sensitive_file_extension_comparisons)]
-pub fn zip_matcher(url: &str, name: &str, version: &Version) -> Result<bool> {
-    if !matcher(url, name, version)? {
-        return Ok(false);
-    }
-
-    Ok(name.ends_with(".zip"))
-}
-
 /// .tar.gz asset matcher that matches the asset name to the postgresql major version, target triple
 /// or OS/CPU architecture.
 ///
@@ -31,6 +17,20 @@ pub fn tar_gz_matcher(url: &str, name: &str, version: &Version) -> Result<bool> 
     }
 
     Ok(name.ends_with(".tar.gz"))
+}
+
+/// .zip asset matcher that matches the asset name to the postgresql major version, target triple or
+/// OS/CPU architecture.
+///
+/// # Errors
+/// * If the asset matcher fails.
+#[allow(clippy::case_sensitive_file_extension_comparisons)]
+pub fn zip_matcher(url: &str, name: &str, version: &Version) -> Result<bool> {
+    if !matcher(url, name, version)? {
+        return Ok(false);
+    }
+
+    Ok(name.ends_with(".zip"))
 }
 
 /// Default asset matcher that matches the asset name to the postgresql major version, target triple
@@ -136,7 +136,51 @@ mod tests {
     }
 
     #[test]
-    fn test_asset_match_success() -> Result<()> {
+    fn test_tar_gz_matcher() -> Result<()> {
+        let postgresql_major_version = 16;
+        let url = format!("https://foo?postgresql_version={postgresql_major_version}.3");
+        let version = Version::parse("1.2.3")?;
+        let target = target_triple::TARGET;
+
+        let valid_name = format!("postgresql-pg{postgresql_major_version}-{target}.tar.gz");
+        let invalid_name = format!("postgresql-pg{postgresql_major_version}-{target}.zip");
+        assert!(
+            tar_gz_matcher(url.as_str(), valid_name.as_str(), &version)?,
+            "{}",
+            valid_name
+        );
+        assert!(
+            !tar_gz_matcher(url.as_str(), invalid_name.as_str(), &version)?,
+            "{}",
+            invalid_name
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn test_zip_matcher() -> Result<()> {
+        let postgresql_major_version = 16;
+        let url = format!("https://foo?postgresql_version={postgresql_major_version}.3");
+        let version = Version::parse("1.2.3")?;
+        let target = target_triple::TARGET;
+
+        let valid_name = format!("postgresql-pg{postgresql_major_version}-{target}.zip");
+        let invalid_name = format!("postgresql-pg{postgresql_major_version}-{target}.tar.gz");
+        assert!(
+            zip_matcher(url.as_str(), valid_name.as_str(), &version)?,
+            "{}",
+            valid_name
+        );
+        assert!(
+            !zip_matcher(url.as_str(), invalid_name.as_str(), &version)?,
+            "{}",
+            invalid_name
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn test_matcher_success() -> Result<()> {
         let postgresql_major_version = 16;
         let url = format!("https://foo?postgresql_version={postgresql_major_version}.3");
         let version = Version::parse("1.2.3")?;
@@ -144,14 +188,14 @@ mod tests {
         let os = consts::OS;
         let arch = consts::ARCH;
         let names = vec![
-            format!("postgresql-pg16-{target}.zip"),
-            format!("postgresql-pg16-{os}-{arch}.zip"),
-            format!("postgresql-pg16-{target}.tar.gz"),
-            format!("postgresql-pg16-{os}-{arch}.tar.gz"),
-            format!("foo.{target}.pg16.tar.gz"),
-            format!("foo.{os}.{arch}.pg16.tar.gz"),
-            format!("foo-{arch}-{os}-pg16.tar.gz"),
-            format!("foo_{arch}_{os}_pg16.tar.gz"),
+            format!("postgresql-pg{postgresql_major_version}-{target}.zip"),
+            format!("postgresql-pg{postgresql_major_version}-{os}-{arch}.zip"),
+            format!("postgresql-pg{postgresql_major_version}-{target}.tar.gz"),
+            format!("postgresql-pg{postgresql_major_version}-{os}-{arch}.tar.gz"),
+            format!("foo.{target}.pg{postgresql_major_version}.tar.gz"),
+            format!("foo.{os}.{arch}.pg{postgresql_major_version}.tar.gz"),
+            format!("foo-{arch}-{os}-pg{postgresql_major_version}.tar.gz"),
+            format!("foo_{arch}_{os}_pg{postgresql_major_version}.tar.gz"),
         ];
 
         for name in names {
@@ -161,7 +205,7 @@ mod tests {
     }
 
     #[test]
-    fn test_asset_match_errors() -> Result<()> {
+    fn test_matcher_errors() -> Result<()> {
         let postgresql_major_version = 16;
         let url = format!("https://foo?postgresql_version={postgresql_major_version}.3");
         let version = Version::parse("1.2.3")?;
