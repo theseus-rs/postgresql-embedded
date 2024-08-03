@@ -91,11 +91,13 @@
 pub mod blocking;
 mod error;
 pub mod extensions;
+mod matcher;
 mod model;
 pub mod repository;
 
 pub use error::{Error, Result};
 pub use extensions::{get_available_extensions, get_installed_extensions, install, uninstall};
+pub use matcher::{matcher, tar_gz_matcher, zip_matcher};
 #[cfg(test)]
 pub use model::TestSettings;
 pub use model::{AvailableExtension, InstalledConfiguration, InstalledExtension};
