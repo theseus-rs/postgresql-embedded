@@ -1,3 +1,4 @@
+use crate::matcher::tar_gz_matcher;
 use crate::model::AvailableExtension;
 use crate::repository::steampipe::URL;
 use crate::repository::{steampipe, Repository};
@@ -5,8 +6,8 @@ use crate::Error::ExtensionNotFound;
 use crate::Result;
 use async_trait::async_trait;
 use flate2::bufread::GzDecoder;
+use postgresql_archive::get_archive;
 use postgresql_archive::repository::github::repository::GitHub;
-use postgresql_archive::{get_archive, matcher};
 use semver::{Version, VersionReq};
 use std::fmt::Debug;
 use std::fs;
@@ -33,7 +34,10 @@ impl Steampipe {
     /// # Errors
     /// * If the repository cannot be initialized.
     pub fn initialize() -> Result<()> {
-        matcher::registry::register(|url| Ok(url.starts_with(URL)), steampipe::matcher)?;
+        postgresql_archive::matcher::registry::register(
+            |url| Ok(url.starts_with(URL)),
+            tar_gz_matcher,
+        )?;
         postgresql_archive::repository::registry::register(
             |url| Ok(url.starts_with(URL)),
             Box::new(GitHub::new),

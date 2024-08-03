@@ -1,10 +1,11 @@
+use crate::matcher::zip_matcher;
 use crate::model::AvailableExtension;
 use crate::repository::tensor_chord::URL;
-use crate::repository::{tensor_chord, Repository};
+use crate::repository::Repository;
 use crate::Result;
 use async_trait::async_trait;
+use postgresql_archive::get_archive;
 use postgresql_archive::repository::github::repository::GitHub;
-use postgresql_archive::{get_archive, matcher};
 use semver::{Version, VersionReq};
 use std::fmt::Debug;
 use std::io::Cursor;
@@ -31,7 +32,10 @@ impl TensorChord {
     /// # Errors
     /// * If the repository cannot be initialized.
     pub fn initialize() -> Result<()> {
-        matcher::registry::register(|url| Ok(url.starts_with(URL)), tensor_chord::matcher)?;
+        postgresql_archive::matcher::registry::register(
+            |url| Ok(url.starts_with(URL)),
+            zip_matcher,
+        )?;
         postgresql_archive::repository::registry::register(
             |url| Ok(url.starts_with(URL)),
             Box::new(GitHub::new),
