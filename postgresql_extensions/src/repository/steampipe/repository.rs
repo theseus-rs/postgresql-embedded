@@ -5,15 +5,13 @@ use crate::repository::{steampipe, Repository};
 use crate::Error::ExtensionNotFound;
 use crate::Result;
 use async_trait::async_trait;
-use flate2::bufread::GzDecoder;
+use postgresql_archive::extractor::{tar_gz_extract, ExtractDirectories};
 use postgresql_archive::get_archive;
 use postgresql_archive::repository::github::repository::GitHub;
+use regex::Regex;
 use semver::{Version, VersionReq};
 use std::fmt::Debug;
-use std::fs;
-use std::io::Read;
 use std::path::PathBuf;
-use tar::Archive;
 
 /// Steampipe repository.
 #[derive(Debug)]
@@ -92,30 +90,11 @@ impl Repository for Steampipe {
         extension_dir: PathBuf,
         archive: &[u8],
     ) -> Result<Vec<PathBuf>> {
-        let tar = GzDecoder::new(archive);
-        let mut archive = Archive::new(tar);
-        let mut files = Vec::new();
-
-        for file in archive.entries()? {
-            let mut file = file?;
-            let file_path = PathBuf::from(file.path()?.file_name().unwrap_or_default());
-            let file_name = file_path.to_string_lossy();
-
-            if file_name.ends_with(".dylib") || file_name.ends_with(".so") {
-                let mut bytes = Vec::new();
-                file.read_to_end(&mut bytes)?;
-                let path = PathBuf::from(&library_dir).join(file_path);
-                fs::write(&path, bytes)?;
-                files.push(path);
-            } else if file_name.ends_with(".control") || file_name.ends_with(".sql") {
-                let mut bytes = Vec::new();
-                file.read_to_end(&mut bytes)?;
-                let path = PathBuf::from(&extension_dir).join(file_path);
-                fs::write(&path, bytes)?;
-                files.push(path);
-            }
-        }
-
+        let mut extract_directories = ExtractDirectories::default();
+        extract_directories.add_mapping(Regex::new(r"(\.dll|\.dylib|\.so)")?, library_dir);
+        extract_directories.add_mapping(Regex::new(r"(\.control|\.sql)")?, extension_dir);
+        let bytes = &archive.to_vec();
+        let files = tar_gz_extract(bytes, extract_directories)?;
         Ok(files)
     }
 }

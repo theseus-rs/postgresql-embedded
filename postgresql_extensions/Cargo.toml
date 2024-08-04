@@ -11,7 +11,6 @@ version.workspace = true
 
 [dependencies]
 async-trait = { workspace = true }
-flate2 = { workspace = true, optional = true }
 postgresql_archive = { path = "../postgresql_archive", version = "0.15.0", default-features = false }
 postgresql_commands = { path = "../postgresql_commands", version = "0.15.0", default-features = false }
 regex = { workspace = true }
@@ -22,13 +21,11 @@ reqwest-tracing = { workspace = true }
 semver = { workspace = true, features = ["serde"] }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true, optional = true }
-tar = { workspace = true, optional = true }
 target-triple = { workspace = true, optional = true }
 tempfile = { workspace = true }
 thiserror = { workspace = true }
 tokio = { workspace = true, features = ["full"], optional = true }
 tracing = { workspace = true, features = ["log"] }
-zip = { workspace = true, optional = true }
 url = { workspace = true }
 
 [dev-dependencies]
@@ -47,18 +44,14 @@ default = [
 blocking = ["tokio"]
 portal-corp = [
     "dep:target-triple",
-    "dep:zip",
     "postgresql_archive/github",
 ]
 steampipe = [
-    "dep:flate2",
     "dep:serde_json",
-    "dep:tar",
     "postgresql_archive/github",
 ]
 tensor-chord = [
     "dep:target-triple",
-    "dep:zip",
     "postgresql_archive/github",
 ]
 tokio = [

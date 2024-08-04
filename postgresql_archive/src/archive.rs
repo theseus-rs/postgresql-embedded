@@ -3,6 +3,7 @@
 
 use crate::error::Result;
 use crate::{extractor, repository};
+use regex::Regex;
 use semver::{Version, VersionReq};
 use std::path::{Path, PathBuf};
 use tracing::instrument;
@@ -43,7 +44,9 @@ pub async fn get_archive(url: &str, version_req: &VersionReq) -> Result<(Version
 #[instrument(skip(bytes))]
 pub async fn extract(url: &str, bytes: &Vec<u8>, out_dir: &Path) -> Result<Vec<PathBuf>> {
     let extractor_fn = extractor::registry::get(url)?;
-    extractor_fn(bytes, out_dir)
+    let mut extract_directories = extractor::ExtractDirectories::default();
+    extract_directories.add_mapping(Regex::new(".*")?, out_dir.to_path_buf());
+    extractor_fn(bytes, extract_directories)
 }
 
 #[cfg(test)]
