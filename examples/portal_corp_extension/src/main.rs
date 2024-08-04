@@ -9,7 +9,7 @@ use tracing::info;
 
 use postgresql_embedded::{PostgreSQL, Settings, VersionReq};
 
-/// Example of how to install and configure the portal corp pgvector extension.
+/// Example of how to install and configure the PortalCorp pgvector extension.
 ///
 /// See: <https://github.com/pgvector/pgvector?tab=readme-ov-file#getting-started>
 #[tokio::main]
@@ -44,7 +44,6 @@ async fn main() -> Result<()> {
     let settings = postgresql.settings();
     let database_url = settings.url(database_name);
     let pool = PgPool::connect(database_url.as_str()).await?;
-    // configure_extension(&pool).await?;
     pool.close().await;
 
     info!("Restarting database");
@@ -118,7 +117,6 @@ async fn execute_query(pool: &PgPool, query: &str) -> Result<()> {
     Ok(())
 }
 
-#[cfg(target_os = "linux")]
 #[cfg(test)]
 mod test {
     use super::*;
