@@ -36,6 +36,7 @@ human_bytes = { version = "0.4.3", default-features = false }
 indoc = "2.0.5"
 md-5 = "0.10.6"
 num-format = "0.4.4"
+pgvector = "0.4.0"
 quick-xml = "0.36.1"
 rand = "0.8.5"
 regex = "1.10.6"

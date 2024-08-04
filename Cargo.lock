@@ -1512,6 +1512,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e3148f5046208a5d56bcfc03053e3ca6334e51da8dfb19b6cdc8b306fae3283e"
 
 [[package]]
+name = "pgvector"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e0e8871b6d7ca78348c6cd29b911b94851f3429f0cd403130ca17f26c1fb91a6"
+dependencies = [
+ "sqlx",
+]
+
+[[package]]
 name = "phf"
 version = "0.11.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1593,6 +1602,21 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "81b30686a7d9c3e010b84284bdd26a29f2138574f52f5eb6f794fc0ad924e705"
 dependencies = [
  "plotters-backend",
+]
+
+[[package]]
+name = "portal_corp_extension"
+version = "0.15.0"
+dependencies = [
+ "anyhow",
+ "indoc",
+ "pgvector",
+ "postgresql_embedded",
+ "postgresql_extensions",
+ "sqlx",
+ "tokio",
+ "tracing",
+ "tracing-subscriber",
 ]
 
 [[package]]
@@ -2601,6 +2625,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "tensor_chord_extension"
+version = "0.15.0"
+dependencies = [
+ "anyhow",
+ "indoc",
+ "postgresql_embedded",
+ "postgresql_extensions",
+ "sqlx",
+ "tokio",
+ "tracing",
+ "tracing-subscriber",
+]
+
+[[package]]
 name = "test-log"
 version = "0.2.16"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2964,20 +3002,6 @@ name = "vcpkg"
 version = "0.2.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "accd4ea62f7bb7a82fe23066fb0957d48ef677f6eeb8215f372f52e48bb32426"
-
-[[package]]
-name = "vector_extension"
-version = "0.15.0"
-dependencies = [
- "anyhow",
- "indoc",
- "postgresql_embedded",
- "postgresql_extensions",
- "sqlx",
- "tokio",
- "tracing",
- "tracing-subscriber",
-]
 
 [[package]]
 name = "version_check"

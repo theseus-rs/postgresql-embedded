@@ -8,7 +8,7 @@ use tracing::info;
 
 use postgresql_embedded::{PostgreSQL, Settings, VersionReq};
 
-/// Example of how to install and configure the vector extension.
+/// Example of how to install and configure the TensorChord vector extension.
 ///
 /// See: <https://github.com/tensorchord/pgvecto.rs/?tab=readme-ov-file#quick-start>
 #[tokio::main]
@@ -63,21 +63,21 @@ async fn main() -> Result<()> {
     info!("Squared Euclidean Distance");
     execute_query(
         &pool,
-        "SELECT '[1, 2, 3]'::vector <-> '[3, 2, 1]'::vector AS value;",
+        "SELECT '[1, 2, 3]'::vector <-> '[3, 2, 1]'::vector AS value",
     )
     .await?;
 
     info!("Negative Dot Product");
     execute_query(
         &pool,
-        "SELECT '[1, 2, 3]'::vector <#> '[3, 2, 1]'::vector AS value;",
+        "SELECT '[1, 2, 3]'::vector <#> '[3, 2, 1]'::vector AS value",
     )
     .await?;
 
     info!("Cosine Distance");
     execute_query(
         &pool,
-        "SELECT '[1, 2, 3]'::vector <=> '[3, 2, 1]'::vector AS value;",
+        "SELECT '[1, 2, 3]'::vector <=> '[3, 2, 1]'::vector AS value",
     )
     .await?;
 
@@ -100,7 +100,7 @@ async fn enable_extension(pool: &PgPool) -> Result<()> {
     sqlx::query("DROP EXTENSION IF EXISTS vectors")
         .execute(pool)
         .await?;
-    sqlx::query("CREATE EXTENSION vectors")
+    sqlx::query("CREATE EXTENSION IF NOT EXISTS vectors")
         .execute(pool)
         .await?;
     Ok(())

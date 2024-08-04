@@ -1,6 +1,6 @@
 [package]
 edition.workspace = true
-name = "vector_extension"
+name = "tensor_chord_extension"
 publish = false
 license.workspace = true
 version.workspace = true
