@@ -36,7 +36,7 @@ thiserror = { workspace = true }
 tokio = { workspace = true, features = ["full"], optional = true }
 tracing = { workspace = true, features = ["log"] }
 url = { workspace = true }
-xz2 = { workspace = true, optional = true }
+xz2 = { workspace = true }
 zip = { workspace = true }
 
 [dev-dependencies]
@@ -71,7 +71,6 @@ theseus = [
     "sha2",
 ]
 zonky = [
-    "dep:xz2",
     "maven",
 ]
 
