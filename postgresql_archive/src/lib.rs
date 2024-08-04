@@ -29,7 +29,8 @@
 //!     let url = theseus::URL;
 //!     let (archive_version, archive) = get_archive(url, &VersionReq::STAR).await?;
 //!     let out_dir = std::env::temp_dir();
-//!     extract(url, &archive, &out_dir).await
+//!     let files = extract(url, &archive, &out_dir).await?;
+//!     Ok(())
 //! }
 //! ```
 //!

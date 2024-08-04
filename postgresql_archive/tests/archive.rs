@@ -33,7 +33,14 @@ async fn test_get_archive_and_extract() -> anyhow::Result<()> {
 
     let out_dir = tempfile::tempdir()?.path().to_path_buf();
     let files = extract(url, &archive, &out_dir).await?;
+    #[cfg(all(target_os = "linux", target_arch = "x86_64"))]
+    assert_eq!(1_312, files.len());
+    #[cfg(all(target_os = "macos", target_arch = "aarch64"))]
     assert_eq!(1_271, files.len());
+    #[cfg(all(target_os = "macos", target_arch = "x86_64"))]
+    assert_eq!(1_271, files.len());
+    #[cfg(all(target_os = "windows", target_arch = "x86_64"))]
+    assert_eq!(3_120, files.len());
     remove_dir_all(&out_dir)?;
     Ok(())
 }
