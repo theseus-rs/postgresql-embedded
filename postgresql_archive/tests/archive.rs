@@ -32,7 +32,8 @@ async fn test_get_archive_and_extract() -> anyhow::Result<()> {
     assert!(version_req.matches(&archive_version));
 
     let out_dir = tempfile::tempdir()?.path().to_path_buf();
-    extract(url, &archive, &out_dir).await?;
+    let files = extract(url, &archive, &out_dir).await?;
+    assert_eq!(1_271, files.len());
     remove_dir_all(&out_dir)?;
     Ok(())
 }
