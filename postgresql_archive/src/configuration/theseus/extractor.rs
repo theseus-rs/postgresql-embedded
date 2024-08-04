@@ -17,11 +17,11 @@ use tracing::{debug, instrument, warn};
 /// Returns an error if the extraction fails.
 #[allow(clippy::cast_precision_loss)]
 #[instrument(skip(bytes))]
-pub fn extract(bytes: &Vec<u8>, out_dir: &Path) -> Result<()> {
+pub fn extract(bytes: &Vec<u8>, out_dir: &Path) -> Result<Vec<PathBuf>> {
+    let mut files = Vec::new();
     let input = BufReader::new(Cursor::new(bytes));
     let decoder = GzDecoder::new(input);
     let mut archive = Archive::new(decoder);
-    let mut files = 0;
     let mut extracted_bytes = 0;
 
     let parent_dir = if let Some(parent) = out_dir.parent() {
@@ -42,7 +42,7 @@ pub fn extract(bytes: &Vec<u8>, out_dir: &Path) -> Result<()> {
             out_dir.to_string_lossy()
         );
         remove_file(&lock_file)?;
-        return Ok(());
+        return Ok(files);
     }
 
     let extract_dir = tempfile::tempdir_in(parent_dir)?.into_path();
@@ -74,8 +74,6 @@ pub fn extract(bytes: &Vec<u8>, out_dir: &Path) -> Result<()> {
         } else if entry_type.is_file() {
             let mut output_file = File::create(&entry_name)?;
             copy(&mut entry, &mut output_file)?;
-
-            files += 1;
             extracted_bytes += entry_size;
 
             #[cfg(unix)]
@@ -83,11 +81,13 @@ pub fn extract(bytes: &Vec<u8>, out_dir: &Path) -> Result<()> {
                 use std::os::unix::fs::PermissionsExt;
                 output_file.set_permissions(std::fs::Permissions::from_mode(file_mode))?;
             }
+            files.push(entry_name);
         } else if entry_type.is_symlink() {
             #[cfg(unix)]
             if let Some(symlink_target) = entry.link_name()? {
-                let symlink_path = entry_name;
+                let symlink_path = entry_name.clone();
                 std::os::unix::fs::symlink(symlink_target.as_ref(), symlink_path)?;
+                files.push(entry_name);
             }
         }
     }
@@ -113,13 +113,14 @@ pub fn extract(bytes: &Vec<u8>, out_dir: &Path) -> Result<()> {
         remove_file(lock_file)?;
     }
 
+    let number_of_files = files.len();
     debug!(
         "Extracting {} files totalling {}",
-        files.to_formatted_string(&Locale::en),
+        number_of_files.to_formatted_string(&Locale::en),
         human_bytes(extracted_bytes as f64)
     );
 
-    Ok(())
+    Ok(files)
 }
 
 /// Acquires a lock file in the [out_dir](Path) to prevent multiple processes from extracting the

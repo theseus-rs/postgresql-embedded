@@ -35,13 +35,21 @@ async fn test_get_version() -> anyhow::Result<()> {
 #[cfg(feature = "zonky")]
 async fn test_get_archive_and_extract() -> anyhow::Result<()> {
     let url = zonky::URL;
-    let version_req = VersionReq::STAR;
+    let version_req = VersionReq::parse("=16.3.0")?;
     let (archive_version, archive) = get_archive(url, &version_req).await?;
 
     assert!(version_req.matches(&archive_version));
 
     let out_dir = tempfile::tempdir()?.path().to_path_buf();
-    extract(url, &archive, &out_dir).await?;
+    let files = extract(url, &archive, &out_dir).await?;
+    #[cfg(all(target_os = "linux", target_arch = "x86_64"))]
+    assert_eq!(1_023, files.len());
+    #[cfg(all(target_os = "macos", target_arch = "aarch64"))]
+    assert_eq!(1_019, files.len());
+    #[cfg(all(target_os = "macos", target_arch = "x86_64"))]
+    assert_eq!(1_019, files.len());
+    #[cfg(all(target_os = "windows", target_arch = "x86_64"))]
+    assert_eq!(1_019, files.len());
     remove_dir_all(&out_dir)?;
     Ok(())
 }

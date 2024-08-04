@@ -4,7 +4,7 @@
 use crate::error::Result;
 use crate::{extractor, repository};
 use semver::{Version, VersionReq};
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use tracing::instrument;
 
 /// Gets the version for the specified [version requirement](VersionReq). If a version for the
@@ -41,7 +41,7 @@ pub async fn get_archive(url: &str, version_req: &VersionReq) -> Result<(Version
 /// Returns an error if the extraction fails.
 #[allow(clippy::cast_precision_loss)]
 #[instrument(skip(bytes))]
-pub async fn extract(url: &str, bytes: &Vec<u8>, out_dir: &Path) -> Result<()> {
+pub async fn extract(url: &str, bytes: &Vec<u8>, out_dir: &Path) -> Result<Vec<PathBuf>> {
     let extractor_fn = extractor::registry::get(url)?;
     extractor_fn(bytes, out_dir)
 }

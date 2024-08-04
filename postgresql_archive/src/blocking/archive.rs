@@ -1,5 +1,5 @@
 use crate::{Version, VersionReq};
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::sync::LazyLock;
 use tokio::runtime::Runtime;
 
@@ -33,7 +33,7 @@ pub fn get_archive(url: &str, version_req: &VersionReq) -> crate::Result<(Versio
 ///
 /// # Errors
 /// Returns an error if the extraction fails.
-pub fn extract(url: &str, bytes: &Vec<u8>, out_dir: &Path) -> crate::Result<()> {
+pub fn extract(url: &str, bytes: &Vec<u8>, out_dir: &Path) -> crate::Result<Vec<PathBuf>> {
     RUNTIME
         .handle()
         .block_on(async move { crate::extract(url, bytes, out_dir).await })

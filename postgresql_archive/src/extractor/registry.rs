@@ -4,14 +4,14 @@ use crate::configuration::theseus;
 use crate::configuration::zonky;
 use crate::Error::{PoisonedLock, UnsupportedExtractor};
 use crate::Result;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::sync::{Arc, LazyLock, Mutex, RwLock};
 
 static REGISTRY: LazyLock<Arc<Mutex<RepositoryRegistry>>> =
     LazyLock::new(|| Arc::new(Mutex::new(RepositoryRegistry::default())));
 
 type SupportsFn = fn(&str) -> Result<bool>;
-type ExtractFn = fn(&Vec<u8>, &Path) -> Result<()>;
+type ExtractFn = fn(&Vec<u8>, &Path) -> Result<Vec<PathBuf>>;
 
 /// Singleton struct to store extractors
 #[allow(clippy::type_complexity)]
@@ -102,7 +102,7 @@ mod tests {
 
     #[test]
     fn test_register() -> Result<()> {
-        register(|url| Ok(url == "https://foo.com"), |_, _| Ok(()))?;
+        register(|url| Ok(url == "https://foo.com"), |_, _| Ok(Vec::new()))?;
         let url = "https://foo.com";
         let extractor = get(url)?;
         assert!(extractor(&Vec::new(), Path::new("foo")).is_ok());
