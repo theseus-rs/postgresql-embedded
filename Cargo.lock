@@ -142,7 +142,7 @@ dependencies = [
 
 [[package]]
 name = "archive_async"
-version = "0.15.0"
+version = "0.16.0"
 dependencies = [
  "postgresql_archive",
  "tempfile",
@@ -151,7 +151,7 @@ dependencies = [
 
 [[package]]
 name = "archive_sync"
-version = "0.15.0"
+version = "0.16.0"
 dependencies = [
  "postgresql_archive",
  "tempfile",
@@ -593,7 +593,7 @@ dependencies = [
 
 [[package]]
 name = "embedded_async"
-version = "0.15.0"
+version = "0.16.0"
 dependencies = [
  "postgresql_embedded",
  "tokio",
@@ -601,7 +601,7 @@ dependencies = [
 
 [[package]]
 name = "embedded_sync"
-version = "0.15.0"
+version = "0.16.0"
 dependencies = [
  "postgresql_embedded",
 ]
@@ -1606,7 +1606,7 @@ dependencies = [
 
 [[package]]
 name = "portal_corp_extension"
-version = "0.15.0"
+version = "0.16.0"
 dependencies = [
  "anyhow",
  "indoc",
@@ -1664,7 +1664,7 @@ dependencies = [
 
 [[package]]
 name = "postgres_embedded"
-version = "0.15.0"
+version = "0.16.0"
 dependencies = [
  "anyhow",
  "postgres",
@@ -1673,7 +1673,7 @@ dependencies = [
 
 [[package]]
 name = "postgresql_archive"
-version = "0.15.0"
+version = "0.16.0"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -1709,7 +1709,7 @@ dependencies = [
 
 [[package]]
 name = "postgresql_commands"
-version = "0.15.0"
+version = "0.16.0"
 dependencies = [
  "anyhow",
  "test-log",
@@ -1720,7 +1720,7 @@ dependencies = [
 
 [[package]]
 name = "postgresql_embedded"
-version = "0.15.0"
+version = "0.16.0"
 dependencies = [
  "anyhow",
  "criterion",
@@ -1741,7 +1741,7 @@ dependencies = [
 
 [[package]]
 name = "postgresql_extensions"
-version = "0.15.0"
+version = "0.16.0"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -2549,7 +2549,7 @@ dependencies = [
 
 [[package]]
 name = "sqlx_embedded"
-version = "0.15.0"
+version = "0.16.0"
 dependencies = [
  "anyhow",
  "postgresql_embedded",
@@ -2623,7 +2623,7 @@ dependencies = [
 
 [[package]]
 name = "tensor_chord_extension"
-version = "0.15.0"
+version = "0.16.0"
 dependencies = [
  "anyhow",
  "indoc",
@@ -3435,7 +3435,7 @@ dependencies = [
 
 [[package]]
 name = "zonky"
-version = "0.15.0"
+version = "0.16.0"
 dependencies = [
  "postgresql_archive",
  "postgresql_embedded",
