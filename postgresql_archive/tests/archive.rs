@@ -26,7 +26,7 @@ async fn test_get_version() -> anyhow::Result<()> {
 #[test(tokio::test)]
 async fn test_get_archive_and_extract() -> anyhow::Result<()> {
     let url = theseus::URL;
-    let version_req = VersionReq::STAR;
+    let version_req = VersionReq::parse("=16.3.0")?;
     let (archive_version, archive) = get_archive(url, &version_req).await?;
 
     assert!(version_req.matches(&archive_version));
