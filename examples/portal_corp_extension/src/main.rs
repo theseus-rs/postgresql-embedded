@@ -3,14 +3,15 @@
 
 use anyhow::Result;
 use indoc::indoc;
+use pgvector::Vector;
 use sqlx::{PgPool, Row};
 use tracing::info;
 
 use postgresql_embedded::{PostgreSQL, Settings, VersionReq};
 
-/// Example of how to install and configure the vector extension.
+/// Example of how to install and configure the portal corp pgvector extension.
 ///
-/// See: <https://github.com/tensorchord/pgvecto.rs/?tab=readme-ov-file#quick-start>
+/// See: <https://github.com/pgvector/pgvector?tab=readme-ov-file#getting-started>
 #[tokio::main]
 async fn main() -> Result<()> {
     tracing_subscriber::fmt().compact().init();
@@ -23,12 +24,12 @@ async fn main() -> Result<()> {
     let mut postgresql = PostgreSQL::new(settings);
     postgresql.setup().await?;
 
-    info!("Installing the vector extension from TensorChord");
+    info!("Installing the vector extension from PortalCorp");
     postgresql_extensions::install(
         postgresql.settings(),
-        "tensor-chord",
-        "pgvecto.rs",
-        &VersionReq::parse("=0.3.0")?,
+        "portal-corp",
+        "pgvector_compiled",
+        &VersionReq::parse("=0.16.12")?,
     )
     .await?;
 
@@ -43,7 +44,7 @@ async fn main() -> Result<()> {
     let settings = postgresql.settings();
     let database_url = settings.url(database_name);
     let pool = PgPool::connect(database_url.as_str()).await?;
-    configure_extension(&pool).await?;
+    // configure_extension(&pool).await?;
     pool.close().await;
 
     info!("Restarting database");
@@ -60,24 +61,10 @@ async fn main() -> Result<()> {
     info!("Creating data");
     create_data(&pool).await?;
 
-    info!("Squared Euclidean Distance");
+    info!("Get the nearest neighbors by L2 distance");
     execute_query(
         &pool,
-        "SELECT '[1, 2, 3]'::vector <-> '[3, 2, 1]'::vector AS value;",
-    )
-    .await?;
-
-    info!("Negative Dot Product");
-    execute_query(
-        &pool,
-        "SELECT '[1, 2, 3]'::vector <#> '[3, 2, 1]'::vector AS value;",
-    )
-    .await?;
-
-    info!("Cosine Distance");
-    execute_query(
-        &pool,
-        "SELECT '[1, 2, 3]'::vector <=> '[3, 2, 1]'::vector AS value;",
+        "SELECT * FROM items ORDER BY embedding <-> '[3,1,2]' LIMIT 5",
     )
     .await?;
 
@@ -86,21 +73,11 @@ async fn main() -> Result<()> {
     Ok(())
 }
 
-async fn configure_extension(pool: &PgPool) -> Result<()> {
-    sqlx::query("ALTER SYSTEM SET shared_preload_libraries = \"vectors.so\"")
-        .execute(pool)
-        .await?;
-    sqlx::query("ALTER SYSTEM SET search_path = \"$user\", public, vectors")
-        .execute(pool)
-        .await?;
-    Ok(())
-}
-
 async fn enable_extension(pool: &PgPool) -> Result<()> {
-    sqlx::query("DROP EXTENSION IF EXISTS vectors")
+    sqlx::query("DROP EXTENSION IF EXISTS vector")
         .execute(pool)
         .await?;
-    sqlx::query("CREATE EXTENSION vectors")
+    sqlx::query("CREATE EXTENSION IF NOT EXISTS vector")
         .execute(pool)
         .await?;
     Ok(())
@@ -127,22 +104,17 @@ async fn create_data(pool: &PgPool) -> Result<()> {
     "})
     .execute(pool)
     .await?;
-    sqlx::query(indoc! {"
-        INSERT INTO items (embedding)
-        VALUES
-            (ARRAY[1, 2, 3]::real[]),
-            (ARRAY[4, 5, 6]::real[]
-        )
-    "})
-    .execute(pool)
-    .await?;
     Ok(())
 }
 
 async fn execute_query(pool: &PgPool, query: &str) -> Result<()> {
-    let row = sqlx::query(query).fetch_one(pool).await?;
-    let value: f32 = row.try_get("value")?;
-    info!("{}: {}", query, value);
+    info!("Query: {query}");
+    let rows = sqlx::query(query).fetch_all(pool).await?;
+    for row in rows {
+        let id: i64 = row.try_get("id")?;
+        let embedding: Vector = row.try_get("embedding")?;
+        info!("ID: {id}, Embedding: {embedding:?}");
+    }
     Ok(())
 }
 
