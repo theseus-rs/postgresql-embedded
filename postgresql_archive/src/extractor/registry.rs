@@ -2,16 +2,17 @@
 use crate::configuration::theseus;
 #[cfg(feature = "zonky")]
 use crate::configuration::zonky;
+use crate::extractor::ExtractDirectories;
 use crate::Error::{PoisonedLock, UnsupportedExtractor};
 use crate::Result;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use std::sync::{Arc, LazyLock, Mutex, RwLock};
 
 static REGISTRY: LazyLock<Arc<Mutex<RepositoryRegistry>>> =
     LazyLock::new(|| Arc::new(Mutex::new(RepositoryRegistry::default())));
 
 type SupportsFn = fn(&str) -> Result<bool>;
-type ExtractFn = fn(&Vec<u8>, &Path) -> Result<Vec<PathBuf>>;
+type ExtractFn = fn(&Vec<u8>, ExtractDirectories) -> Result<Vec<PathBuf>>;
 
 /// Singleton struct to store extractors
 #[allow(clippy::type_complexity)]
@@ -99,13 +100,16 @@ pub fn get(url: &str) -> Result<ExtractFn> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use regex::Regex;
 
     #[test]
     fn test_register() -> Result<()> {
         register(|url| Ok(url == "https://foo.com"), |_, _| Ok(Vec::new()))?;
         let url = "https://foo.com";
         let extractor = get(url)?;
-        assert!(extractor(&Vec::new(), Path::new("foo")).is_ok());
+        let mut extract_directories = ExtractDirectories::default();
+        extract_directories.add_mapping(Regex::new(".*")?, PathBuf::from("test"));
+        assert!(extractor(&Vec::new(), extract_directories).is_ok());
         Ok(())
     }
 

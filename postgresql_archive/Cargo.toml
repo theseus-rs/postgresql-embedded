@@ -12,7 +12,7 @@ version.workspace = true
 [dependencies]
 anyhow = { workspace = true }
 async-trait = { workspace = true }
-flate2 = { workspace = true, optional = true }
+flate2 = { workspace = true }
 hex = { workspace = true }
 http = { workspace = true }
 human_bytes = { workspace = true, default-features = false }
@@ -29,7 +29,7 @@ serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true, optional = true }
 sha1 = { workspace = true, optional = true }
 sha2 = { workspace = true, optional = true }
-tar = { workspace = true, optional = true }
+tar = { workspace = true }
 target-triple = { workspace = true, optional = true }
 tempfile = { workspace = true }
 thiserror = { workspace = true }
@@ -37,7 +37,7 @@ tokio = { workspace = true, features = ["full"], optional = true }
 tracing = { workspace = true, features = ["log"] }
 url = { workspace = true }
 xz2 = { workspace = true, optional = true }
-zip = { workspace = true, optional = true }
+zip = { workspace = true }
 
 [dev-dependencies]
 criterion = { workspace = true }
@@ -66,17 +66,12 @@ rustls-tls = ["reqwest/rustls-tls-native-roots"]
 sha1 = ["dep:sha1"]
 sha2 = ["dep:sha2"]
 theseus = [
-    "dep:flate2",
-    "dep:tar",
     "dep:target-triple",
     "github",
     "sha2",
 ]
 zonky = [
-    "dep:flate2",
-    "dep:tar",
     "dep:xz2",
-    "dep:zip",
     "maven",
 ]
 

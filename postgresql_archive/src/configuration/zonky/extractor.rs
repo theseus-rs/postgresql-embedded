@@ -1,3 +1,4 @@
+use crate::extractor::ExtractDirectories;
 use crate::Error::Unexpected;
 use crate::Result;
 use human_bytes::human_bytes;
@@ -19,13 +20,14 @@ use zip::ZipArchive;
 #[allow(clippy::case_sensitive_file_extension_comparisons)]
 #[allow(clippy::cast_precision_loss)]
 #[instrument(skip(bytes))]
-pub fn extract(bytes: &Vec<u8>, out_dir: &Path) -> Result<Vec<PathBuf>> {
+pub fn extract(bytes: &Vec<u8>, extract_directories: ExtractDirectories) -> Result<Vec<PathBuf>> {
+    let out_dir = extract_directories.get_path(".")?;
     let mut files = Vec::new();
     let parent_dir = if let Some(parent) = out_dir.parent() {
         parent
     } else {
         debug!("No parent directory for {}", out_dir.to_string_lossy());
-        out_dir
+        out_dir.as_path()
     };
 
     create_dir_all(parent_dir)?;

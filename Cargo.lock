@@ -1745,7 +1745,6 @@ version = "0.15.0"
 dependencies = [
  "anyhow",
  "async-trait",
- "flate2",
  "postgresql_archive",
  "postgresql_commands",
  "postgresql_embedded",
@@ -1757,7 +1756,6 @@ dependencies = [
  "semver",
  "serde",
  "serde_json",
- "tar",
  "target-triple",
  "tempfile",
  "test-log",
@@ -1765,7 +1763,6 @@ dependencies = [
  "tokio",
  "tracing",
  "url",
- "zip",
 ]
 
 [[package]]
