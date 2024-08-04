@@ -213,11 +213,12 @@ mod tests {
         let os = consts::OS;
         let arch = consts::ARCH;
         let names = vec![
-            format!("foo{target}.tar.gz"),
-            format!("foo{os}-{arch}.tar.gz"),
-            format!("foo-{target}.tar"),
-            format!("foo-{os}-{arch}.tar"),
-            format!("foo-{os}{arch}.tar.gz"),
+            format!("foo-pg{postgresql_major_version}.tar.gz"),
+            format!("foo-{target}.tar.gz"),
+            format!("foo-pg{postgresql_major_version}-{os}.tar.gz"),
+            format!("foo-pg{postgresql_major_version}-{arch}.tar.gz"),
+            format!("foo-pg{postgresql_major_version}{os}-{arch}.tar"),
+            format!("foo-pg{postgresql_major_version}-{os}{arch}.tar.gz"),
         ];
 
         for name in names {
