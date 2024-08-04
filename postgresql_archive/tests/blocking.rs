@@ -31,7 +31,7 @@ fn test_get_archive_and_extract() -> anyhow::Result<()> {
 
     let out_dir = tempfile::tempdir()?.path().to_path_buf();
     let files = extract(url, &archive, &out_dir)?;
-    assert!(files.len() > 0);
+    assert!(!files.is_empty());
     remove_dir_all(&out_dir)?;
     Ok(())
 }
