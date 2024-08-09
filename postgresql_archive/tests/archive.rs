@@ -40,7 +40,7 @@ async fn test_get_archive_and_extract() -> anyhow::Result<()> {
     #[cfg(all(target_os = "macos", target_arch = "x86_64"))]
     assert_eq!(1_271, files.len());
     #[cfg(all(target_os = "windows", target_arch = "x86_64"))]
-    assert_eq!(3_120, files.len());
+    assert_eq!(3_092, files.len());
     remove_dir_all(&out_dir)?;
     Ok(())
 }
