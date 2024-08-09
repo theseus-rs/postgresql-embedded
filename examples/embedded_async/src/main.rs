@@ -6,7 +6,7 @@ use postgresql_embedded::{PostgreSQL, Result, Settings, VersionReq};
 #[tokio::main]
 async fn main() -> Result<()> {
     let settings = Settings {
-        version: VersionReq::parse("=16.3.0")?,
+        version: VersionReq::parse("=16.4.0")?,
         ..Default::default()
     };
     let mut postgresql = PostgreSQL::new(settings);

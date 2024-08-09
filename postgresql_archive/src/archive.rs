@@ -56,17 +56,17 @@ mod tests {
 
     #[tokio::test]
     async fn test_get_version() -> Result<()> {
-        let version_req = VersionReq::parse("=16.3.0")?;
+        let version_req = VersionReq::parse("=16.4.0")?;
         let version = get_version(URL, &version_req).await?;
-        assert_eq!(Version::new(16, 3, 0), version);
+        assert_eq!(Version::new(16, 4, 0), version);
         Ok(())
     }
 
     #[tokio::test]
     async fn test_get_archive() -> Result<()> {
-        let version_req = VersionReq::parse("=16.3.0")?;
+        let version_req = VersionReq::parse("=16.4.0")?;
         let (version, bytes) = get_archive(URL, &version_req).await?;
-        assert_eq!(Version::new(16, 3, 0), version);
+        assert_eq!(Version::new(16, 4, 0), version);
         assert!(!bytes.is_empty());
         Ok(())
     }

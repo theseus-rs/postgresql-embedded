@@ -295,7 +295,7 @@ mod tests {
     fn test_settings_from_url() -> Result<()> {
         let base_url = "postgresql://postgres:password@localhost:5432/test";
         let releases_url = "releases_url=https%3A%2F%2Fgithub.com";
-        let version = "version=%3D16.3.0";
+        let version = "version=%3D16.4.0";
         let installation_dir = "installation_dir=/tmp/postgresql";
         let password_file = "password_file=/tmp/.pgpass";
         let data_dir = "data_dir=/tmp/data";
@@ -307,7 +307,7 @@ mod tests {
         let settings = Settings::from_url(url)?;
 
         assert_eq!("https://github.com", settings.releases_url);
-        assert_eq!(VersionReq::parse("=16.3.0")?, settings.version);
+        assert_eq!(VersionReq::parse("=16.4.0")?, settings.version);
         assert_eq!(PathBuf::from("/tmp/postgresql"), settings.installation_dir);
         assert_eq!(PathBuf::from("/tmp/.pgpass"), settings.password_file);
         assert_eq!(PathBuf::from("/tmp/data"), settings.data_dir);

@@ -16,7 +16,7 @@ async fn test_get_version_not_found() -> postgresql_archive::Result<()> {
 
 #[test(tokio::test)]
 async fn test_get_version() -> anyhow::Result<()> {
-    let version_req = VersionReq::parse("=16.3.0")?;
+    let version_req = VersionReq::parse("=16.4.0")?;
     let latest_version = get_version(theseus::URL, &version_req).await?;
 
     assert!(version_req.matches(&latest_version));
@@ -26,7 +26,7 @@ async fn test_get_version() -> anyhow::Result<()> {
 #[test(tokio::test)]
 async fn test_get_archive_and_extract() -> anyhow::Result<()> {
     let url = theseus::URL;
-    let version_req = VersionReq::parse("=16.3.0")?;
+    let version_req = VersionReq::parse("=16.4.0")?;
     let (archive_version, archive) = get_archive(url, &version_req).await?;
 
     assert!(version_req.matches(&archive_version));
@@ -40,7 +40,7 @@ async fn test_get_archive_and_extract() -> anyhow::Result<()> {
     #[cfg(all(target_os = "macos", target_arch = "x86_64"))]
     assert_eq!(1_271, files.len());
     #[cfg(all(target_os = "windows", target_arch = "x86_64"))]
-    assert_eq!(3_120, files.len());
+    assert_eq!(3_092, files.len());
     remove_dir_all(&out_dir)?;
     Ok(())
 }

@@ -17,7 +17,7 @@ async fn main() -> Result<()> {
 
     info!("Installing PostgreSQL");
     let settings = Settings {
-        version: VersionReq::parse("=16.3.0")?,
+        version: VersionReq::parse("=16.4.0")?,
         ..Default::default()
     };
     let mut postgresql = PostgreSQL::new(settings);

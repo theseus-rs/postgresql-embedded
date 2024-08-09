@@ -19,7 +19,7 @@ mod tests {
     #[test]
     fn test_asset_match_success() -> Result<()> {
         let url = "";
-        let version = Version::parse("16.3.0")?;
+        let version = Version::parse("16.4.0")?;
         let target = target_triple::TARGET;
         let name = format!("postgresql-{version}-{target}.tar.gz");
 
@@ -30,7 +30,7 @@ mod tests {
     #[test]
     fn test_asset_match_errors() -> Result<()> {
         let url = "";
-        let version = Version::parse("16.3.0")?;
+        let version = Version::parse("16.4.0")?;
         let target = target_triple::TARGET;
         let names = vec![
             format!("foo-{version}-{target}.tar.gz"),

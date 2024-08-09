@@ -3,7 +3,7 @@
 #[tokio::test]
 async fn test_lifecycle() -> anyhow::Result<()> {
     let installation_dir = tempfile::tempdir()?.path().to_path_buf();
-    let postgresql_version = semver::VersionReq::parse("=16.3.0")?;
+    let postgresql_version = semver::VersionReq::parse("=16.4.0")?;
     let settings = postgresql_embedded::Settings {
         version: postgresql_version,
         installation_dir: installation_dir.clone(),
