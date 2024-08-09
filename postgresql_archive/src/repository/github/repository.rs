@@ -84,7 +84,7 @@ impl GitHub {
     /// # Errors
     /// * If the version cannot be parsed.
     fn get_version_from_tag_name(tag_name: &str) -> Result<Version> {
-        // Trim and prefix characters from the tag name (e.g., "v16.3.0" -> "16.3.0").
+        // Trim and prefix characters from the tag name (e.g., "v16.4.0" -> "16.4.0").
         let tag_name = tag_name.trim_start_matches(|c: char| !c.is_numeric());
         match Version::from_str(tag_name) {
             Ok(version) => Ok(version),
@@ -328,10 +328,10 @@ mod tests {
 
     #[test]
     fn test_get_version_from_tag_name() -> Result<()> {
-        let versions = vec!["16.3.0", "v16.3.0"];
+        let versions = vec!["16.4.0", "v16.4.0"];
         for version in versions {
             let version = GitHub::get_version_from_tag_name(version)?;
-            assert_eq!(Version::new(16, 3, 0), version);
+            assert_eq!(Version::new(16, 4, 0), version);
         }
 
         Ok(())
@@ -362,9 +362,9 @@ mod tests {
     #[tokio::test]
     async fn test_get_specific_version() -> Result<()> {
         let github = GitHub::new(URL)?;
-        let version_req = VersionReq::parse("=16.3.0")?;
+        let version_req = VersionReq::parse("=16.4.0")?;
         let version = github.get_version(&version_req).await?;
-        assert_eq!(Version::new(16, 3, 0), version);
+        assert_eq!(Version::new(16, 4, 0), version);
         Ok(())
     }
 
@@ -384,13 +384,13 @@ mod tests {
     #[tokio::test]
     async fn test_get_archive() -> Result<()> {
         let github = GitHub::new(URL)?;
-        let version_req = VersionReq::parse("=16.3.0")?;
+        let version_req = VersionReq::parse("=16.4.0")?;
         let archive = github.get_archive(&version_req).await?;
         assert_eq!(
-            format!("postgresql-16.3.0-{}.tar.gz", target_triple::TARGET),
+            format!("postgresql-16.4.0-{}.tar.gz", target_triple::TARGET),
             archive.name()
         );
-        assert_eq!(&Version::new(16, 3, 0), archive.version());
+        assert_eq!(&Version::new(16, 4, 0), archive.version());
         assert!(!archive.bytes().is_empty());
         Ok(())
     }

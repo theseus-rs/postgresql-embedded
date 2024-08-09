@@ -65,22 +65,22 @@ mod tests {
 
     #[test]
     fn test_exact_version_full_no_equals() -> Result<()> {
-        let version_req = VersionReq::parse("16.3.0")?;
+        let version_req = VersionReq::parse("16.4.0")?;
         assert_eq!(None, version_req.exact_version());
         Ok(())
     }
 
     #[test]
     fn test_exact_version_full_equals() -> Result<()> {
-        let version_req = VersionReq::parse("=16.3.0")?;
-        let version = Version::new(16, 3, 0);
+        let version_req = VersionReq::parse("=16.4.0")?;
+        let version = Version::new(16, 4, 0);
         assert_eq!(Some(version), version_req.exact_version());
         Ok(())
     }
 
     #[test]
     fn test_exact_version_major_minor() -> Result<()> {
-        let version_req = VersionReq::parse("=16.3")?;
+        let version_req = VersionReq::parse("=16.4")?;
         assert_eq!(None, version_req.exact_version());
         Ok(())
     }
@@ -108,8 +108,8 @@ mod tests {
 
     #[test]
     fn test_exact_version_req_major_minor_patch() -> Result<()> {
-        let version = Version::new(16, 3, 0);
-        assert_eq!(VersionReq::parse("=16.3.0")?, version.exact_version_req()?);
+        let version = Version::new(16, 4, 0);
+        assert_eq!(VersionReq::parse("=16.4.0")?, version.exact_version_req()?);
         Ok(())
     }
 

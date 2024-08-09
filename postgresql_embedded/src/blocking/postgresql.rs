@@ -118,7 +118,7 @@ mod test {
 
     #[test]
     fn test_postgresql() -> Result<()> {
-        let version = VersionReq::parse("=16.3.0")?;
+        let version = VersionReq::parse("=16.4.0")?;
         let settings = Settings {
             version,
             ..Settings::default()

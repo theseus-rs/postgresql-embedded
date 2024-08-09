@@ -44,7 +44,7 @@ mod tests {
         let url = "";
         let os = get_os();
         let arch = get_arch();
-        let version = Version::parse("16.3.0")?;
+        let version = Version::parse("16.4.0")?;
         let name = format!("embedded-postgres-binaries-{os}-{arch}-{version}.jar");
 
         assert!(matcher(url, name.as_str(), &version)?, "{}", name);
@@ -56,7 +56,7 @@ mod tests {
         let url = "";
         let os = get_os();
         let arch = get_arch();
-        let version = Version::parse("16.3.0")?;
+        let version = Version::parse("16.4.0")?;
         let names = vec![
             format!("foo-{os}-{arch}-{version}.jar"),
             format!("embedded-postgres-binaries-{arch}-{version}.jar"),
