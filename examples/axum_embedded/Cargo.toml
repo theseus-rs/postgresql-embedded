@@ -1,0 +1,16 @@
+[package]
+edition.workspace = true
+name = "axum_embedded"
+publish = false
+license.workspace = true
+version.workspace = true
+
+[dependencies]
+anyhow = { workspace = true }
+axum = { workspace = true }
+postgresql_embedded = { path = "../../postgresql_embedded" }
+postgresql_extensions = { path = "../../postgresql_extensions" }
+sqlx = { workspace = true, features = ["runtime-tokio"] }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+tokio = { workspace = true, features = ["full"] }
