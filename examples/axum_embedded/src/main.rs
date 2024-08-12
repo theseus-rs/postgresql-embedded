@@ -4,19 +4,28 @@
 use anyhow::Result;
 use axum::extract::State;
 use axum::{http::StatusCode, routing::get, Json, Router};
+use indicatif::ProgressStyle;
+use postgresql_embedded::{PostgreSQL, Settings, VersionReq};
 use sqlx::postgres::PgPoolOptions;
 use sqlx::PgPool;
 use std::env;
 use std::time::Duration;
 use tokio::net::TcpListener;
 use tracing::info;
-
-use postgresql_embedded::{PostgreSQL, Settings, VersionReq};
+use tracing_indicatif::IndicatifLayer;
+use tracing_subscriber::filter::LevelFilter;
+use tracing_subscriber::prelude::*;
+use tracing_subscriber::{fmt, Registry};
 
 /// Example of how to use postgresql embedded with axum.
 #[tokio::main]
 async fn main() -> Result<()> {
-    tracing_subscriber::fmt().compact().init();
+    let progress_style = ProgressStyle::with_template("{span_child_prefix}{spinner} {span_name}")?;
+    let indicatif_layer = IndicatifLayer::new().with_progress_style(progress_style);
+    let subscriber = Registry::default()
+        .with(fmt::Layer::default().with_filter(LevelFilter::INFO))
+        .with(indicatif_layer);
+    subscriber.init();
 
     let db_url =
         env::var("DATABASE_URL").unwrap_or_else(|_| "postgresql://postgres@localhost".to_string());
