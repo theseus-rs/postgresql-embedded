@@ -4,6 +4,7 @@ use crate::repository::Archive;
 use crate::Error::{ArchiveHashMismatch, ParseError, RepositoryFailure, VersionNotFound};
 use crate::{hasher, Result};
 use async_trait::async_trait;
+use futures_util::StreamExt;
 use http::{header, Extensions};
 use human_bytes::human_bytes;
 use reqwest::{Request, Response};
@@ -13,8 +14,10 @@ use reqwest_retry::RetryTransientMiddleware;
 use reqwest_tracing::TracingMiddleware;
 use semver::{Version, VersionReq};
 use std::env;
+use std::io::Write;
 use std::sync::LazyLock;
-use tracing::{debug, instrument, warn};
+use tracing::{debug, instrument, warn, Span};
+use tracing_indicatif::span_ext::IndicatifSpanExt;
 
 static USER_AGENT: LazyLock<String> = LazyLock::new(|| {
     format!(
@@ -134,11 +137,18 @@ impl Repository for Maven {
         debug!("Downloading archive {archive_url}");
         let request = client.get(&archive_url);
         let response = request.send().await?.error_for_status()?;
-        let archive = response.bytes().await?;
-        let bytes = archive.to_vec();
+        let span = Span::current();
+        let content_length = response.content_length().unwrap_or_default();
+        let mut bytes = Vec::new();
+        let mut source = response.bytes_stream();
+        span.pb_set_length(content_length);
+        while let Some(chunk) = source.next().await {
+            bytes.write_all(&chunk?)?;
+            span.pb_set_position(bytes.len() as u64);
+        }
         debug!(
             "Archive {archive_url} downloaded: {}",
-            human_bytes(archive.len() as f64)
+            human_bytes(bytes.len() as f64)
         );
 
         let archive_hash = hasher_fn(&bytes)?;
