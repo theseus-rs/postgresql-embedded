@@ -7,6 +7,7 @@ use crate::Error::{
 };
 use crate::{hasher, matcher, Result};
 use async_trait::async_trait;
+use futures_util::StreamExt;
 use http::{header, Extensions};
 use human_bytes::human_bytes;
 use regex::Regex;
@@ -17,9 +18,12 @@ use reqwest_retry::RetryTransientMiddleware;
 use reqwest_tracing::TracingMiddleware;
 use semver::{Version, VersionReq};
 use std::env;
+use std::io::Write;
 use std::str::FromStr;
 use std::sync::LazyLock;
-use tracing::{debug, instrument, warn};
+use tracing::{debug, instrument, warn, Span};
+use tracing_indicatif::span_ext::IndicatifSpanExt;
+
 use url::Url;
 
 const GITHUB_API_VERSION_HEADER: &str = "X-GitHub-Api-Version";
@@ -223,12 +227,19 @@ impl Repository for GitHub {
         debug!("Downloading archive {}", asset.browser_download_url);
         let request = client.get(&asset.browser_download_url);
         let response = request.send().await?.error_for_status()?;
-        let archive = response.bytes().await?;
-        let bytes = archive.to_vec();
+        let span = Span::current();
+        let content_length = response.content_length().unwrap_or_default();
+        let mut bytes = Vec::new();
+        let mut source = response.bytes_stream();
+        span.pb_set_length(content_length);
+        while let Some(chunk) = source.next().await {
+            bytes.write_all(&chunk?)?;
+            span.pb_set_position(bytes.len() as u64);
+        }
         debug!(
             "Archive {} downloaded: {}",
             asset.browser_download_url,
-            human_bytes(archive.len() as f64)
+            human_bytes(bytes.len() as f64)
         );
 
         if let Some(asset_hash) = asset_hash {
