@@ -144,7 +144,7 @@ impl Repository for Maven {
         span.pb_set_length(content_length);
         while let Some(chunk) = source.next().await {
             bytes.write_all(&chunk?)?;
-            span.pb_set_length(bytes.len() as u64);
+            span.pb_set_position(bytes.len() as u64);
         }
         debug!(
             "Archive {archive_url} downloaded: {}",
