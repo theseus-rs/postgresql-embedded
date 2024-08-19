@@ -75,7 +75,7 @@
 //! - Unix: `$HOME/.theseus/postgresql`
 //! - Windows: `%USERPROFILE%\.theseus\postgresql`
 //!
-//! Performance can be improved by Using a specific version of the PostgreSQL binaries (e.g. `=16.4.0`).
+//! Performance can be improved by using a specific version of the PostgreSQL binaries (e.g. `=16.4.0`).
 //! After the first download, the PostgreSQL binaries will be cached and reused for subsequent runs.
 //! Further, the repository will no longer be queried to calculate the version match.
 //!

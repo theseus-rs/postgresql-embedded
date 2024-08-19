@@ -135,6 +135,7 @@ impl Settings {
     /// # Errors
     ///
     /// Returns an error if the URL is invalid.
+    #[allow(irrefutable_let_patterns)]
     pub fn from_url<S: AsRef<str>>(url: S) -> Result<Self> {
         let parsed_url = match Url::parse(url.as_ref()) {
             Ok(parsed_url) => parsed_url,
