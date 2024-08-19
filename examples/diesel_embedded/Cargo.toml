@@ -1,13 +1,13 @@
 [package]
 edition.workspace = true
-name = "embedded_async_diesel_r2d2"
+name = "diesel_embedded"
 publish = false
 license.workspace = true
 version.workspace = true
 
 [dependencies]
+diesel = { workspace = true, features = ["postgres", "r2d2"] }
+diesel_migrations = { workspace = true, features = ["postgres"] }
 postgresql_embedded = { path = "../../postgresql_embedded" }
+r2d2_postgres = { workspace = true }
 tokio = { workspace = true, features = ["full"] }
-diesel = { version = "2.2.1", features = ["postgres", "r2d2"] }
-r2d2_postgres = "0.18.1"
-diesel_migrations = { version = "2.2.0", features = ["postgres"] }

@@ -672,6 +672,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "diesel_embedded"
+version = "0.16.1"
+dependencies = [
+ "diesel",
+ "diesel_migrations",
+ "postgresql_embedded",
+ "r2d2_postgres",
+ "tokio",
+]
+
+[[package]]
 name = "diesel_migrations"
 version = "2.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -761,17 +772,6 @@ name = "embedded_async"
 version = "0.16.1"
 dependencies = [
  "postgresql_embedded",
- "tokio",
-]
-
-[[package]]
-name = "embedded_async_diesel_r2d2"
-version = "0.16.1"
-dependencies = [
- "diesel",
- "diesel_migrations",
- "postgresql_embedded",
- "r2d2_postgres",
  "tokio",
 ]
 
