@@ -22,39 +22,8 @@ jobs:
           toolchain: stable
       - name: Install cargo audit
         run: cargo install cargo-audit
-      # Crate:     sqlx
-      # Version:   0.8.0
-      # Title:     Binary Protocol Misinterpretation caused by Truncating or Overflowing Casts
-      # error: 1 vulnerability found!
-      # Date:      2024-08-15
-      # ID:        RUSTSEC-2024-0363
-      # URL:       https://rustsec.org/advisories/RUSTSEC-2024-0363
-      # Solution:  Upgrade to >=0.8.1
-      # Dependency tree:
-      # sqlx 0.8.0
-      # ├── tensor_chord_extension 0.16.1
-      # ├── sqlx_embedded 0.16.1
-      # ├── postgresql_embedded 0.16.1
-      # │   ├── zonky 0.16.1
-      # │   ├── tensor_chord_extension 0.16.1
-      # │   ├── sqlx_embedded 0.16.1
-      # │   ├── postgresql_extensions 0.16.1
-      # │   │   ├── tensor_chord_extension 0.16.1
-      # │   │   ├── portal_corp_extension 0.16.1
-      # │   │   ├── download_progress_bar 0.16.1
-      # │   │   └── axum_embedded 0.16.1
-      # │   ├── postgres_embedded 0.16.1
-      # │   ├── portal_corp_extension 0.16.1
-      # │   ├── embedded_sync 0.16.1
-      # │   ├── embedded_async 0.16.1
-      # │   ├── download_progress_bar 0.16.1
-      # │   └── axum_embedded 0.16.1
-      # ├── portal_corp_extension 0.16.1
-      # ├── pgvector 0.4.0
-      # │   └── portal_corp_extension 0.16.1
-      # └── axum_embedded 0.16.1
       - name: Audit dependencies
-        run: cargo audit --ignore RUSTSEC-2024-0363
+        run: cargo audit
 
   check:
     runs-on: ubuntu-22.04
