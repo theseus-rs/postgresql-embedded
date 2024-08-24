@@ -28,7 +28,6 @@ allow = [
 # https://embarkstudios.github.io/cargo-deny/checks/advisories/cfg.html
 [advisories]
 ignore = [
-    "RUSTSEC-2024-0363",
 ]
 
 # https://embarkstudios.github.io/cargo-deny/checks/bans/cfg.html
