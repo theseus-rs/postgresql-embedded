@@ -30,6 +30,7 @@ In either case, PostgreSQL will run in a separate process space.
 - ability to configure PostgreSQL startup options
 - URL based configuration
 - choice of native-tls vs rustls
+- support for installing PostgreSQL extensions
 
 ## Getting Started
 
