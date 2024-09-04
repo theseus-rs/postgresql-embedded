@@ -38,6 +38,7 @@ http = "1.1.0"
 human_bytes = { version = "0.4.3", default-features = false }
 indicatif = "0.17.8"
 indoc = "2.0.5"
+liblzma = "0.3.4"
 md-5 = "0.10.6"
 num-format = "0.4.4"
 pgvector = "0.4.0"
@@ -65,7 +66,6 @@ tracing = "0.1.40"
 tracing-indicatif = "0.3.6"
 tracing-subscriber = "0.3.18"
 url = "2.5.2"
-xz2 = "0.1.7"
 zip = "2.2.0"
 
 [workspace.metadata.release]
