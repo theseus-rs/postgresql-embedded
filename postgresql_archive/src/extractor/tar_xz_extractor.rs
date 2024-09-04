@@ -2,13 +2,13 @@ use crate::extractor::ExtractDirectories;
 use crate::Error::Unexpected;
 use crate::Result;
 use human_bytes::human_bytes;
+use liblzma::bufread::XzDecoder;
 use num_format::{Locale, ToFormattedString};
 use std::fs::{create_dir_all, File};
 use std::io::{copy, BufReader, Cursor};
 use std::path::PathBuf;
 use tar::Archive;
 use tracing::{debug, instrument, warn};
-use xz2::bufread::XzDecoder;
 
 /// Extracts the compressed tar `bytes` to paths defined in `extract_directories`.
 ///

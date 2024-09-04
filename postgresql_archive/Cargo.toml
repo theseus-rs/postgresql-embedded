@@ -17,6 +17,7 @@ futures-util = { workspace = true }
 hex = { workspace = true }
 http = { workspace = true }
 human_bytes = { workspace = true, default-features = false }
+liblzma = { workspace = true }
 md-5 = { workspace = true, optional = true }
 num-format = { workspace = true }
 quick-xml = { workspace = true, features = ["serialize"], optional = true }
@@ -38,7 +39,6 @@ tokio = { workspace = true, features = ["full"], optional = true }
 tracing = { workspace = true, features = ["log"] }
 tracing-indicatif = { workspace = true }
 url = { workspace = true }
-xz2 = { workspace = true }
 zip = { workspace = true }
 
 [dev-dependencies]
