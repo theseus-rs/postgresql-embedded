@@ -325,7 +325,7 @@ impl CommandBuilder for InitDbBuilder {
     }
 
     /// Get the arguments for the command
-    #[allow(clippy::too_many_lines)]
+    #[expect(clippy::too_many_lines)]
     fn get_args(&self) -> Vec<OsString> {
         let mut args: Vec<OsString> = Vec::new();
 

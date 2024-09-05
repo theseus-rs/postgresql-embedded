@@ -15,7 +15,7 @@ use std::time::Duration;
 use url::Url;
 
 #[cfg(feature = "bundled")]
-#[allow(clippy::unwrap_used)]
+#[expect(clippy::unwrap_used)]
 pub(crate) static ARCHIVE_VERSION: LazyLock<VersionReq> = LazyLock::new(|| {
     let version_string = include_str!(concat!(std::env!("OUT_DIR"), "/postgresql.version"));
     let version_req = VersionReq::from_str(&format!("={version_string}")).unwrap();
@@ -135,7 +135,6 @@ impl Settings {
     /// # Errors
     ///
     /// Returns an error if the URL is invalid.
-    #[allow(irrefutable_let_patterns)]
     pub fn from_url<S: AsRef<str>>(url: S) -> Result<Self> {
         let parsed_url = match Url::parse(url.as_ref()) {
             Ok(parsed_url) => parsed_url,

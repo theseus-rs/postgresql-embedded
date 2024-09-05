@@ -1,15 +1,15 @@
 #![forbid(unsafe_code)]
+#![forbid(clippy::allow_attributes)]
 #![deny(clippy::pedantic)]
 
+use crate::models::{NewPost, Post};
 use diesel::r2d2::{ConnectionManager, Pool};
-use diesel::PgConnection;
+use diesel::{PgConnection, RunQueryDsl, SelectableHelper};
 use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
 use postgresql_embedded::{PostgreSQL, Result, Settings, VersionReq};
+
 mod models;
 pub mod schema;
-
-use self::models::*;
-use diesel::prelude::*;
 
 const MIGRATIONS: EmbeddedMigrations = embed_migrations!("./migrations/");
 #[tokio::main]
@@ -51,6 +51,10 @@ async fn main() -> Result<()> {
     postgresql.stop().await
 }
 
+/// Create a new post
+///
+/// # Panics
+/// if the post cannot be saved
 pub fn create_post(conn: &mut PgConnection, title: &str, body: &str) -> Post {
     use crate::schema::posts;
 

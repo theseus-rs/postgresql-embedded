@@ -16,7 +16,7 @@ type SupportsFn = fn(&str) -> Result<bool>;
 type NewFn = dyn Fn(&str) -> Result<Box<dyn Repository>> + Send + Sync;
 
 /// Singleton struct to store repositories
-#[allow(clippy::type_complexity)]
+#[expect(clippy::type_complexity)]
 struct RepositoryRegistry {
     repositories: Vec<(Arc<RwLock<SupportsFn>>, Arc<RwLock<NewFn>>)>,
 }
@@ -64,7 +64,6 @@ impl RepositoryRegistry {
 impl Default for RepositoryRegistry {
     /// Creates a new repository registry with the default repositories registered.
     fn default() -> Self {
-        #[allow(unused_mut)]
         let mut registry = Self::new();
         #[cfg(feature = "theseus")]
         registry.register(
@@ -84,7 +83,6 @@ impl Default for RepositoryRegistry {
 ///
 /// # Errors
 /// * If the registry is poisoned.
-#[allow(dead_code)]
 pub fn register(supports_fn: SupportsFn, new_fn: Box<NewFn>) -> Result<()> {
     let mut registry = REGISTRY
         .lock()
@@ -116,8 +114,8 @@ mod tests {
     struct TestRepository;
 
     impl TestRepository {
-        #[allow(clippy::new_ret_no_self)]
-        #[allow(clippy::unnecessary_wraps)]
+        #[expect(clippy::new_ret_no_self)]
+        #[expect(clippy::unnecessary_wraps)]
         fn new(_url: &str) -> Result<Box<dyn Repository>> {
             Ok(Box::new(Self))
         }

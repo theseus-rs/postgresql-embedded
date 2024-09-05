@@ -6,7 +6,6 @@ use crate::hasher::md5;
 use crate::hasher::sha1;
 #[cfg(feature = "sha2")]
 use crate::hasher::sha2_256;
-#[allow(unused_imports)]
 #[cfg(feature = "sha2")]
 use crate::hasher::sha2_512;
 #[cfg(feature = "maven")]
@@ -22,7 +21,7 @@ pub type SupportsFn = fn(&str, &str) -> Result<bool>;
 pub type HasherFn = fn(&Vec<u8>) -> Result<String>;
 
 /// Singleton struct to store hashers
-#[allow(clippy::type_complexity)]
+#[expect(clippy::type_complexity)]
 struct HasherRegistry {
     hashers: Vec<(Arc<RwLock<SupportsFn>>, Arc<RwLock<HasherFn>>)>,
 }
@@ -73,7 +72,6 @@ impl HasherRegistry {
 impl Default for HasherRegistry {
     /// Creates a new hasher registry with the default hashers registered.
     fn default() -> Self {
-        #[allow(unused_mut)]
         let mut registry = Self::new();
         #[cfg(feature = "theseus")]
         registry.register(
@@ -110,7 +108,6 @@ impl Default for HasherRegistry {
 ///
 /// # Errors
 /// * If the registry is poisoned.
-#[allow(dead_code)]
 pub fn register(supports_fn: SupportsFn, hasher_fn: HasherFn) -> Result<()> {
     let mut registry = REGISTRY
         .lock()

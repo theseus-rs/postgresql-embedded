@@ -40,7 +40,6 @@ pub async fn get_archive(url: &str, version_req: &VersionReq) -> Result<(Version
 ///
 /// # Errors
 /// Returns an error if the extraction fails.
-#[allow(clippy::cast_precision_loss)]
 #[instrument(skip(bytes))]
 pub async fn extract(url: &str, bytes: &Vec<u8>, out_dir: &Path) -> Result<Vec<PathBuf>> {
     let extractor_fn = extractor::registry::get(url)?;

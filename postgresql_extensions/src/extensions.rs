@@ -143,7 +143,6 @@ async fn get_configuration_file(settings: &dyn Settings) -> Result<PathBuf> {
 ///
 /// # Errors
 /// * If an error occurs while getting the library path.
-#[allow(dead_code)]
 async fn get_library_path(settings: &dyn Settings) -> Result<PathBuf> {
     let command = PgConfigBuilder::from(settings).libdir();
     match execute_command(command).await {
@@ -192,7 +191,6 @@ async fn get_shared_path(settings: &dyn Settings) -> Result<PathBuf> {
 ///
 /// # Errors
 /// * If an error occurs while getting the extension path.
-#[allow(dead_code)]
 async fn get_extension_path(settings: &dyn Settings) -> Result<PathBuf> {
     let shared_path = get_shared_path(settings).await?;
     let extension_path = shared_path.join("extension");
@@ -203,7 +201,6 @@ async fn get_extension_path(settings: &dyn Settings) -> Result<PathBuf> {
 ///
 /// # Errors
 /// * If an error occurs while getting the PostgreSQL version.
-#[allow(dead_code)]
 async fn get_postgresql_version(settings: &dyn Settings) -> Result<String> {
     let command = PostgresBuilder::new()
         .program_dir(settings.get_binary_dir())

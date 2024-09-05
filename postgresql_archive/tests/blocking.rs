@@ -21,7 +21,6 @@ fn test_get_version() -> anyhow::Result<()> {
 
 #[cfg(feature = "blocking")]
 #[test]
-#[allow(deprecated)]
 fn test_get_archive_and_extract() -> anyhow::Result<()> {
     let url = theseus::URL;
     let version_req = &VersionReq::parse("=16.4.0")?;

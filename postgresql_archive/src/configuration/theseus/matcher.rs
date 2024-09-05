@@ -4,7 +4,6 @@ use semver::Version;
 ///
 /// # Errors
 /// * If the asset matcher fails.
-#[allow(clippy::unnecessary_wraps)]
 pub fn matcher(_url: &str, name: &str, version: &Version) -> crate::Result<bool> {
     let target = target_triple::TARGET;
     let expected_name = format!("postgresql-{version}-{target}.tar.gz");

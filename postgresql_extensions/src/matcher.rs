@@ -10,7 +10,6 @@ use url::Url;
 ///
 /// # Errors
 /// * If the asset matcher fails.
-#[allow(clippy::case_sensitive_file_extension_comparisons)]
 pub fn tar_gz_matcher(url: &str, name: &str, version: &Version) -> Result<bool> {
     if !matcher(url, name, version)? {
         return Ok(false);
@@ -24,7 +23,7 @@ pub fn tar_gz_matcher(url: &str, name: &str, version: &Version) -> Result<bool> 
 ///
 /// # Errors
 /// * If the asset matcher fails.
-#[allow(clippy::case_sensitive_file_extension_comparisons)]
+#[expect(clippy::case_sensitive_file_extension_comparisons)]
 pub fn zip_matcher(url: &str, name: &str, version: &Version) -> Result<bool> {
     if !matcher(url, name, version)? {
         return Ok(false);
