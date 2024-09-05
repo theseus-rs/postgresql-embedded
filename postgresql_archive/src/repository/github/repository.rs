@@ -62,7 +62,7 @@ impl GitHub {
     ///
     /// # Errors
     /// * If the URL is invalid.
-    #[allow(clippy::new_ret_no_self)]
+    #[expect(clippy::new_ret_no_self)]
     pub fn new(url: &str) -> Result<Box<dyn Repository>> {
         let parsed_url = Url::parse(url)?;
         let path = parsed_url.path().trim_start_matches('/');
@@ -216,7 +216,7 @@ impl Repository for GitHub {
     }
 
     #[instrument]
-    #[allow(clippy::cast_precision_loss)]
+    #[expect(clippy::cast_precision_loss)]
     async fn get_archive(&self, version_req: &VersionReq) -> Result<Archive> {
         let release = self.get_release(version_req).await?;
         let version = Self::get_version_from_tag_name(release.tag_name.as_str())?;
@@ -283,7 +283,7 @@ impl Repository for GitHub {
 struct GithubMiddleware;
 
 impl GithubMiddleware {
-    #[allow(clippy::unnecessary_wraps)]
+    #[expect(clippy::unnecessary_wraps)]
     fn add_headers(request: &mut Request) -> Result<()> {
         let headers = request.headers_mut();
         headers.append(

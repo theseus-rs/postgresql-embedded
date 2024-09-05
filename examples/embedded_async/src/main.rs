@@ -1,4 +1,5 @@
 #![forbid(unsafe_code)]
+#![forbid(clippy::allow_attributes)]
 #![deny(clippy::pedantic)]
 
 use postgresql_embedded::{PostgreSQL, Result, Settings, VersionReq};

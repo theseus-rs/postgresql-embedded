@@ -14,7 +14,7 @@ pub type SupportsFn = fn(&str) -> Result<bool>;
 pub type MatcherFn = fn(&str, &str, &Version) -> Result<bool>;
 
 /// Singleton struct to store matchers
-#[allow(clippy::type_complexity)]
+#[expect(clippy::type_complexity)]
 struct MatchersRegistry {
     matchers: Vec<(Arc<RwLock<SupportsFn>>, Arc<RwLock<MatcherFn>>)>,
 }
@@ -64,7 +64,6 @@ impl MatchersRegistry {
 impl Default for MatchersRegistry {
     /// Creates a new matcher registry with the default matchers registered.
     fn default() -> Self {
-        #[allow(unused_mut)]
         let mut registry = Self::new();
         #[cfg(feature = "theseus")]
         registry.register(|url| Ok(url == theseus::URL), theseus::matcher);
@@ -79,7 +78,6 @@ impl Default for MatchersRegistry {
 ///
 /// # Errors
 /// * If the registry is poisoned.
-#[allow(dead_code)]
 pub fn register(supports_fn: SupportsFn, matcher_fn: MatcherFn) -> Result<()> {
     let mut registry = REGISTRY
         .lock()

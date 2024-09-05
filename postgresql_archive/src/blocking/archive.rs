@@ -17,7 +17,9 @@ pub fn get_version(url: &str, version_req: &VersionReq) -> crate::Result<Version
 }
 
 /// Gets the archive for a given [version requirement](VersionReq) that passes the default
-/// matcher. If no archive is found for the [version requirement](VersionReq) and matcher then
+/// matcher.
+///
+/// If no archive is found for the [version requirement](VersionReq) and matcher then
 /// an [error](crate::error::Error) is returned.
 ///
 /// # Errors

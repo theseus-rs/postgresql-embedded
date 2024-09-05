@@ -24,7 +24,7 @@ impl Zonky {
     ///
     /// # Errors
     /// * If the URL is invalid.
-    #[allow(clippy::new_ret_no_self)]
+    #[expect(clippy::new_ret_no_self)]
     pub fn new(_url: &str) -> Result<Box<dyn Repository>> {
         let os = get_os();
         let arch = get_arch();
@@ -48,7 +48,6 @@ impl Repository for Zonky {
     }
 
     #[instrument]
-    #[allow(clippy::cast_precision_loss)]
     async fn get_archive(&self, version_req: &VersionReq) -> Result<Archive> {
         self.maven.get_archive(version_req).await
     }

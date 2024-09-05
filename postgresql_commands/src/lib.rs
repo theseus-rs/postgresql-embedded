@@ -1,4 +1,5 @@
 #![forbid(unsafe_code)]
+#![forbid(clippy::allow_attributes)]
 #![deny(clippy::pedantic)]
 #![deny(clippy::unwrap_used)]
 #![allow(async_fn_in_trait)]

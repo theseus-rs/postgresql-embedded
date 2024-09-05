@@ -16,7 +16,6 @@ static REGISTRY: LazyLock<Arc<Mutex<RepositoryRegistry>>> =
 type NewFn = dyn Fn() -> Result<Box<dyn Repository>> + Send + Sync;
 
 /// Singleton struct to store repositories
-#[allow(clippy::type_complexity)]
 struct RepositoryRegistry {
     repositories: HashMap<String, Arc<RwLock<NewFn>>>,
 }
@@ -79,7 +78,6 @@ impl Default for RepositoryRegistry {
 ///
 /// # Errors
 /// * If the registry is poisoned.
-#[allow(dead_code)]
 pub fn register(namespace: &str, new_fn: Box<NewFn>) -> Result<()> {
     let mut registry = REGISTRY
         .lock()
@@ -135,8 +133,8 @@ mod tests {
     struct TestRepository;
 
     impl TestRepository {
-        #[allow(clippy::new_ret_no_self)]
-        #[allow(clippy::unnecessary_wraps)]
+        #[expect(clippy::new_ret_no_self)]
+        #[expect(clippy::unnecessary_wraps)]
         fn new() -> Result<Box<dyn Repository>> {
             Ok(Box::new(Self))
         }

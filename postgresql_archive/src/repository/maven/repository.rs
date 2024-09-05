@@ -42,7 +42,7 @@ impl Maven {
     ///
     /// # Errors
     /// * If the URL is invalid.
-    #[allow(clippy::new_ret_no_self)]
+    #[expect(clippy::new_ret_no_self)]
     pub fn new(url: &str) -> Result<Box<dyn Repository>> {
         Ok(Box::new(Self {
             url: url.to_string(),
@@ -103,7 +103,7 @@ impl Repository for Maven {
     }
 
     #[instrument]
-    #[allow(clippy::cast_precision_loss)]
+    #[expect(clippy::cast_precision_loss)]
     async fn get_archive(&self, version_req: &VersionReq) -> Result<Archive> {
         let (artifact, version) = self.get_artifact(version_req).await?;
         let archive_name = format!("{artifact}-{version}.jar");
@@ -166,7 +166,7 @@ impl Repository for Maven {
 struct MavenMiddleware;
 
 impl MavenMiddleware {
-    #[allow(clippy::unnecessary_wraps)]
+    #[expect(clippy::unnecessary_wraps)]
     fn add_headers(request: &mut Request) -> Result<()> {
         let headers = request.headers_mut();
         headers.append(header::USER_AGENT, USER_AGENT.parse().unwrap());

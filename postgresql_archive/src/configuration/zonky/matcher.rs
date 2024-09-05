@@ -6,7 +6,6 @@ use std::env;
 ///
 /// # Errors
 /// * If the asset matcher fails.
-#[allow(clippy::unnecessary_wraps)]
 pub fn matcher(_url: &str, name: &str, version: &Version) -> Result<bool> {
     let os = get_os();
     let arch = get_arch();

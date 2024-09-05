@@ -110,6 +110,7 @@
 //! PostgreSQL is covered under [The PostgreSQL License](https://opensource.org/licenses/postgresql).
 
 #![forbid(unsafe_code)]
+#![forbid(clippy::allow_attributes)]
 #![deny(clippy::pedantic)]
 #![allow(clippy::doc_markdown)]
 #![allow(clippy::module_name_repetitions)]

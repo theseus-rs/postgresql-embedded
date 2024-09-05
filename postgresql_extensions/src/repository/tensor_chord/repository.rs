@@ -21,7 +21,7 @@ impl TensorChord {
     ///
     /// # Errors
     /// * If the repository cannot be created
-    #[allow(clippy::new_ret_no_self)]
+    #[expect(clippy::new_ret_no_self)]
     pub fn new() -> Result<Box<dyn Repository>> {
         Ok(Box::new(Self))
     }
@@ -69,7 +69,6 @@ impl Repository for TensorChord {
         Ok(archive)
     }
 
-    #[allow(clippy::case_sensitive_file_extension_comparisons)]
     async fn install(
         &self,
         _name: &str,

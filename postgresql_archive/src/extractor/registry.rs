@@ -15,7 +15,7 @@ type SupportsFn = fn(&str) -> Result<bool>;
 type ExtractFn = fn(&Vec<u8>, ExtractDirectories) -> Result<Vec<PathBuf>>;
 
 /// Singleton struct to store extractors
-#[allow(clippy::type_complexity)]
+#[expect(clippy::type_complexity)]
 struct RepositoryRegistry {
     extractors: Vec<(Arc<RwLock<SupportsFn>>, Arc<RwLock<ExtractFn>>)>,
 }
@@ -63,7 +63,6 @@ impl RepositoryRegistry {
 impl Default for RepositoryRegistry {
     /// Creates a new repository registry with the default repositories registered.
     fn default() -> Self {
-        #[allow(unused_mut)]
         let mut registry = Self::new();
         #[cfg(feature = "theseus")]
         registry.register(|url| Ok(url.starts_with(theseus::URL)), theseus::extract);
@@ -77,7 +76,6 @@ impl Default for RepositoryRegistry {
 ///
 /// # Errors
 /// * If the registry is poisoned.
-#[allow(dead_code)]
 pub fn register(supports_fn: SupportsFn, extractor_fn: ExtractFn) -> Result<()> {
     let mut registry = REGISTRY
         .lock()

@@ -13,7 +13,7 @@ use zip::ZipArchive;
 ///
 /// # Errors
 /// Returns an error if the extraction fails.
-#[allow(clippy::cast_precision_loss)]
+#[expect(clippy::cast_precision_loss)]
 #[instrument(skip(bytes))]
 pub fn extract(bytes: &Vec<u8>, extract_directories: ExtractDirectories) -> Result<Vec<PathBuf>> {
     let mut files = Vec::new();

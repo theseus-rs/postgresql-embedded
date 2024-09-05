@@ -14,8 +14,7 @@ use zip::ZipArchive;
 ///
 /// # Errors
 /// Returns an error if the extraction fails.
-#[allow(clippy::case_sensitive_file_extension_comparisons)]
-#[allow(clippy::cast_precision_loss)]
+#[expect(clippy::case_sensitive_file_extension_comparisons)]
 #[instrument(skip(bytes))]
 pub fn extract(bytes: &Vec<u8>, extract_directories: ExtractDirectories) -> Result<Vec<PathBuf>> {
     let out_dir = extract_directories.get_path(".")?;

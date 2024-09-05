@@ -2,7 +2,7 @@ use std::sync::LazyLock;
 
 static EXTENSIONS: LazyLock<Vec<SteampipeExtension>> = LazyLock::new(init_extensions);
 
-#[allow(clippy::too_many_lines)]
+#[expect(clippy::too_many_lines)]
 fn init_extensions() -> Vec<SteampipeExtension> {
     vec![
         SteampipeExtension::new("abuseipdb", "Steampipe plugin to query IP address abuse data and more from AbuseIPDB.", "https://github.com/turbot/steampipe-plugin-abuseipdb"),
@@ -152,7 +152,6 @@ fn init_extensions() -> Vec<SteampipeExtension> {
 }
 
 #[derive(Debug)]
-#[allow(dead_code)]
 pub struct SteampipeExtension {
     pub name: String,
     pub description: String,
