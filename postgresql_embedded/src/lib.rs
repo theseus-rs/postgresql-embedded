@@ -147,14 +147,11 @@ pub static V15: LazyLock<VersionReq> = LazyLock::new(|| VersionReq::parse("=15")
 pub static V14: LazyLock<VersionReq> = LazyLock::new(|| VersionReq::parse("=14").unwrap());
 
 /// The latest PostgreSQL version 13
-pub static V13: LazyLock<VersionReq> = LazyLock::new(|| VersionReq::parse("=13").unwrap());
-
-/// The latest PostgreSQL version 12
 #[deprecated(
-    since = "0.1.0",
+    since = "0.17.0",
     note = "See https://www.postgresql.org/developer/roadmap/"
 )]
-pub static V12: LazyLock<VersionReq> = LazyLock::new(|| VersionReq::parse("=12").unwrap());
+pub static V13: LazyLock<VersionReq> = LazyLock::new(|| VersionReq::parse("=13").unwrap());
 
 pub use settings::BOOTSTRAP_DATABASE;
 pub use settings::BOOTSTRAP_SUPERUSER;
@@ -198,10 +195,5 @@ mod tests {
     #[test]
     fn test_version_13() {
         assert_eq!(V13.to_string(), "=13");
-    }
-
-    #[test]
-    fn test_version_12() {
-        assert_eq!(V12.to_string(), "=12");
     }
 }
