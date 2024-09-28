@@ -20,6 +20,7 @@ async fn test_get_available_extensions() -> Result<()> {
 async fn test_lifecycle() -> Result<()> {
     let installation_dir = tempfile::tempdir()?.path().to_path_buf();
     let settings = postgresql_embedded::Settings {
+        version: postgresql_embedded::VersionReq::parse("=16.4.0")?,
         installation_dir: installation_dir.clone(),
         ..Default::default()
     };
