@@ -134,6 +134,9 @@ use std::sync::LazyLock;
 /// The latest PostgreSQL version requirement
 pub static LATEST: VersionReq = VersionReq::STAR;
 
+/// The latest PostgreSQL version 17
+pub static V17: LazyLock<VersionReq> = LazyLock::new(|| VersionReq::parse("=17").unwrap());
+
 /// The latest PostgreSQL version 16
 pub static V16: LazyLock<VersionReq> = LazyLock::new(|| VersionReq::parse("=16").unwrap());
 
@@ -170,6 +173,11 @@ mod tests {
     #[test]
     fn test_version_latest() {
         assert_eq!(LATEST.to_string(), "*");
+    }
+
+    #[test]
+    fn test_version_17() {
+        assert_eq!(V17.to_string(), "=17");
     }
 
     #[test]
