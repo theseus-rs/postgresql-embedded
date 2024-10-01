@@ -42,7 +42,7 @@ default = [
     "theseus",
 ]
 blocking = ["tokio"]
-bundled = []
+bundled = ["postgresql_archive/github"]
 native-tls = [
     "postgresql_archive/native-tls",
     "sqlx/tls-native-tls",
