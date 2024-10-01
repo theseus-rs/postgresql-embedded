@@ -68,7 +68,7 @@ dependent-version = "upgrade"
 
 [package.metadata.docs.rs]
 no-default-features = true
-features = ["blocking", "tokio"]
+features = ["blocking", "theseus", "tokio"]
 targets = ["x86_64-unknown-linux-gnu"]
 
 [[bench]]
