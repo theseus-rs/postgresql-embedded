@@ -21,7 +21,7 @@ edition = "2021"
 keywords = ["postgresql", "postgres", "embedded", "database", "server"]
 license = "(Apache-2.0 OR MIT) AND PostgreSQL"
 repository = "https://github.com/theseus-rs/postgresql-embedded"
-version = "0.17.1"
+version = "0.17.2"
 
 [workspace.dependencies]
 anyhow = "1.0.89"
