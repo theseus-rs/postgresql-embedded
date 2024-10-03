@@ -51,11 +51,7 @@ jobs:
       - name: Install cargo-llvm-cov
         uses: taiki-e/install-action@main
         with:
-<<<<<<< Updated upstream
           tool: cargo-llvm-cov
-=======
-          tool: grcov
->>>>>>> Stashed changes
 
       - name: Tests
         if: ${{ !startsWith(matrix.os, 'ubuntu-') }}
