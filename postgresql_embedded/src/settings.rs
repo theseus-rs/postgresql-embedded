@@ -8,6 +8,7 @@ use std::env;
 use std::env::current_dir;
 use std::ffi::OsString;
 use std::path::PathBuf;
+#[cfg(feature = "bundled")]
 use std::str::FromStr;
 #[cfg(feature = "bundled")]
 use std::sync::LazyLock;
@@ -156,19 +157,13 @@ impl Settings {
             settings.version = VersionReq::parse(version)?;
         }
         if let Some(installation_dir) = query_parameters.get("installation_dir") {
-            if let Ok(path) = PathBuf::from_str(installation_dir) {
-                settings.installation_dir = path;
-            }
+            settings.installation_dir = PathBuf::from(installation_dir);
         }
         if let Some(password_file) = query_parameters.get("password_file") {
-            if let Ok(path) = PathBuf::from_str(password_file) {
-                settings.password_file = path;
-            }
+            settings.password_file = PathBuf::from(password_file);
         }
         if let Some(data_dir) = query_parameters.get("data_dir") {
-            if let Ok(path) = PathBuf::from_str(data_dir) {
-                settings.data_dir = path;
-            }
+            settings.data_dir = PathBuf::from(data_dir);
         }
         if let Some(host) = parsed_url.host() {
             settings.host = host.to_string();
