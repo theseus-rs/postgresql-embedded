@@ -1,3 +1,4 @@
+#[cfg(feature = "bundled")]
 mod bundle;
 
 use anyhow::Result;
