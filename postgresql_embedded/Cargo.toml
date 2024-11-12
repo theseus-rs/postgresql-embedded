@@ -12,7 +12,7 @@ version.workspace = true
 
 [build-dependencies]
 anyhow = { workspace = true }
-postgresql_archive = { path = "../postgresql_archive", version = "0.17.2", default-features = false }
+postgresql_archive = { path = "../postgresql_archive", version = "0.17.3", default-features = false }
 target-triple = { workspace = true }
 tokio = { workspace = true, features = ["full"] }
 url = { workspace = true }
@@ -20,8 +20,8 @@ url = { workspace = true }
 [dependencies]
 anyhow = { workspace = true }
 home = { workspace = true }
-postgresql_archive = { path = "../postgresql_archive", version = "0.17.2", default-features = false }
-postgresql_commands = { path = "../postgresql_commands", version = "0.17.2" }
+postgresql_archive = { path = "../postgresql_archive", version = "0.17.3", default-features = false }
+postgresql_commands = { path = "../postgresql_commands", version = "0.17.3" }
 rand = { workspace = true }
 semver = { workspace = true }
 sqlx = { workspace = true, features = ["runtime-tokio"] }
