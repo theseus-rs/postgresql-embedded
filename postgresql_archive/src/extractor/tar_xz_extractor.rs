@@ -40,16 +40,18 @@ pub fn extract(bytes: &Vec<u8>, extract_directories: ExtractDirectories) -> Resu
                 ));
             }
         };
-        let stripped_entry_header_path = entry_header_path.strip_prefix(prefix)?.to_path_buf();
         let Ok(extract_dir) = extract_directories.get_path(prefix) else {
             continue;
         };
         let mut entry_name = extract_dir.clone();
-        entry_name.push(stripped_entry_header_path);
+        entry_name.push(entry_header_path);
 
         if entry_type.is_dir() || entry_name.is_dir() {
             create_dir_all(&entry_name)?;
         } else if entry_type.is_file() {
+            if let Some(parent) = entry_name.parent() {
+                create_dir_all(parent)?;
+            }
             let mut output_file = File::create(&entry_name)?;
             copy(&mut entry, &mut output_file)?;
             extracted_bytes += entry_size;

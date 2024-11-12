@@ -10,7 +10,7 @@ use postgresql_embedded::{PostgreSQL, Result, Settings};
 async fn main() -> Result<()> {
     let settings = Settings {
         releases_url: zonky::URL.to_string(),
-        version: VersionReq::parse("=16.4.0")?,
+        version: VersionReq::parse("=16.3.0")?,
         ..Default::default()
     };
     let mut postgresql = PostgreSQL::new(settings);
