@@ -8,6 +8,7 @@ keywords.workspace = true
 license.workspace = true
 name = "postgresql_embedded"
 repository = "https://github.com/theseus-rs/postgresql-embedded"
+rust-version.workspace = true
 version.workspace = true
 
 [build-dependencies]

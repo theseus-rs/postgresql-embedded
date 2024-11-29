@@ -7,6 +7,7 @@ keywords.workspace = true
 license.workspace = true
 name = "postgresql_extensions"
 repository = "https://github.com/theseus-rs/postgresql-embedded"
+rust-version.workspace = true
 version.workspace = true
 
 [dependencies]
@@ -15,9 +16,6 @@ postgresql_archive = { path = "../postgresql_archive", version = "0.17.3", defau
 postgresql_commands = { path = "../postgresql_commands", version = "0.17.3", default-features = false }
 regex = { workspace = true }
 reqwest = { workspace = true, default-features = false, features = ["json"] }
-reqwest-middleware = { workspace = true }
-reqwest-retry = { workspace = true }
-reqwest-tracing = { workspace = true }
 semver = { workspace = true, features = ["serde"] }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true, optional = true }
