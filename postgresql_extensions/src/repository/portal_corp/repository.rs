@@ -45,7 +45,7 @@ impl PortalCorp {
 
 #[async_trait]
 impl Repository for PortalCorp {
-    fn name(&self) -> &str {
+    fn name(&self) -> &'static str {
         "portal-corp"
     }
 

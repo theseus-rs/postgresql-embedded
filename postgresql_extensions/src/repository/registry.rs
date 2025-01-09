@@ -142,7 +142,7 @@ mod tests {
 
     #[async_trait]
     impl Repository for TestRepository {
-        fn name(&self) -> &str {
+        fn name(&self) -> &'static str {
             "test"
         }
 
