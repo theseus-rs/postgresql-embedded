@@ -23,7 +23,7 @@ allow = [
     "MIT",
     "PostgreSQL",
     "Unicode-3.0",
-    "Unicode-DFS-2016",
+    "Zlib",
 ]
 
 # https://embarkstudios.github.io/cargo-deny/checks/advisories/cfg.html

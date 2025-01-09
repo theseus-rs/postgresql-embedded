@@ -46,7 +46,7 @@ impl Steampipe {
 
 #[async_trait]
 impl Repository for Steampipe {
-    fn name(&self) -> &str {
+    fn name(&self) -> &'static str {
         "steampipe"
     }
 

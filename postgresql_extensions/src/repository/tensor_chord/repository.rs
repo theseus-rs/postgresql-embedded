@@ -45,7 +45,7 @@ impl TensorChord {
 
 #[async_trait]
 impl Repository for TensorChord {
-    fn name(&self) -> &str {
+    fn name(&self) -> &'static str {
         "tensor-chord"
     }
 
