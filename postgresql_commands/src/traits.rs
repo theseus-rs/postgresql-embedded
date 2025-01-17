@@ -183,34 +183,38 @@ impl AsyncCommandExecutor for tokio::process::Command {
     /// Execute the command and return the stdout and stderr
     async fn execute(&mut self, timeout: Option<Duration>) -> Result<(String, String)> {
         debug!("Executing command: {}", self.to_command_string());
-        let output = match timeout {
-            Some(duration) => tokio::time::timeout(duration, self.output()).await?,
-            None => self.output().await,
-        }?;
         let program = self.as_std().get_program().to_string_lossy().to_string();
         let stdout: String;
         let stderr: String;
+        let status: ExitStatus;
 
         if OS == "windows" && program.as_str().ends_with("pg_ctl") {
             // The pg_ctl process can hang on Windows when attempting to get stdout/stderr.
+            let mut process = self
+                .stdout(std::process::Stdio::piped())
+                .stderr(std::process::Stdio::piped())
+                .spawn()?;
             stdout = String::new();
             stderr = String::new();
+            status = process.wait().await?;
         } else {
+            let output = match timeout {
+                Some(duration) => tokio::time::timeout(duration, self.output()).await?,
+                None => self.output().await,
+            }?;
             stdout = String::from_utf8_lossy(&output.stdout).into_owned();
             stderr = String::from_utf8_lossy(&output.stderr).into_owned();
+            status = output.status;
         }
 
         debug!(
             "Result: {}\nstdout: {}\nstderr: {}",
-            output
-                .status
-                .code()
-                .map_or("None".to_string(), |c| c.to_string()),
+            status.code().map_or("None".to_string(), |c| c.to_string()),
             stdout,
             stderr
         );
 
-        if output.status.success() {
+        if status.success() {
             Ok((stdout, stderr))
         } else {
             Err(Error::CommandError { stdout, stderr })
