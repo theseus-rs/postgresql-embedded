@@ -6,7 +6,6 @@ use crate::{hasher, Result};
 use async_trait::async_trait;
 use futures_util::StreamExt;
 use http::{header, Extensions};
-use human_bytes::human_bytes;
 use reqwest::{Request, Response};
 use reqwest_middleware::{ClientBuilder, ClientWithMiddleware, Middleware, Next};
 use reqwest_retry::policies::ExponentialBackoff;
@@ -62,7 +61,7 @@ impl Maven {
         let response = request.send().await?.error_for_status()?;
         let text = response.text().await?;
         let metadata: Metadata =
-            quick_xml::de::from_str(&text).map_err(|error| ParseError(error.into()))?;
+            quick_xml::de::from_str(&text).map_err(|error| ParseError(error.to_string()))?;
         let artifact = metadata.artifact_id;
         let mut result = None;
         for version in &metadata.versioning.versions.version {
@@ -103,7 +102,6 @@ impl Repository for Maven {
     }
 
     #[instrument]
-    #[expect(clippy::cast_precision_loss)]
     async fn get_archive(&self, version_req: &VersionReq) -> Result<Archive> {
         let (artifact, version) = self.get_artifact(version_req).await?;
         let archive_name = format!("{artifact}-{version}.jar");
@@ -129,10 +127,7 @@ impl Repository for Maven {
         let request = client.get(&archive_hash_url);
         let response = request.send().await?.error_for_status()?;
         let hash = response.text().await?;
-        debug!(
-            "Archive hash {archive_hash_url} downloaded: {}",
-            human_bytes(hash.len() as f64)
-        );
+        debug!("Archive hash {archive_hash_url} downloaded: {}", hash.len(),);
 
         debug!("Downloading archive {archive_url}");
         let request = client.get(&archive_url);
@@ -146,10 +141,7 @@ impl Repository for Maven {
             bytes.write_all(&chunk?)?;
             span.pb_set_position(bytes.len() as u64);
         }
-        debug!(
-            "Archive {archive_url} downloaded: {}",
-            human_bytes(bytes.len() as f64)
-        );
+        debug!("Archive {archive_url} downloaded: {}", bytes.len(),);
 
         let archive_hash = hasher_fn(&bytes)?;
         if archive_hash != hash {

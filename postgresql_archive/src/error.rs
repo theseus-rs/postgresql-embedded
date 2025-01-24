@@ -17,11 +17,11 @@ pub enum Error {
     #[error("version '{0}' is invalid")]
     InvalidVersion(String),
     /// IO error
-    #[error(transparent)]
-    IoError(anyhow::Error),
+    #[error("{0}")]
+    IoError(String),
     /// Parse error
-    #[error(transparent)]
-    ParseError(anyhow::Error),
+    #[error("{0}")]
+    ParseError(String),
     /// Poisoned lock
     #[error("poisoned lock '{0}'")]
     PoisonedLock(String),
@@ -51,70 +51,63 @@ pub enum Error {
 /// Converts a [`regex::Error`] into an [`ParseError`](Error::ParseError)
 impl From<regex::Error> for Error {
     fn from(error: regex::Error) -> Self {
-        Error::ParseError(error.into())
+        Error::ParseError(error.to_string())
     }
 }
 
 /// Converts a [`reqwest::Error`] into an [`IoError`](Error::IoError)
 impl From<reqwest::Error> for Error {
     fn from(error: reqwest::Error) -> Self {
-        Error::IoError(error.into())
+        Error::IoError(error.to_string())
     }
 }
 
 /// Converts a [`reqwest_middleware::Error`] into an [`IoError`](Error::IoError)
 impl From<reqwest_middleware::Error> for Error {
     fn from(error: reqwest_middleware::Error) -> Self {
-        Error::IoError(error.into())
+        Error::IoError(error.to_string())
     }
 }
 
 /// Converts a [`std::io::Error`] into an [`IoError`](Error::IoError)
 impl From<std::io::Error> for Error {
     fn from(error: std::io::Error) -> Self {
-        Error::IoError(error.into())
+        Error::IoError(error.to_string())
     }
 }
 
 /// Converts a [`std::time::SystemTimeError`] into an [`IoError`](Error::IoError)
 impl From<std::time::SystemTimeError> for Error {
     fn from(error: std::time::SystemTimeError) -> Self {
-        Error::IoError(error.into())
+        Error::IoError(error.to_string())
     }
 }
 
 /// Converts a [`std::num::ParseIntError`] into an [`ParseError`](Error::ParseError)
 impl From<std::num::ParseIntError> for Error {
     fn from(error: std::num::ParseIntError) -> Self {
-        Error::ParseError(error.into())
+        Error::ParseError(error.to_string())
     }
 }
 
 /// Converts a [`semver::Error`] into an [`ParseError`](Error::ParseError)
 impl From<semver::Error> for Error {
     fn from(error: semver::Error) -> Self {
-        Error::IoError(error.into())
+        Error::IoError(error.to_string())
     }
 }
 
 /// Converts a [`std::path::StripPrefixError`] into an [`ParseError`](Error::ParseError)
 impl From<std::path::StripPrefixError> for Error {
     fn from(error: std::path::StripPrefixError) -> Self {
-        Error::ParseError(error.into())
-    }
-}
-
-/// Converts a [`anyhow::Error`] into an [`Unexpected`](Error::Unexpected)
-impl From<anyhow::Error> for Error {
-    fn from(error: anyhow::Error) -> Self {
-        Error::Unexpected(error.to_string())
+        Error::ParseError(error.to_string())
     }
 }
 
 /// Converts a [`url::ParseError`] into an [`ParseError`](Error::ParseError)
 impl From<url::ParseError> for Error {
     fn from(error: url::ParseError) -> Self {
-        Error::ParseError(error.into())
+        Error::ParseError(error.to_string())
     }
 }
 
@@ -198,13 +191,6 @@ mod test {
             error.to_string(),
             "second time provided was later than self"
         );
-    }
-
-    #[test]
-    fn test_from_anyhow_error() {
-        let anyhow_error = anyhow::Error::msg("test");
-        let error = Error::from(anyhow_error);
-        assert_eq!(error.to_string(), "test");
     }
 
     #[test]

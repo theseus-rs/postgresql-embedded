@@ -19,7 +19,6 @@ tokio = { workspace = true, features = ["full"] }
 url = { workspace = true }
 
 [dependencies]
-anyhow = { workspace = true }
 home = { workspace = true }
 postgresql_archive = { path = "../postgresql_archive", version = "0.17.4", default-features = false }
 postgresql_commands = { path = "../postgresql_commands", version = "0.17.4" }
@@ -33,6 +32,7 @@ tracing = { workspace = true, features = ["log"] }
 url = { workspace = true }
 
 [dev-dependencies]
+anyhow = { workspace = true }
 criterion = { workspace = true }
 test-log = { workspace = true }
 tokio = { workspace = true, features = ["full"] }

@@ -13,32 +13,32 @@ pub enum Error {
     #[error("Command error: stdout={stdout}; stderr={stderr}")]
     CommandError { stdout: String, stderr: String },
     /// Error when the database could not be created
-    #[error(transparent)]
-    CreateDatabaseError(anyhow::Error),
+    #[error("{0}")]
+    CreateDatabaseError(String),
     /// Error when accessing the database
     #[error(transparent)]
     DatabaseError(#[from] sqlx::Error),
     /// Error when determining if the database exists
-    #[error(transparent)]
-    DatabaseExistsError(anyhow::Error),
+    #[error("{0}")]
+    DatabaseExistsError(String),
     /// Error when the database could not be initialized
-    #[error(transparent)]
-    DatabaseInitializationError(anyhow::Error),
+    #[error("{0}")]
+    DatabaseInitializationError(String),
     /// Error when the database could not be started
-    #[error(transparent)]
-    DatabaseStartError(anyhow::Error),
+    #[error("{0}")]
+    DatabaseStartError(String),
     /// Error when the database could not be stopped
-    #[error(transparent)]
-    DatabaseStopError(anyhow::Error),
+    #[error("{0}")]
+    DatabaseStopError(String),
     /// Error when the database could not be dropped
-    #[error(transparent)]
-    DropDatabaseError(anyhow::Error),
+    #[error("{0}")]
+    DropDatabaseError(String),
     /// Error when an invalid URL is provided
     #[error("Invalid URL: {url}; {message}")]
     InvalidUrl { url: String, message: String },
     /// Error when IO operations fail
-    #[error(transparent)]
-    IoError(anyhow::Error),
+    #[error("{0}")]
+    IoError(String),
     /// Parse error
     #[error(transparent)]
     ParseError(#[from] semver::Error),
@@ -54,14 +54,14 @@ impl From<postgresql_archive::Error> for Error {
 /// Convert [standard IO errors](std::io::Error) to a [embedded errors](Error::IoError)
 impl From<std::io::Error> for Error {
     fn from(error: std::io::Error) -> Self {
-        Error::IoError(error.into())
+        Error::IoError(error.to_string())
     }
 }
 
 /// Convert [utf8 errors](FromUtf8Error) to [embedded errors](Error::IoError)
 impl From<FromUtf8Error> for Error {
     fn from(error: FromUtf8Error) -> Self {
-        Error::IoError(error.into())
+        Error::IoError(error.to_string())
     }
 }
 
