@@ -7,7 +7,7 @@ use async_trait::async_trait;
 use postgresql_archive::extractor::{zip_extract, ExtractDirectories};
 use postgresql_archive::get_archive;
 use postgresql_archive::repository::github::repository::GitHub;
-use regex::Regex;
+use regex_lite::Regex;
 use semver::{Version, VersionReq};
 use std::fmt::Debug;
 use std::path::PathBuf;

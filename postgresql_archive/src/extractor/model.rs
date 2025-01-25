@@ -1,5 +1,5 @@
 use crate::{Error, Result};
-use regex::Regex;
+use regex_lite::Regex;
 use std::fmt::Display;
 use std::path::PathBuf;
 

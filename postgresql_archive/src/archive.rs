@@ -3,7 +3,7 @@
 
 use crate::error::Result;
 use crate::{extractor, repository};
-use regex::Regex;
+use regex_lite::Regex;
 use semver::{Version, VersionReq};
 use std::path::{Path, PathBuf};
 use tracing::instrument;

@@ -98,7 +98,7 @@ pub fn get(url: &str) -> Result<ExtractFn> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use regex::Regex;
+    use regex_lite::Regex;
 
     #[test]
     fn test_register() -> Result<()> {
