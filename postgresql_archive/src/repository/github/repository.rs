@@ -8,10 +8,9 @@ use crate::Error::{
 use crate::{hasher, matcher, Result};
 use async_trait::async_trait;
 use futures_util::StreamExt;
-use http::{header, Extensions};
 use regex::Regex;
-use reqwest::{Request, Response};
-use reqwest_middleware::{ClientBuilder, ClientWithMiddleware, Middleware, Next};
+use reqwest::header::HeaderMap;
+use reqwest_middleware::{ClientBuilder, ClientWithMiddleware};
 use reqwest_retry::policies::ExponentialBackoff;
 use reqwest_retry::RetryTransientMiddleware;
 use reqwest_tracing::TracingMiddleware;
@@ -114,6 +113,7 @@ impl GitHub {
         loop {
             let request = client
                 .get(&self.releases_url)
+                .headers(Self::headers())
                 .query(&[("page", page.to_string().as_str()), ("per_page", "100")]);
             let response = request.send().await?.error_for_status()?;
             let response_releases = response.json::<Vec<Release>>().await?;
@@ -199,6 +199,20 @@ impl GitHub {
 
         Ok((asset, asset_hash, asset_hasher_fn))
     }
+
+    /// Returns the headers for the GitHub request.
+    fn headers() -> HeaderMap {
+        let mut headers = HeaderMap::new();
+        headers.append(
+            GITHUB_API_VERSION_HEADER,
+            GITHUB_API_VERSION.parse().unwrap(),
+        );
+        headers.append("User-Agent", USER_AGENT.parse().unwrap());
+        if let Some(token) = &*GITHUB_TOKEN {
+            headers.append("Authorization", format!("Bearer {token}").parse().unwrap());
+        }
+        headers
+    }
 }
 
 #[async_trait]
@@ -224,7 +238,9 @@ impl Repository for GitHub {
 
         let client = reqwest_client();
         debug!("Downloading archive {}", asset.browser_download_url);
-        let request = client.get(&asset.browser_download_url);
+        let request = client
+            .get(&asset.browser_download_url)
+            .headers(Self::headers());
         let response = request.send().await?.error_for_status()?;
         #[cfg(feature = "indicatif")]
         let span = tracing::Span::current();
@@ -257,7 +273,9 @@ impl Repository for GitHub {
                 "Downloading archive hash {}",
                 asset_hash.browser_download_url
             );
-            let request = client.get(&asset_hash.browser_download_url);
+            let request = client
+                .get(&asset_hash.browser_download_url)
+                .headers(Self::headers());
             let response = request.send().await?.error_for_status()?;
             let text = response.text().await?;
             let re = Regex::new(&format!(r"[0-9a-f]{{{hash_len}}}"))?;
@@ -281,51 +299,11 @@ impl Repository for GitHub {
     }
 }
 
-/// Middleware to add headers to the request. If a GitHub token is set, then it is added as a
-/// bearer token. This is used to authenticate with the GitHub API to increase the rate limit.
-#[derive(Debug)]
-struct GithubMiddleware;
-
-impl GithubMiddleware {
-    #[expect(clippy::unnecessary_wraps)]
-    fn add_headers(request: &mut Request) -> Result<()> {
-        let headers = request.headers_mut();
-        headers.append(
-            GITHUB_API_VERSION_HEADER,
-            GITHUB_API_VERSION.parse().unwrap(),
-        );
-        headers.append(header::USER_AGENT, USER_AGENT.parse().unwrap());
-        if let Some(token) = &*GITHUB_TOKEN {
-            headers.append(
-                header::AUTHORIZATION,
-                format!("Bearer {token}").parse().unwrap(),
-            );
-        }
-        Ok(())
-    }
-}
-
-#[async_trait::async_trait]
-impl Middleware for GithubMiddleware {
-    async fn handle(
-        &self,
-        mut request: Request,
-        extensions: &mut Extensions,
-        next: Next<'_>,
-    ) -> reqwest_middleware::Result<Response> {
-        match GithubMiddleware::add_headers(&mut request) {
-            Ok(()) => next.run(request, extensions).await,
-            Err(error) => Err(reqwest_middleware::Error::Middleware(error.into())),
-        }
-    }
-}
-
-/// Creates a new reqwest client with middleware for tracing, GitHub, and retrying transient errors.
+/// Creates a new reqwest client with middleware for tracing, and retrying transient errors.
 fn reqwest_client() -> ClientWithMiddleware {
     let retry_policy = ExponentialBackoff::builder().build_with_max_retries(3);
     ClientBuilder::new(reqwest::Client::new())
         .with(TracingMiddleware::default())
-        .with(GithubMiddleware)
         .with(RetryTransientMiddleware::new_with_policy(retry_policy))
         .build()
 }
