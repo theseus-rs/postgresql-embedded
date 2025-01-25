@@ -15,7 +15,6 @@ async-trait = { workspace = true }
 flate2 = { workspace = true }
 futures-util = { workspace = true }
 hex = { workspace = true }
-http = { workspace = true }
 liblzma = { workspace = true }
 md-5 = { workspace = true, optional = true }
 num-format = { workspace = true }

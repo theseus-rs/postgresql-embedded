@@ -5,9 +5,8 @@ use crate::Error::{ArchiveHashMismatch, ParseError, RepositoryFailure, VersionNo
 use crate::{hasher, Result};
 use async_trait::async_trait;
 use futures_util::StreamExt;
-use http::{header, Extensions};
-use reqwest::{Request, Response};
-use reqwest_middleware::{ClientBuilder, ClientWithMiddleware, Middleware, Next};
+use reqwest::header::HeaderMap;
+use reqwest_middleware::{ClientBuilder, ClientWithMiddleware};
 use reqwest_retry::policies::ExponentialBackoff;
 use reqwest_retry::RetryTransientMiddleware;
 use reqwest_tracing::TracingMiddleware;
@@ -58,7 +57,7 @@ impl Maven {
         debug!("Attempting to locate release for version requirement {version_req}");
         let client = reqwest_client();
         let url = format!("{}/maven-metadata.xml", self.url);
-        let request = client.get(&url);
+        let request = client.get(&url).headers(Self::headers());
         let response = request.send().await?.error_for_status()?;
         let text = response.text().await?;
         let metadata: Metadata =
@@ -85,6 +84,13 @@ impl Maven {
             }
             None => Err(VersionNotFound(version_req.to_string())),
         }
+    }
+
+    /// Returns the headers for the Maven request.
+    fn headers() -> HeaderMap {
+        let mut headers = HeaderMap::new();
+        headers.append("User-Agent", USER_AGENT.parse().unwrap());
+        headers
     }
 }
 
@@ -125,13 +131,13 @@ impl Repository for Maven {
         let archive_hash_url = format!("{archive_url}.{extension}");
         let client = reqwest_client();
         debug!("Downloading archive hash {archive_hash_url}");
-        let request = client.get(&archive_hash_url);
+        let request = client.get(&archive_hash_url).headers(Self::headers());
         let response = request.send().await?.error_for_status()?;
         let hash = response.text().await?;
         debug!("Archive hash {archive_hash_url} downloaded: {}", hash.len(),);
 
         debug!("Downloading archive {archive_url}");
-        let request = client.get(&archive_url);
+        let request = client.get(&archive_url).headers(Self::headers());
         let response = request.send().await?.error_for_status()?;
         #[cfg(feature = "indicatif")]
         let span = tracing::Span::current();
@@ -159,40 +165,11 @@ impl Repository for Maven {
     }
 }
 
-/// Middleware to add headers to the request.
-#[derive(Debug)]
-struct MavenMiddleware;
-
-impl MavenMiddleware {
-    #[expect(clippy::unnecessary_wraps)]
-    fn add_headers(request: &mut Request) -> Result<()> {
-        let headers = request.headers_mut();
-        headers.append(header::USER_AGENT, USER_AGENT.parse().unwrap());
-        Ok(())
-    }
-}
-
-#[async_trait::async_trait]
-impl Middleware for MavenMiddleware {
-    async fn handle(
-        &self,
-        mut request: Request,
-        extensions: &mut Extensions,
-        next: Next<'_>,
-    ) -> reqwest_middleware::Result<Response> {
-        match MavenMiddleware::add_headers(&mut request) {
-            Ok(()) => next.run(request, extensions).await,
-            Err(error) => Err(reqwest_middleware::Error::Middleware(error.into())),
-        }
-    }
-}
-
-/// Creates a new reqwest client with middleware for tracing, GitHub, and retrying transient errors.
+/// Creates a new reqwest client with middleware for tracing, and retrying transient errors.
 fn reqwest_client() -> ClientWithMiddleware {
     let retry_policy = ExponentialBackoff::builder().build_with_max_retries(3);
     ClientBuilder::new(reqwest::Client::new())
         .with(TracingMiddleware::default())
-        .with(MavenMiddleware)
         .with(RetryTransientMiddleware::new_with_policy(retry_policy))
         .build()
 }
