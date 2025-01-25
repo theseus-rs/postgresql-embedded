@@ -7,6 +7,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## `postgresql_extensions` - [0.17.5](https://github.com/theseus-rs/postgresql-embedded/compare/postgresql_extensions-v0.17.4...postgresql_extensions-v0.17.5) - 2025-01-25
+
+### Other
+- replace regex with regex-lite to reduce dependencies
+- update ci configuration
+
+## `postgresql_commands` - [0.17.5](https://github.com/theseus-rs/postgresql-embedded/compare/postgresql_commands-v0.17.4...postgresql_commands-v0.17.5) - 2025-01-25
+
+### Other
+- remove anyhow and human_bytes dependencies
+
+## `postgresql_embedded` - [0.17.5](https://github.com/theseus-rs/postgresql-embedded/compare/v0.17.4...v0.17.5) - 2025-01-25
+
+### Other
+- make tracing-indicatif optional
+- remove anyhow and human_bytes dependencies
+- replace regex with regex-lite to reduce dependencies
+- remove http dependency
+- update ci configuration
+
+## `postgresql_archive` - [0.17.5](https://github.com/theseus-rs/postgresql-embedded/compare/postgresql_archive-v0.17.4...postgresql_archive-v0.17.5) - 2025-01-25
+
+### Other
+- replace regex with regex-lite to reduce dependencies
+- remove http dependency
+- make tracing-indicatif optional
+- remove anyhow and human_bytes dependencies
+
 ## `postgresql_embedded` - [v0.17.4](https://github.com/theseus-rs/postgresql-embedded/compare/v0.17.3...v0.17.4) - 2025-01-17
 
 ### Chore
