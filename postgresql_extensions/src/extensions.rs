@@ -1,6 +1,7 @@
 use crate::model::AvailableExtension;
 use crate::repository::registry;
 use crate::repository::registry::get_repositories;
+use crate::Error::IoError;
 use crate::{InstalledConfiguration, InstalledExtension, Result};
 use postgresql_commands::pg_config::PgConfigBuilder;
 use postgresql_commands::postgres::PostgresBuilder;
@@ -10,7 +11,7 @@ use postgresql_commands::CommandBuilder;
 #[cfg(not(feature = "tokio"))]
 use postgresql_commands::CommandExecutor;
 use postgresql_commands::Settings;
-use regex::Regex;
+use regex_lite::Regex;
 use semver::VersionReq;
 use std::path::PathBuf;
 use tracing::{debug, instrument};
@@ -116,9 +117,12 @@ pub async fn uninstall(settings: &impl Settings, namespace: &str, name: &str) ->
             if file.exists() {
                 debug!("Removing file: {file:?}");
                 #[cfg(feature = "tokio")]
-                tokio::fs::remove_file(file).await?;
+                tokio::fs::remove_file(file)
+                    .await
+                    .map_err(|error| IoError(error.to_string()))?;
                 #[cfg(not(feature = "tokio"))]
-                std::fs::remove_file(file)?;
+                std::fs::remove_file(file)
+                    .map_err(|error| crate::error::Error::IoError(error.to_string()))?;
             }
         }
     }
@@ -208,16 +212,14 @@ async fn get_postgresql_version(settings: &dyn Settings) -> Result<String> {
     let (stdout, _stderr) = execute_command(command).await?;
     let re = Regex::new(r"PostgreSQL\)\s(\d+\.\d+)")?;
     let Some(captures) = re.captures(&stdout) else {
-        return Err(regex::Error::Syntax(format!(
+        return Err(IoError(format!(
             "Failed to obtain postgresql version from {stdout}"
-        ))
-        .into());
+        )));
     };
     let Some(version) = captures.get(1) else {
-        return Err(regex::Error::Syntax(format!(
+        return Err(IoError(format!(
             "Failed to match postgresql version from {stdout}"
-        ))
-        .into());
+        )));
     };
     let version = version.as_str();
     debug!("Obtained PostgreSQL version from postgres command: {version}");

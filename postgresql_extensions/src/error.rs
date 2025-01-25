@@ -14,14 +14,14 @@ pub enum Error {
     #[error("extension not found '{0}'")]
     ExtensionNotFound(String),
     /// Error when an IO operation fails
-    #[error(transparent)]
-    IoError(#[from] std::io::Error),
+    #[error("{0}")]
+    IoError(String),
     /// Poisoned lock
     #[error("poisoned lock '{0}'")]
     PoisonedLock(String),
     /// Error when a regex operation fails
     #[error(transparent)]
-    RegexError(#[from] regex::Error),
+    RegexError(#[from] regex_lite::Error),
     /// Error when a deserialization or serialization operation fails
     #[error(transparent)]
     SerdeError(#[from] serde_json::Error),

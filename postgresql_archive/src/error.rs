@@ -48,9 +48,9 @@ pub enum Error {
     VersionNotFound(String),
 }
 
-/// Converts a [`regex::Error`] into an [`ParseError`](Error::ParseError)
-impl From<regex::Error> for Error {
-    fn from(error: regex::Error) -> Self {
+/// Converts a [`regex_lite::Error`] into an [`ParseError`](Error::ParseError)
+impl From<regex_lite::Error> for Error {
+    fn from(error: regex_lite::Error) -> Self {
         Error::ParseError(error.to_string())
     }
 }
@@ -125,9 +125,9 @@ mod test {
 
     #[test]
     fn test_from_regex_error() {
-        let regex_error = regex::Error::Syntax("test".to_string());
+        let regex_error = regex_lite::Regex::new("(?=a)").expect_err("regex error");
         let error = Error::from(regex_error);
-        assert_eq!(error.to_string(), "test");
+        assert_eq!(error.to_string(), "look-around is not supported");
     }
 
     #[tokio::test]

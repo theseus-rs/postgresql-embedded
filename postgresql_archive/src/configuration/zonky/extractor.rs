@@ -1,7 +1,7 @@
 use crate::extractor::{tar_xz_extract, ExtractDirectories};
 use crate::Error::Unexpected;
 use crate::Result;
-use regex::Regex;
+use regex_lite::Regex;
 use std::fs::{create_dir_all, remove_dir_all, remove_file, rename};
 use std::io::Cursor;
 use std::path::{Path, PathBuf};

@@ -19,7 +19,7 @@ liblzma = { workspace = true }
 md-5 = { workspace = true, optional = true }
 num-format = { workspace = true }
 quick-xml = { workspace = true, features = ["serialize"], optional = true }
-regex = { workspace = true }
+regex-lite = { workspace = true }
 reqwest = { workspace = true, default-features = false, features = ["json", "stream"] }
 reqwest-middleware = { workspace = true }
 reqwest-retry = { workspace = true }

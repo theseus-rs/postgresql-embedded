@@ -1,3 +1,4 @@
+use crate::Error::IoError;
 use crate::Result;
 use semver::Version;
 use serde::{Deserialize, Serialize};
@@ -74,17 +75,23 @@ impl InstalledConfiguration {
     pub async fn read<P: Into<PathBuf>>(path: P) -> Result<Self> {
         #[cfg(feature = "tokio")]
         {
-            let mut file = tokio::fs::File::open(path.into()).await?;
+            let mut file = tokio::fs::File::open(path.into())
+                .await
+                .map_err(|error| IoError(error.to_string()))?;
             let mut contents = vec![];
-            file.read_to_end(&mut contents).await?;
+            file.read_to_end(&mut contents)
+                .await
+                .map_err(|error| IoError(error.to_string()))?;
             let config = serde_json::from_slice(&contents)?;
             Ok(config)
         }
         #[cfg(not(feature = "tokio"))]
         {
-            let file = std::fs::File::open(path.into())?;
+            let file =
+                std::fs::File::open(path.into()).map_err(|error| IoError(error.to_string()))?;
             let reader = std::io::BufReader::new(file);
-            let config = serde_json::from_reader(reader)?;
+            let config =
+                serde_json::from_reader(reader).map_err(|error| IoError(error.to_string()))?;
             Ok(config)
         }
     }
@@ -98,13 +105,19 @@ impl InstalledConfiguration {
 
         #[cfg(feature = "tokio")]
         {
-            let mut file = tokio::fs::File::create(path.into()).await?;
-            file.write_all(content.as_bytes()).await?;
+            let mut file = tokio::fs::File::create(path.into())
+                .await
+                .map_err(|error| IoError(error.to_string()))?;
+            file.write_all(content.as_bytes())
+                .await
+                .map_err(|error| IoError(error.to_string()))?;
         }
         #[cfg(not(feature = "tokio"))]
         {
-            let mut file = std::fs::File::create(path.into())?;
-            file.write_all(content.as_bytes())?;
+            let mut file =
+                std::fs::File::create(path.into()).map_err(|error| IoError(error.to_string()))?;
+            file.write_all(content.as_bytes())
+                .map_err(|error| IoError(error.to_string()))?;
         }
         Ok(())
     }
@@ -236,7 +249,8 @@ mod tests {
     #[cfg(target_os = "linux")]
     #[tokio::test]
     async fn test_installed_configuration_io() -> Result<()> {
-        let temp_file = tempfile::NamedTempFile::new()?;
+        let temp_file =
+            tempfile::NamedTempFile::new().map_err(|error| IoError(error.to_string()))?;
         let file = temp_file.as_ref();
         let extensions = vec![InstalledExtension::new(
             "namespace",
@@ -248,7 +262,9 @@ mod tests {
         expected_configuration.write(file).await?;
         let configuration = InstalledConfiguration::read(file).await?;
         assert_eq!(expected_configuration, configuration);
-        tokio::fs::remove_file(file).await?;
+        tokio::fs::remove_file(file)
+            .await
+            .map_err(|error| IoError(error.to_string()))?;
         Ok(())
     }
 

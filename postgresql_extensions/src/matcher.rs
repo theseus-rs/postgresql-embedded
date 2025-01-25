@@ -1,5 +1,5 @@
 use postgresql_archive::Result;
-use regex::Regex;
+use regex_lite::Regex;
 use semver::Version;
 use std::collections::HashMap;
 use std::env::consts;

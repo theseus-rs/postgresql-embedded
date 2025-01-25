@@ -8,7 +8,7 @@ use crate::Error::{
 use crate::{hasher, matcher, Result};
 use async_trait::async_trait;
 use futures_util::StreamExt;
-use regex::Regex;
+use regex_lite::Regex;
 use reqwest::header::HeaderMap;
 use reqwest_middleware::{ClientBuilder, ClientWithMiddleware};
 use reqwest_retry::policies::ExponentialBackoff;

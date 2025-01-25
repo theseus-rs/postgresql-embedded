@@ -45,7 +45,7 @@ postgres = "0.19.9"
 quick-xml = "0.37.1"
 r2d2_postgres = "0.18.1"
 rand = "0.8.5"
-regex = "1.11.1"
+regex-lite = "0.1.6"
 reqwest = { version = "0.12.12", default-features = false }
 reqwest-middleware = "0.4.0"
 reqwest-retry = "0.7.0"
