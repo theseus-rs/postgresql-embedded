@@ -8,17 +8,17 @@ pub enum Error {
     #[error("Command error: stdout={stdout}; stderr={stderr}")]
     CommandError { stdout: String, stderr: String },
     /// Error when IO operations fail
-    #[error(transparent)]
-    IoError(anyhow::Error),
+    #[error("{0}")]
+    IoError(String),
     /// Error when a command fails to execute before the timeout is reached
-    #[error(transparent)]
-    TimeoutError(anyhow::Error),
+    #[error("{0}")]
+    TimeoutError(String),
 }
 
 /// Convert [standard IO errors](std::io::Error) to a [embedded errors](Error::IoError)
 impl From<std::io::Error> for Error {
     fn from(error: std::io::Error) -> Self {
-        Error::IoError(error.into())
+        Error::IoError(error.to_string())
     }
 }
 
@@ -26,7 +26,7 @@ impl From<std::io::Error> for Error {
 /// Convert [elapsed time errors](tokio::time::error::Elapsed) to [embedded errors](Error::TimeoutError)
 impl From<tokio::time::error::Elapsed> for Error {
     fn from(error: tokio::time::error::Elapsed) -> Self {
-        Error::TimeoutError(error.into())
+        Error::TimeoutError(error.to_string())
     }
 }
 

@@ -213,7 +213,7 @@ impl PostgreSQL {
                 );
                 Ok(())
             }
-            Err(error) => Err(DatabaseInitializationError(error.into())),
+            Err(error) => Err(DatabaseInitializationError(error.to_string())),
         }
     }
 
@@ -254,7 +254,7 @@ impl PostgreSQL {
                 );
                 Ok(())
             }
-            Err(error) => Err(DatabaseStartError(error.into())),
+            Err(error) => Err(DatabaseStartError(error.to_string())),
         }
     }
 
@@ -279,7 +279,7 @@ impl PostgreSQL {
                 );
                 Ok(())
             }
-            Err(error) => Err(DatabaseStopError(error.into())),
+            Err(error) => Err(DatabaseStopError(error.to_string())),
         }
     }
 
@@ -308,7 +308,7 @@ impl PostgreSQL {
         sqlx::query(format!("CREATE DATABASE \"{database_name}\"").as_str())
             .execute(&pool)
             .await
-            .map_err(|error| CreateDatabaseError(error.into()))?;
+            .map_err(|error| CreateDatabaseError(error.to_string()))?;
         pool.close().await;
         debug!(
             "Created database {database_name} for {host}:{port}",
@@ -335,7 +335,7 @@ impl PostgreSQL {
             .bind(database_name.to_string())
             .fetch_one(&pool)
             .await
-            .map_err(|error| DatabaseExistsError(error.into()))?;
+            .map_err(|error| DatabaseExistsError(error.to_string()))?;
         let count: i64 = row.get(0);
         pool.close().await;
 
@@ -358,7 +358,7 @@ impl PostgreSQL {
         sqlx::query(format!("DROP DATABASE IF EXISTS \"{database_name}\"").as_str())
             .execute(&pool)
             .await
-            .map_err(|error| DropDatabaseError(error.into()))?;
+            .map_err(|error| DropDatabaseError(error.to_string()))?;
         pool.close().await;
         debug!(
             "Dropped database {database_name} for {host}:{port}",

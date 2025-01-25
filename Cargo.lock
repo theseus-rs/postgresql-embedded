@@ -1166,12 +1166,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "df3b46402a9d5adb4c86a0cf463f42e19994e3ee891101b1841f30a545cb49a9"
 
 [[package]]
-name = "human_bytes"
-version = "0.4.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "91f255a4535024abf7640cb288260811fc14794f62b063652ed349f9a6c2348e"
-
-[[package]]
 name = "hyper"
 version = "1.5.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2018,7 +2012,6 @@ dependencies = [
  "futures-util",
  "hex",
  "http",
- "human_bytes",
  "liblzma",
  "md-5",
  "num-format",
@@ -2049,7 +2042,6 @@ dependencies = [
 name = "postgresql_commands"
 version = "0.17.4"
 dependencies = [
- "anyhow",
  "test-log",
  "thiserror 2.0.10",
  "tokio",

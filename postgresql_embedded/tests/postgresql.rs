@@ -1,4 +1,3 @@
-use anyhow::bail;
 use postgresql_commands::psql::PsqlBuilder;
 use postgresql_commands::CommandBuilder;
 use postgresql_embedded::{PostgreSQL, Result, Settings, Status};
@@ -133,14 +132,14 @@ async fn test_persistent_database_reuse() -> Result<()> {
 }
 
 #[test(tokio::test)]
-async fn postgres_concurrency() -> anyhow::Result<()> {
+async fn postgres_concurrency() -> Result<()> {
     let handle1 = tokio::spawn(lifecycle());
     let handle2 = tokio::spawn(lifecycle());
     let handle3 = tokio::spawn(lifecycle());
     match tokio::try_join!(handle1, handle2, handle3) {
         Ok(_) => {}
-        Err(err) => {
-            bail!("processing failed; error = {}", err);
+        Err(error) => {
+            assert_eq!("", error.to_string());
         }
     }
     Ok(())

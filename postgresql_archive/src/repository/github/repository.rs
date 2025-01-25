@@ -9,7 +9,6 @@ use crate::{hasher, matcher, Result};
 use async_trait::async_trait;
 use futures_util::StreamExt;
 use http::{header, Extensions};
-use human_bytes::human_bytes;
 use regex::Regex;
 use reqwest::{Request, Response};
 use reqwest_middleware::{ClientBuilder, ClientWithMiddleware, Middleware, Next};
@@ -216,7 +215,6 @@ impl Repository for GitHub {
     }
 
     #[instrument]
-    #[expect(clippy::cast_precision_loss)]
     async fn get_archive(&self, version_req: &VersionReq) -> Result<Archive> {
         let release = self.get_release(version_req).await?;
         let version = Self::get_version_from_tag_name(release.tag_name.as_str())?;
@@ -239,7 +237,7 @@ impl Repository for GitHub {
         debug!(
             "Archive {} downloaded: {}",
             asset.browser_download_url,
-            human_bytes(bytes.len() as f64)
+            bytes.len(),
         );
 
         if let Some(asset_hash) = asset_hash {
@@ -264,7 +262,7 @@ impl Repository for GitHub {
             debug!(
                 "Archive hash {} downloaded: {}",
                 asset_hash.browser_download_url,
-                human_bytes(text.len() as f64)
+                text.len(),
             );
 
             if archive_hash != hash {

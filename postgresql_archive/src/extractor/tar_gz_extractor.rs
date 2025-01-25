@@ -2,7 +2,6 @@ use crate::extractor::ExtractDirectories;
 use crate::Error::Unexpected;
 use crate::Result;
 use flate2::bufread::GzDecoder;
-use human_bytes::human_bytes;
 use num_format::{Locale, ToFormattedString};
 use std::fs::{create_dir_all, File};
 use std::io::{copy, BufReader, Cursor};
@@ -14,7 +13,6 @@ use tracing::{debug, instrument, warn};
 ///
 /// # Errors
 /// Returns an error if the extraction fails.
-#[expect(clippy::cast_precision_loss)]
 #[instrument(skip(bytes))]
 pub fn extract(bytes: &Vec<u8>, extract_directories: ExtractDirectories) -> Result<Vec<PathBuf>> {
     let mut files = Vec::new();
@@ -74,7 +72,7 @@ pub fn extract(bytes: &Vec<u8>, extract_directories: ExtractDirectories) -> Resu
     debug!(
         "Extracted {} files totalling {}",
         number_of_files.to_formatted_string(&Locale::en),
-        human_bytes(extracted_bytes as f64)
+        extracted_bytes,
     );
 
     Ok(files)
