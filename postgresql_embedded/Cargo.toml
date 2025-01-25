@@ -44,6 +44,9 @@ default = [
 ]
 blocking = ["tokio"]
 bundled = ["postgresql_archive/github"]
+indicatif = [
+    "postgresql_archive/indicatif",
+]
 native-tls = [
     "postgresql_archive/native-tls",
     "sqlx/tls-native-tls",
