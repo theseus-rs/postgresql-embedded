@@ -103,6 +103,7 @@ The following features are available:
 |--------------|----------------------------------------------------------|----------|
 | `bundled`    | Bundles the PostgreSQL archive into the resulting binary | No       |
 | `blocking`   | Enables the blocking API; requires `tokio`               | No       |
+| `indicatif`  | Enables tracing-indcatif support                         | No       |
 | `native-tls` | Enables native-tls support                               | Yes      |
 | `rustls-tls` | Enables rustls-tls support                               | No       |
 | `theseus`    | Enables theseus PostgreSQL binaries                      | Yes      |

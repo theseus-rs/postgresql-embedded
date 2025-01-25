@@ -8,7 +8,7 @@ version.workspace = true
 [dependencies]
 anyhow = { workspace = true }
 indicatif = { workspace = true }
-postgresql_embedded = { path = "../../postgresql_embedded" }
+postgresql_embedded = { path = "../../postgresql_embedded", features = ["indicatif"] }
 postgresql_extensions = { path = "../../postgresql_extensions" }
 tracing = { workspace = true }
 tracing-indicatif = { workspace = true }

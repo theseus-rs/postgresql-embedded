@@ -49,11 +49,12 @@ uses.
 
 The following features are available:
 
-| Name         | Description                | Default? |
-|--------------|----------------------------|----------|
-| `blocking`   | Enables the blocking API   | No       |
-| `native-tls` | Enables native-tls support | Yes      |
-| `rustls-tls` | Enables rustls-tls support | No       |
+| Name         | Description                      | Default? |
+|--------------|----------------------------------|----------|
+| `blocking`   | Enables the blocking API         | No       |
+| `indicatif`  | Enables tracing-indcatif support | No       |
+| `native-tls` | Enables native-tls support       | Yes      |
+| `rustls-tls` | Enables rustls-tls support       | No       |
 
 ### Configurations
 

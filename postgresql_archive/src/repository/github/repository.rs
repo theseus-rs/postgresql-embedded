@@ -20,7 +20,8 @@ use std::env;
 use std::io::Write;
 use std::str::FromStr;
 use std::sync::LazyLock;
-use tracing::{debug, instrument, warn, Span};
+use tracing::{debug, instrument, warn};
+#[cfg(feature = "indicatif")]
 use tracing_indicatif::span_ext::IndicatifSpanExt;
 
 use url::Url;
@@ -225,13 +226,18 @@ impl Repository for GitHub {
         debug!("Downloading archive {}", asset.browser_download_url);
         let request = client.get(&asset.browser_download_url);
         let response = request.send().await?.error_for_status()?;
-        let span = Span::current();
-        let content_length = response.content_length().unwrap_or_default();
+        #[cfg(feature = "indicatif")]
+        let span = tracing::Span::current();
+        #[cfg(feature = "indicatif")]
+        {
+            let content_length = response.content_length().unwrap_or_default();
+            span.pb_set_length(content_length);
+        }
         let mut bytes = Vec::new();
         let mut source = response.bytes_stream();
-        span.pb_set_length(content_length);
         while let Some(chunk) = source.next().await {
             bytes.write_all(&chunk?)?;
+            #[cfg(feature = "indicatif")]
             span.pb_set_position(bytes.len() as u64);
         }
         debug!(
