@@ -12,8 +12,8 @@ version.workspace = true
 
 [dependencies]
 async-trait = { workspace = true }
-postgresql_archive = { path = "../postgresql_archive", version = "0.17.4", default-features = false }
-postgresql_commands = { path = "../postgresql_commands", version = "0.17.4", default-features = false }
+postgresql_archive = { path = "../postgresql_archive", version = "0.17.5", default-features = false }
+postgresql_commands = { path = "../postgresql_commands", version = "0.17.5", default-features = false }
 regex-lite = { workspace = true }
 reqwest = { workspace = true, default-features = false, features = ["json"] }
 semver = { workspace = true, features = ["serde"] }
@@ -28,7 +28,7 @@ url = { workspace = true }
 
 [dev-dependencies]
 anyhow = { workspace = true }
-postgresql_embedded = { path = "../postgresql_embedded", version = "0.17.4" }
+postgresql_embedded = { path = "../postgresql_embedded", version = "0.17.5" }
 test-log = { workspace = true }
 tokio = { workspace = true, features = ["full"] }
 
