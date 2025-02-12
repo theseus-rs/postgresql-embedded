@@ -30,6 +30,7 @@ thiserror = { workspace = true }
 tokio = { workspace = true, features = ["full"], optional = true }
 tracing = { workspace = true, features = ["log"] }
 url = { workspace = true }
+walkdir = "2.5.0"
 
 [dev-dependencies]
 anyhow = { workspace = true }
