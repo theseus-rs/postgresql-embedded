@@ -13,11 +13,15 @@ use postgresql_commands::AsyncCommandExecutor;
 use postgresql_commands::CommandBuilder;
 #[cfg(not(feature = "tokio"))]
 use postgresql_commands::CommandExecutor;
+use semver::Version;
 use sqlx::{PgPool, Row};
+use std::ffi::OsStr;
 use std::fs::{remove_dir_all, remove_file};
 use std::io::prelude::*;
 use std::net::TcpListener;
+use std::path::PathBuf;
 use tracing::{debug, instrument};
+use walkdir::WalkDir;
 
 use crate::Error::{CreateDatabaseError, DatabaseExistsError, DropDatabaseError};
 
@@ -73,7 +77,7 @@ impl PostgreSQL {
             Status::Started
         } else if self.is_initialized() {
             Status::Stopped
-        } else if self.is_installed() {
+        } else if self.installed_dir().is_some() {
             Status::Installed
         } else {
             Status::NotInstalled
@@ -86,13 +90,53 @@ impl PostgreSQL {
         &self.settings
     }
 
-    /// Check if the `PostgreSQL` server is installed
-    fn is_installed(&self) -> bool {
-        let Some(version) = self.settings.version.exact_version() else {
-            return false;
-        };
+    /// Find a directory where `PostgreSQL` server is installed.
+    /// This first checks if the installation directory exists and matches the version requirement.
+    /// If it doesn't, it will search all the child directories for the latest version that matches the requirement.
+    /// If it returns None, we couldn't find a matching installation.
+    fn installed_dir(&self) -> Option<PathBuf> {
+        fn file_name_to_version(name: &OsStr) -> Option<Version> {
+            Version::parse(name.to_string_lossy().as_ref()).ok()
+        }
         let path = &self.settings.installation_dir;
-        path.ends_with(version.to_string()) && path.exists()
+        let maybe_path_version = path
+            .file_name()
+            .map(|name| file_name_to_version(name))
+            .flatten();
+        // If this directory matches the version requirement, we're done.
+        if let Some(path_version) = maybe_path_version {
+            if self.settings.version.matches(&path_version) && path.exists() {
+                return Some(path.to_path_buf());
+            }
+        }
+        // Otherwise we check the child directories.
+        let mut max_version: Option<Version> = None;
+        let mut max_path: Option<PathBuf> = None;
+        for entry in WalkDir::new(path).min_depth(1).max_depth(1) {
+            let Some(entry) = entry.ok() else {
+                // We ignore filesystem errors.
+                continue;
+            };
+            // Skip non-directories
+            if !entry.file_type().is_dir() {
+                continue;
+            }
+            // If it doesn't look like a version, we ignore it.
+            let Some(version) = file_name_to_version(entry.file_name()) else {
+                continue;
+            };
+            // If it doesn't match the version requirement, we ignore it.
+            if !self.settings.version.matches(&version) {
+                continue;
+            }
+            // If we already found a version that's greater or equal, we ignore it.
+            if max_version.iter().any(|prev_max| *prev_max >= version) {
+                continue;
+            }
+            max_version = Some(version.clone());
+            max_path = Some(entry.path().to_path_buf());
+        }
+        max_path
     }
 
     /// Check if the `PostgreSQL` server is initialized
@@ -111,10 +155,14 @@ impl PostgreSQL {
     /// If the data directory already exists, the database will not be initialized.
     #[instrument(skip(self))]
     pub async fn setup(&mut self) -> Result<()> {
-        if !self.is_installed() {
-            self.install().await?;
+        match self.installed_dir() {
+            Some(installed_dir) => {
+                self.settings.installation_dir = installed_dir;
+            }
+            None => {
+                self.install().await?;
+            }
         }
-
         if !self.is_initialized() {
             self.initialize().await?;
         }
