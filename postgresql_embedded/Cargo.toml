@@ -51,8 +51,8 @@ native-tls = [
     "postgresql_archive/native-tls",
     "sqlx/tls-native-tls",
 ]
-rustls-tls = [
-    "postgresql_archive/rustls-tls",
+rustls = [
+    "postgresql_archive/rustls",
     "sqlx/tls-rustls",
 ]
 theseus = [

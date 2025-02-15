@@ -105,7 +105,7 @@ The following features are available:
 | `blocking`   | Enables the blocking API; requires `tokio`               | No       |
 | `indicatif`  | Enables tracing-indcatif support                         | No       |
 | `native-tls` | Enables native-tls support                               | Yes      |
-| `rustls-tls` | Enables rustls-tls support                               | No       |
+| `rustls`     | Enables rustls support                                   | No       |
 | `theseus`    | Enables theseus PostgreSQL binaries                      | Yes      |
 | `tokio`      | Enables using tokio for async                            | No       |
 | `zonky`      | Enables zonky PostgreSQL binaries                        | No       |
