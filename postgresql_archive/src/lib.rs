@@ -59,7 +59,7 @@
 //! |--------------|----------------------------|----------|
 //! | `blocking`   | Enables the blocking API   | No       |
 //! | `native-tls` | Enables native-tls support | Yes      |
-//! | `rustls-tls` | Enables rustls-tls support | No       |
+//! | `rustls`     | Enables rustls support     | No       |
 //!
 //! ### Configurations
 //!
