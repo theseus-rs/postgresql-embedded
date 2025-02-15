@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## `postgresql_extensions` - [0.18.0](https://github.com/theseus-rs/postgresql-embedded/compare/postgresql_extensions-v0.17.5...postgresql_extensions-v0.18.0) - 2025-02-15
+
+### Other
+- [**breaking**] rename feature rustls-tls to rustls
+
+## `postgresql_commands` - [0.18.0](https://github.com/theseus-rs/postgresql-embedded/compare/postgresql_commands-v0.17.5...postgresql_commands-v0.18.0) - 2025-02-15
+
+### Other
+- update Cargo.toml dependencies
+
+## `postgresql_embedded` - [0.18.0](https://github.com/theseus-rs/postgresql-embedded/compare/v0.17.5...v0.18.0) - 2025-02-15
+
+### Other
+- update dependencies
+- [**breaking**] rename feature rustls-tls to rustls
+- update Cargo.toml dependencies
+
+## `postgresql_archive` - [0.18.0](https://github.com/theseus-rs/postgresql-embedded/compare/postgresql_archive-v0.17.5...postgresql_archive-v0.18.0) - 2025-02-15
+
+### Other
+- [**breaking**] rename feature rustls-tls to rustls
+
 ## `postgresql_extensions` - [0.17.5](https://github.com/theseus-rs/postgresql-embedded/compare/postgresql_extensions-v0.17.4...postgresql_extensions-v0.17.5) - 2025-01-25
 
 ### Other
