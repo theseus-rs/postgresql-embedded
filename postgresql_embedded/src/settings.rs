@@ -1,7 +1,7 @@
 use crate::error::{Error, Result};
 use home::home_dir;
 use postgresql_archive::VersionReq;
-use rand::distributions::Alphanumeric;
+use rand::distr::Alphanumeric;
 use rand::Rng;
 use std::collections::HashMap;
 use std::env;
