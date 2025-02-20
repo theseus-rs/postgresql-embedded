@@ -6,13 +6,17 @@ use test_log::test;
 fn test_get_available_extensions() -> anyhow::Result<()> {
     let extensions = postgresql_extensions::blocking::get_available_extensions()?;
     #[cfg(feature = "steampipe")]
-    assert!(extensions
-        .iter()
-        .any(|extension| extension.namespace() == "steampipe"));
+    assert!(
+        extensions
+            .iter()
+            .any(|extension| extension.namespace() == "steampipe")
+    );
     #[cfg(feature = "tensor-chord")]
-    assert!(extensions
-        .iter()
-        .any(|extension| extension.namespace() == "tensor-chord"));
+    assert!(
+        extensions
+            .iter()
+            .any(|extension| extension.namespace() == "tensor-chord")
+    );
     Ok(())
 }
 

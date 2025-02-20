@@ -19,7 +19,6 @@ tokio = { workspace = true, features = ["full"] }
 url = { workspace = true }
 
 [dependencies]
-home = { workspace = true }
 postgresql_archive = { path = "../postgresql_archive", version = "0.17.5", default-features = false }
 postgresql_commands = { path = "../postgresql_commands", version = "0.17.5" }
 rand = { workspace = true }

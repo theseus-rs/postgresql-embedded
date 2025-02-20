@@ -6,7 +6,9 @@ use test_log::test;
 async fn lifecycle() -> anyhow::Result<()> {
     // Explicitly set PGDATABASE environment variable to verify that the library behavior
     // is not affected by the environment
-    env::set_var("PGDATABASE", "foodb");
+    unsafe {
+        env::set_var("PGDATABASE", "foodb");
+    }
 
     let mut postgresql = PostgreSQL::default();
 

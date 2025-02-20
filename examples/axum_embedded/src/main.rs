@@ -4,10 +4,10 @@
 
 use anyhow::Result;
 use axum::extract::State;
-use axum::{http::StatusCode, routing::get, Json, Router};
+use axum::{Json, Router, http::StatusCode, routing::get};
 use postgresql_embedded::{PostgreSQL, Settings, VersionReq};
-use sqlx::postgres::PgPoolOptions;
 use sqlx::PgPool;
+use sqlx::postgres::PgPoolOptions;
 use std::env;
 use std::time::Duration;
 use tokio::net::TcpListener;

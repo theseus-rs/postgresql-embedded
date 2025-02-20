@@ -1,10 +1,10 @@
+use crate::Error::{PoisonedLock, UnsupportedExtractor};
+use crate::Result;
 #[cfg(feature = "theseus")]
 use crate::configuration::theseus;
 #[cfg(feature = "zonky")]
 use crate::configuration::zonky;
 use crate::extractor::ExtractDirectories;
-use crate::Error::{PoisonedLock, UnsupportedExtractor};
-use crate::Result;
 use std::path::PathBuf;
 use std::sync::{Arc, LazyLock, Mutex, RwLock};
 

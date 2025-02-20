@@ -5,7 +5,7 @@
 use crate::models::{NewPost, Post};
 use diesel::r2d2::{ConnectionManager, Pool};
 use diesel::{PgConnection, RunQueryDsl, SelectableHelper};
-use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
+use diesel_migrations::{EmbeddedMigrations, MigrationHarness, embed_migrations};
 use postgresql_embedded::{PostgreSQL, Result, Settings, VersionReq};
 
 mod models;

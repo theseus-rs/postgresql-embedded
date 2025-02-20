@@ -1,10 +1,10 @@
-use crate::extractor::ExtractDirectories;
 use crate::Error::Unexpected;
 use crate::Result;
+use crate::extractor::ExtractDirectories;
 use flate2::bufread::GzDecoder;
 use num_format::{Locale, ToFormattedString};
-use std::fs::{create_dir_all, File};
-use std::io::{copy, BufReader, Cursor};
+use std::fs::{File, create_dir_all};
+use std::io::{BufReader, Cursor, copy};
 use std::path::PathBuf;
 use tar::Archive;
 use tracing::{debug, instrument, warn};

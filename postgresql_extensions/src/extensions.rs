@@ -1,16 +1,16 @@
+use crate::Error::IoError;
 use crate::model::AvailableExtension;
 use crate::repository::registry;
 use crate::repository::registry::get_repositories;
-use crate::Error::IoError;
 use crate::{InstalledConfiguration, InstalledExtension, Result};
-use postgresql_commands::pg_config::PgConfigBuilder;
-use postgresql_commands::postgres::PostgresBuilder;
 #[cfg(feature = "tokio")]
 use postgresql_commands::AsyncCommandExecutor;
 use postgresql_commands::CommandBuilder;
 #[cfg(not(feature = "tokio"))]
 use postgresql_commands::CommandExecutor;
 use postgresql_commands::Settings;
+use postgresql_commands::pg_config::PgConfigBuilder;
+use postgresql_commands::postgres::PostgresBuilder;
 use regex_lite::Regex;
 use semver::VersionReq;
 use std::path::PathBuf;
@@ -157,7 +157,9 @@ async fn get_library_path(settings: &dyn Settings) -> Result<PathBuf> {
             let install_dir = if let Some(parent) = binary_dir.parent() {
                 parent.to_path_buf()
             } else {
-                debug!("Failed to get parent directory of binary directory; defaulting to current directory");
+                debug!(
+                    "Failed to get parent directory of binary directory; defaulting to current directory"
+                );
                 PathBuf::from(".")
             };
             let library_dir = install_dir.join("lib");
@@ -181,7 +183,9 @@ async fn get_shared_path(settings: &dyn Settings) -> Result<PathBuf> {
             let install_dir = if let Some(parent) = binary_dir.parent() {
                 parent.to_path_buf()
             } else {
-                debug!("Failed to get parent directory of binary directory; defaulting to current directory");
+                debug!(
+                    "Failed to get parent directory of binary directory; defaulting to current directory"
+                );
                 PathBuf::from(".")
             };
             let share_dir = install_dir.join("share");

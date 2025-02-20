@@ -1,3 +1,5 @@
+use crate::Error::{PoisonedLock, UnsupportedHasher};
+use crate::Result;
 #[cfg(feature = "theseus")]
 use crate::configuration::theseus;
 #[cfg(feature = "md5")]
@@ -10,8 +12,6 @@ use crate::hasher::sha2_256;
 use crate::hasher::sha2_512;
 #[cfg(feature = "maven")]
 use crate::repository::maven;
-use crate::Error::{PoisonedLock, UnsupportedHasher};
-use crate::Result;
 use std::sync::{Arc, LazyLock, Mutex, RwLock};
 
 static REGISTRY: LazyLock<Arc<Mutex<HasherRegistry>>> =

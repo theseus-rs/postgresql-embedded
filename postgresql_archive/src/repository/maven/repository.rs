@@ -1,14 +1,14 @@
+use crate::Error::{ArchiveHashMismatch, ParseError, RepositoryFailure, VersionNotFound};
+use crate::repository::Archive;
 use crate::repository::maven::models::Metadata;
 use crate::repository::model::Repository;
-use crate::repository::Archive;
-use crate::Error::{ArchiveHashMismatch, ParseError, RepositoryFailure, VersionNotFound};
-use crate::{hasher, Result};
+use crate::{Result, hasher};
 use async_trait::async_trait;
 use futures_util::StreamExt;
 use reqwest::header::HeaderMap;
 use reqwest_middleware::{ClientBuilder, ClientWithMiddleware};
-use reqwest_retry::policies::ExponentialBackoff;
 use reqwest_retry::RetryTransientMiddleware;
+use reqwest_retry::policies::ExponentialBackoff;
 use reqwest_tracing::TracingMiddleware;
 use semver::{Version, VersionReq};
 use std::env;

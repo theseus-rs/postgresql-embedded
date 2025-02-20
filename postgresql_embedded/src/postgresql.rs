@@ -1,18 +1,18 @@
 use crate::error::Error::{DatabaseInitializationError, DatabaseStartError, DatabaseStopError};
 use crate::error::Result;
-use crate::settings::{Settings, BOOTSTRAP_DATABASE, BOOTSTRAP_SUPERUSER};
+use crate::settings::{BOOTSTRAP_DATABASE, BOOTSTRAP_SUPERUSER, Settings};
 use postgresql_archive::get_version;
-use postgresql_archive::{extract, get_archive};
 use postgresql_archive::{ExactVersion, ExactVersionReq};
-use postgresql_commands::initdb::InitDbBuilder;
-use postgresql_commands::pg_ctl::Mode::{Start, Stop};
-use postgresql_commands::pg_ctl::PgCtlBuilder;
-use postgresql_commands::pg_ctl::ShutdownMode::Fast;
+use postgresql_archive::{extract, get_archive};
 #[cfg(feature = "tokio")]
 use postgresql_commands::AsyncCommandExecutor;
 use postgresql_commands::CommandBuilder;
 #[cfg(not(feature = "tokio"))]
 use postgresql_commands::CommandExecutor;
+use postgresql_commands::initdb::InitDbBuilder;
+use postgresql_commands::pg_ctl::Mode::{Start, Stop};
+use postgresql_commands::pg_ctl::PgCtlBuilder;
+use postgresql_commands::pg_ctl::ShutdownMode::Fast;
 use sqlx::{PgPool, Row};
 use std::fs::{remove_dir_all, remove_file};
 use std::io::prelude::*;

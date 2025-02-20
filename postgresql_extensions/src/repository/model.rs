@@ -1,5 +1,5 @@
-use crate::model::AvailableExtension;
 use crate::Result;
+use crate::model::AvailableExtension;
 use async_trait::async_trait;
 use semver::{Version, VersionReq};
 use std::fmt::Debug;

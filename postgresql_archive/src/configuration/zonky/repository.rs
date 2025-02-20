@@ -1,8 +1,8 @@
+use crate::Result;
 use crate::configuration::zonky::matcher::{get_arch, get_os};
+use crate::repository::Archive;
 use crate::repository::maven::repository::Maven;
 use crate::repository::model::Repository;
-use crate::repository::Archive;
-use crate::Result;
 use async_trait::async_trait;
 use semver::{Version, VersionReq};
 use tracing::instrument;

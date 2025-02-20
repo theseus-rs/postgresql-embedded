@@ -1,6 +1,6 @@
-use criterion::{criterion_group, criterion_main, Criterion};
-use postgresql_embedded::blocking::PostgreSQL;
+use criterion::{Criterion, criterion_group, criterion_main};
 use postgresql_embedded::Result;
+use postgresql_embedded::blocking::PostgreSQL;
 use std::time::Duration;
 
 fn benchmarks(criterion: &mut Criterion) {
