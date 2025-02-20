@@ -1,18 +1,18 @@
-use crate::hasher::registry::HasherFn;
-use crate::repository::github::models::{Asset, Release};
-use crate::repository::model::Repository;
-use crate::repository::Archive;
 use crate::Error::{
     ArchiveHashMismatch, AssetHashNotFound, AssetNotFound, RepositoryFailure, VersionNotFound,
 };
-use crate::{hasher, matcher, Result};
+use crate::hasher::registry::HasherFn;
+use crate::repository::Archive;
+use crate::repository::github::models::{Asset, Release};
+use crate::repository::model::Repository;
+use crate::{Result, hasher, matcher};
 use async_trait::async_trait;
 use futures_util::StreamExt;
 use regex_lite::Regex;
 use reqwest::header::HeaderMap;
 use reqwest_middleware::{ClientBuilder, ClientWithMiddleware};
-use reqwest_retry::policies::ExponentialBackoff;
 use reqwest_retry::RetryTransientMiddleware;
+use reqwest_retry::policies::ExponentialBackoff;
 use reqwest_tracing::TracingMiddleware;
 use semver::{Version, VersionReq};
 use std::env;

@@ -1,11 +1,11 @@
+use crate::Error::ExtensionNotFound;
+use crate::Result;
 use crate::matcher::tar_gz_matcher;
 use crate::model::AvailableExtension;
 use crate::repository::steampipe::URL;
-use crate::repository::{steampipe, Repository};
-use crate::Error::ExtensionNotFound;
-use crate::Result;
+use crate::repository::{Repository, steampipe};
 use async_trait::async_trait;
-use postgresql_archive::extractor::{tar_gz_extract, ExtractDirectories};
+use postgresql_archive::extractor::{ExtractDirectories, tar_gz_extract};
 use postgresql_archive::get_archive;
 use postgresql_archive::repository::github::repository::GitHub;
 use regex_lite::Regex;

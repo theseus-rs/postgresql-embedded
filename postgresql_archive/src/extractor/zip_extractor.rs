@@ -1,5 +1,5 @@
-use crate::extractor::ExtractDirectories;
 use crate::Result;
+use crate::extractor::ExtractDirectories;
 use num_format::{Locale, ToFormattedString};
 use std::fs::create_dir_all;
 use std::io::Cursor;

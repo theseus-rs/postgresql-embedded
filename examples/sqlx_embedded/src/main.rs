@@ -4,8 +4,8 @@
 
 use anyhow::Result;
 use postgresql_embedded::PostgreSQL;
-use sqlx::postgres::PgPool;
 use sqlx::Row;
+use sqlx::postgres::PgPool;
 
 #[tokio::main]
 async fn main() -> Result<()> {

@@ -1,8 +1,8 @@
 #![allow(dead_code)]
 
 use anyhow::Result;
-use postgresql_archive::repository::github::repository::GitHub;
 use postgresql_archive::VersionReq;
+use postgresql_archive::repository::github::repository::GitHub;
 use postgresql_archive::{get_archive, repository};
 use std::fs::File;
 use std::io::Write;

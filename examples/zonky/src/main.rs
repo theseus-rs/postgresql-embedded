@@ -2,8 +2,8 @@
 #![forbid(clippy::allow_attributes)]
 #![deny(clippy::pedantic)]
 
-use postgresql_archive::configuration::zonky;
 use postgresql_archive::VersionReq;
+use postgresql_archive::configuration::zonky;
 use postgresql_embedded::{PostgreSQL, Result, Settings};
 
 #[tokio::main]
