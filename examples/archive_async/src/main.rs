@@ -3,7 +3,7 @@
 #![deny(clippy::pedantic)]
 
 use postgresql_archive::configuration::theseus;
-use postgresql_archive::{extract, get_archive, Result, VersionReq};
+use postgresql_archive::{Result, VersionReq, extract, get_archive};
 
 #[tokio::main]
 async fn main() -> Result<()> {

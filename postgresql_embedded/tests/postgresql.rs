@@ -1,5 +1,5 @@
-use postgresql_commands::psql::PsqlBuilder;
 use postgresql_commands::CommandBuilder;
+use postgresql_commands::psql::PsqlBuilder;
 use postgresql_embedded::{PostgreSQL, Result, Settings, Status};
 use std::fs::{remove_dir_all, remove_file};
 use test_log::test;

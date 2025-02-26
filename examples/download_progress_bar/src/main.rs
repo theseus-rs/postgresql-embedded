@@ -8,7 +8,7 @@ use postgresql_embedded::{PostgreSQL, Settings, VersionReq};
 use tracing_indicatif::IndicatifLayer;
 use tracing_subscriber::filter::LevelFilter;
 use tracing_subscriber::prelude::*;
-use tracing_subscriber::{fmt, Registry};
+use tracing_subscriber::{Registry, fmt};
 
 /// Example of how to display a progress bar for the postgresql embedded archive download
 #[tokio::main]

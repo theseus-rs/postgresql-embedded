@@ -1,9 +1,9 @@
+use crate::Error::{PoisonedLock, UnsupportedMatcher};
+use crate::Result;
 #[cfg(feature = "theseus")]
 use crate::configuration::theseus;
 #[cfg(feature = "zonky")]
 use crate::configuration::zonky;
-use crate::Error::{PoisonedLock, UnsupportedMatcher};
-use crate::Result;
 use semver::Version;
 use std::sync::{Arc, LazyLock, Mutex, RwLock};
 

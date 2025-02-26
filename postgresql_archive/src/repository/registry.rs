@@ -1,3 +1,5 @@
+use crate::Error::{PoisonedLock, UnsupportedRepository};
+use crate::Result;
 #[cfg(feature = "theseus")]
 use crate::configuration::theseus;
 #[cfg(feature = "zonky")]
@@ -5,8 +7,6 @@ use crate::configuration::zonky;
 #[cfg(feature = "github")]
 use crate::repository::github::repository::GitHub;
 use crate::repository::model::Repository;
-use crate::Error::{PoisonedLock, UnsupportedRepository};
-use crate::Result;
 use std::sync::{Arc, LazyLock, Mutex, RwLock};
 
 static REGISTRY: LazyLock<Arc<Mutex<RepositoryRegistry>>> =

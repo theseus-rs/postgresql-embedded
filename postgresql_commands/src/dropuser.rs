@@ -1,5 +1,5 @@
-use crate::traits::CommandBuilder;
 use crate::Settings;
+use crate::traits::CommandBuilder;
 use std::convert::AsRef;
 use std::ffi::{OsStr, OsString};
 use std::path::PathBuf;
@@ -207,8 +207,8 @@ impl CommandBuilder for DropUserBuilder {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::traits::CommandToString;
     use crate::TestSettings;
+    use crate::traits::CommandToString;
     use test_log::test;
 
     #[test]

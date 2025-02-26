@@ -1,11 +1,10 @@
 use crate::error::{Error, Result};
-use home::home_dir;
 use postgresql_archive::VersionReq;
-use rand::distributions::Alphanumeric;
 use rand::Rng;
+use rand::distr::Alphanumeric;
 use std::collections::HashMap;
 use std::env;
-use std::env::current_dir;
+use std::env::{current_dir, home_dir};
 use std::ffi::OsString;
 use std::path::PathBuf;
 #[cfg(feature = "bundled")]
@@ -264,11 +263,13 @@ mod tests {
     #[test]
     fn test_settings_new() {
         let settings = Settings::new();
-        assert!(!settings
-            .installation_dir
-            .to_str()
-            .unwrap_or_default()
-            .is_empty());
+        assert!(
+            !settings
+                .installation_dir
+                .to_str()
+                .unwrap_or_default()
+                .is_empty()
+        );
         assert!(settings.password_file.ends_with(".pgpass"));
         assert!(!settings.data_dir.to_str().unwrap_or_default().is_empty());
         assert_eq!(0, settings.port);
@@ -297,7 +298,9 @@ mod tests {
         let temporary = "temporary=false";
         let timeout = "timeout=10";
         let configuration = "configuration.max_connections=42";
-        let url = format!("{base_url}?{releases_url}&{version}&{installation_dir}&{password_file}&{data_dir}&{temporary}&{temporary}&{timeout}&{configuration}");
+        let url = format!(
+            "{base_url}?{releases_url}&{version}&{installation_dir}&{password_file}&{data_dir}&{temporary}&{temporary}&{timeout}&{configuration}"
+        );
 
         let settings = Settings::from_url(url)?;
 

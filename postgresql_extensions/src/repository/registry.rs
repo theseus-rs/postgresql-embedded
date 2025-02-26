@@ -1,3 +1,5 @@
+use crate::Error::{PoisonedLock, UnsupportedNamespace};
+use crate::Result;
 use crate::repository::model::Repository;
 #[cfg(feature = "portal-corp")]
 use crate::repository::portal_corp::repository::PortalCorp;
@@ -5,8 +7,6 @@ use crate::repository::portal_corp::repository::PortalCorp;
 use crate::repository::steampipe::repository::Steampipe;
 #[cfg(feature = "tensor-chord")]
 use crate::repository::tensor_chord::repository::TensorChord;
-use crate::Error::{PoisonedLock, UnsupportedNamespace};
-use crate::Result;
 use std::collections::HashMap;
 use std::sync::{Arc, LazyLock, Mutex, RwLock};
 
@@ -219,12 +219,16 @@ mod tests {
     fn test_get_repositories() {
         let repositories = get_repositories().unwrap();
         #[cfg(feature = "steampipe")]
-        assert!(repositories
-            .iter()
-            .any(|repository| repository.name() == "steampipe"));
+        assert!(
+            repositories
+                .iter()
+                .any(|repository| repository.name() == "steampipe")
+        );
         #[cfg(feature = "tensor-chord")]
-        assert!(repositories
-            .iter()
-            .any(|repository| repository.name() == "tensor-chord"));
+        assert!(
+            repositories
+                .iter()
+                .any(|repository| repository.name() == "tensor-chord")
+        );
     }
 }

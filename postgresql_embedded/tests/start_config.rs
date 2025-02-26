@@ -1,4 +1,4 @@
-use postgresql_embedded::{PostgreSQL, Settings, BOOTSTRAP_DATABASE};
+use postgresql_embedded::{BOOTSTRAP_DATABASE, PostgreSQL, Settings};
 use sqlx::{PgPool, Row};
 use std::collections::HashMap;
 use test_log::test;

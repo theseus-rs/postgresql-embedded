@@ -1,9 +1,9 @@
 #[cfg(feature = "blocking")]
+use postgresql_archive::VersionReq;
+#[cfg(feature = "blocking")]
 use postgresql_archive::blocking::{extract, get_archive, get_version};
 #[cfg(feature = "blocking")]
 use postgresql_archive::configuration::theseus;
-#[cfg(feature = "blocking")]
-use postgresql_archive::VersionReq;
 #[cfg(feature = "blocking")]
 use std::fs::remove_dir_all;
 #[cfg(feature = "blocking")]

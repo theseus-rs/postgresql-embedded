@@ -1,10 +1,10 @@
+use crate::Result;
 use crate::matcher::zip_matcher;
 use crate::model::AvailableExtension;
-use crate::repository::portal_corp::URL;
 use crate::repository::Repository;
-use crate::Result;
+use crate::repository::portal_corp::URL;
 use async_trait::async_trait;
-use postgresql_archive::extractor::{zip_extract, ExtractDirectories};
+use postgresql_archive::extractor::{ExtractDirectories, zip_extract};
 use postgresql_archive::get_archive;
 use postgresql_archive::repository::github::repository::GitHub;
 use regex_lite::Regex;
