@@ -15,13 +15,11 @@ use postgresql_commands::CommandBuilder;
 use postgresql_commands::CommandExecutor;
 use semver::Version;
 use sqlx::{PgPool, Row};
-use std::ffi::OsStr;
-use std::fs::{remove_dir_all, remove_file};
+use std::fs::{read_dir, remove_dir_all, remove_file};
 use std::io::prelude::*;
 use std::net::TcpListener;
 use std::path::PathBuf;
 use tracing::{debug, instrument};
-use walkdir::WalkDir;
 
 use crate::Error::{CreateDatabaseError, DatabaseExistsError, DropDatabaseError};
 
@@ -95,48 +93,43 @@ impl PostgreSQL {
     /// If it doesn't, it will search all the child directories for the latest version that matches the requirement.
     /// If it returns None, we couldn't find a matching installation.
     fn installed_dir(&self) -> Option<PathBuf> {
-        fn file_name_to_version(name: &OsStr) -> Option<Version> {
-            Version::parse(name.to_string_lossy().as_ref()).ok()
-        }
         let path = &self.settings.installation_dir;
         let maybe_path_version = path
             .file_name()
-            .map(|name| file_name_to_version(name))
-            .flatten();
+            .and_then(|file_name| Version::parse(&file_name.to_string_lossy()).ok());
         // If this directory matches the version requirement, we're done.
         if let Some(path_version) = maybe_path_version {
             if self.settings.version.matches(&path_version) && path.exists() {
-                return Some(path.to_path_buf());
+                return Some(path.clone());
             }
         }
-        // Otherwise we check the child directories.
-        let mut max_version: Option<Version> = None;
-        let mut max_path: Option<PathBuf> = None;
-        for entry in WalkDir::new(path).min_depth(1).max_depth(1) {
-            let Some(entry) = entry.ok() else {
-                // We ignore filesystem errors.
-                continue;
-            };
-            // Skip non-directories
-            if !entry.file_type().is_dir() {
-                continue;
-            }
-            // If it doesn't look like a version, we ignore it.
-            let Some(version) = file_name_to_version(entry.file_name()) else {
-                continue;
-            };
-            // If it doesn't match the version requirement, we ignore it.
-            if !self.settings.version.matches(&version) {
-                continue;
-            }
-            // If we already found a version that's greater or equal, we ignore it.
-            if max_version.iter().any(|prev_max| *prev_max >= version) {
-                continue;
-            }
-            max_version = Some(version.clone());
-            max_path = Some(entry.path().to_path_buf());
-        }
-        max_path
+
+        // Get all directories in the path as versions.
+        let mut versions = read_dir(path)
+            .ok()?
+            .filter_map(|entry| {
+                let Some(entry) = entry.ok() else {
+                    // We ignore filesystem errors.
+                    return None;
+                };
+                // Skip non-directories
+                if !entry.file_type().ok()?.is_dir() {
+                    return None;
+                }
+                let file_name = entry.file_name();
+                let version = Version::parse(&file_name.to_string_lossy()).ok()?;
+                if self.settings.version.matches(&version) {
+                    Some((version, entry.path()))
+                } else {
+                    None
+                }
+            })
+            .collect::<Vec<_>>();
+        // Sort the versions in descending order i.e. latest version first
+        versions.sort_by(|(a, _), (b, _)| b.cmp(a));
+        // Get the first matching version as the best match
+        let version_path = versions.first().map(|(_, path)| path.clone());
+        version_path
     }
 
     /// Check if the `PostgreSQL` server is initialized
