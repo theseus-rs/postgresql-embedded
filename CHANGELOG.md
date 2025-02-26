@@ -9,10 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## `postgresql_embedded` - [0.18.1](https://github.com/theseus-rs/postgresql-embedded/compare/v0.18.0...v0.18.1) - 2025-02-26
 
-### Other
-- Merge branch 'main' into jsdt/reuse-children
-- remove use of walkdir crate and address clippy lints
-- Check for existing installations in children before installing.
+### Fix
+- Check for existing installations in children before installing
 
 ## `postgresql_extensions` - [0.18.0](https://github.com/theseus-rs/postgresql-embedded/compare/postgresql_extensions-v0.17.5...postgresql_extensions-v0.18.0) - 2025-02-20
 
