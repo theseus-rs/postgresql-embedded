@@ -13,14 +13,14 @@ version.workspace = true
 
 [build-dependencies]
 anyhow = { workspace = true }
-postgresql_archive = { path = "../postgresql_archive", version = "0.18.1", default-features = false }
+postgresql_archive = { path = "../postgresql_archive", version = "0.18.2", default-features = false }
 target-triple = { workspace = true }
 tokio = { workspace = true, features = ["full"] }
 url = { workspace = true }
 
 [dependencies]
-postgresql_archive = { path = "../postgresql_archive", version = "0.18.1", default-features = false }
-postgresql_commands = { path = "../postgresql_commands", version = "0.18.1" }
+postgresql_archive = { path = "../postgresql_archive", version = "0.18.2", default-features = false }
+postgresql_commands = { path = "../postgresql_commands", version = "0.18.2" }
 rand = { workspace = true }
 semver = { workspace = true }
 sqlx = { workspace = true, features = ["runtime-tokio"] }
