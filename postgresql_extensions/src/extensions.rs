@@ -68,7 +68,7 @@ pub async fn install(
     {
         // Attempt to uninstall the extension first
         uninstall(settings, namespace, name).await?;
-    };
+    }
 
     let postgresql_version = get_postgresql_version(settings).await?;
     let repository = registry::get(namespace)?;
