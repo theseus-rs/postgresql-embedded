@@ -31,7 +31,7 @@ axum = "0.8.3"
 criterion = "0.5.1"
 diesel = "2.2.8"
 diesel_migrations = "2.2.0"
-flate2 = "1.1.0"
+flate2 = "1.1.1"
 futures-util = "0.3.31"
 hex = "0.4.3"
 indicatif = "0.17.11"
@@ -41,7 +41,7 @@ md-5 = "0.10.6"
 num-format = "0.4.4"
 pgvector = "0.4.0"
 postgres = "0.19.10"
-quick-xml = "0.37.3"
+quick-xml = "0.37.4"
 r2d2_postgres = "0.18.2"
 rand = "0.9.0"
 regex-lite = "0.1.6"
@@ -65,7 +65,7 @@ tracing = "0.1.41"
 tracing-indicatif = "0.3.9"
 tracing-subscriber = "0.3.19"
 url = "2.5.4"
-zip = { version = "2.5.0", default-features = false, features = ["deflate"] }
+zip = { version = "2.6.0", default-features = false, features = ["deflate"] }
 
 [workspace.metadata.release]
 shared-version = true
