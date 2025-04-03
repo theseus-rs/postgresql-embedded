@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## `postgresql_embedded` - [0.18.4](https://github.com/theseus-rs/postgresql-embedded/compare/v0.18.3...v0.18.4) - 2025-04-03
+
+### Other
+- update Cargo.toml dependencies
+
+## `postgresql_archive` - [0.18.4](https://github.com/theseus-rs/postgresql-embedded/compare/postgresql_archive-v0.18.3...postgresql_archive-v0.18.4) - 2025-04-03
+
+### Other
+- update Cargo.toml dependencies
+
 ## `postgresql_extensions` - [0.18.3](https://github.com/theseus-rs/postgresql-embedded/compare/postgresql_extensions-v0.18.2...postgresql_extensions-v0.18.3) - 2025-04-03
 
 ### Other
