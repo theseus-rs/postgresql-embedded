@@ -128,8 +128,7 @@ impl PostgreSQL {
         // Sort the versions in descending order i.e. latest version first
         versions.sort_by(|(a, _), (b, _)| b.cmp(a));
         // Get the first matching version as the best match
-        let version_path = versions.first().map(|(_, path)| path.clone());
-        version_path
+        versions.first().map(|(_, path)| path.clone())
     }
 
     /// Check if the `PostgreSQL` server is initialized

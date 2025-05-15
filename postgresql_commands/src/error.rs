@@ -38,7 +38,7 @@ mod test {
 
     #[test]
     fn test_from_io_error() {
-        let io_error = std::io::Error::new(std::io::ErrorKind::Other, "test");
+        let io_error = std::io::Error::other("test");
         let error = Error::from(io_error);
         assert_eq!(error.to_string(), "test");
     }
