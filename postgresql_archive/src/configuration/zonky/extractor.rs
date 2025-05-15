@@ -39,7 +39,7 @@ pub fn extract(bytes: &Vec<u8>, extract_directories: ExtractDirectories) -> Resu
         return Ok(Vec::new());
     }
 
-    let extract_dir = tempfile::tempdir_in(parent_dir)?.into_path();
+    let extract_dir = tempfile::tempdir_in(parent_dir)?.keep();
     debug!("Extracting archive to {}", extract_dir.to_string_lossy());
 
     let reader = Cursor::new(bytes);
