@@ -10,7 +10,7 @@ async fn main() -> Result<()> {
     let url = theseus::URL;
     let version_req = VersionReq::STAR;
     let (archive_version, archive) = get_archive(url, &version_req).await?;
-    let out_dir = tempfile::tempdir()?.into_path();
+    let out_dir = tempfile::tempdir()?.keep();
     extract(url, &archive, &out_dir).await?;
     println!(
         "PostgreSQL {} extracted to {}",
