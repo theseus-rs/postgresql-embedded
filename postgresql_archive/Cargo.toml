@@ -30,7 +30,7 @@ serde_json = { workspace = true, optional = true }
 sha1 = { workspace = true, optional = true }
 sha2 = { workspace = true, optional = true }
 tar = { workspace = true }
-target-triple = { workspace = true, optional = true }
+target-triple = { workspace = true }
 tempfile = { workspace = true }
 thiserror = { workspace = true }
 tokio = { workspace = true, features = ["full"], optional = true }
@@ -70,7 +70,6 @@ rustls = ["reqwest/rustls-tls-native-roots"]
 sha1 = ["dep:sha1"]
 sha2 = ["dep:sha2"]
 theseus = [
-    "dep:target-triple",
     "github",
     "sha2",
 ]

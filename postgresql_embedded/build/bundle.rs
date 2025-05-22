@@ -1,15 +1,20 @@
 #![allow(dead_code)]
 
 use anyhow::Result;
-use postgresql_archive::VersionReq;
 use postgresql_archive::repository::github::repository::GitHub;
+use postgresql_archive::{VersionReq, matcher};
 use postgresql_archive::{get_archive, repository};
 use std::fs::File;
 use std::io::Write;
+use std::ops::Deref;
 use std::path::PathBuf;
 use std::str::FromStr;
+use std::sync::{Arc, LazyLock, Mutex};
 use std::{env, fs};
 use url::Url;
+
+static CUSTOM_REPO_URL: LazyLock<Arc<Mutex<String>>> =
+    LazyLock::new(|| Arc::new(Mutex::new(String::new())));
 
 /// Stage the PostgreSQL archive when the `bundled` feature is enabled so that
 /// it can be included in the final binary. This is useful for creating a
@@ -26,6 +31,10 @@ pub(crate) async fn stage_postgresql_archive() -> Result<()> {
     let version_req = VersionReq::from_str(postgres_version_req.as_str())?;
     println!("PostgreSQL version: {postgres_version_req}");
     println!("Target: {}", target_triple::TARGET);
+    {
+        let mut custom_repo_url = CUSTOM_REPO_URL.lock().unwrap();
+        custom_repo_url.push_str(&releases_url);
+    }
 
     let out_dir = PathBuf::from(env::var("OUT_DIR")?);
     println!("OUT_DIR: {:?}", out_dir);
@@ -40,6 +49,8 @@ pub(crate) async fn stage_postgresql_archive() -> Result<()> {
         return Ok(());
     }
 
+    // let str = releases_url.clone();
+    // let s = str.leak();
     register_github_repository()?;
     let (asset_version, archive) = get_archive(&releases_url, &version_req).await?;
 
@@ -61,5 +72,16 @@ fn register_github_repository() -> Result<()> {
         },
         Box::new(GitHub::new),
     )?;
+
+    matcher::registry::register(
+        |url| {
+            CUSTOM_REPO_URL
+                .lock()
+                .map_err(|err| postgresql_archive::Error::PoisonedLock(err.to_string()))
+                .map(|custom_repo_url| url == custom_repo_url.deref())
+        },
+        postgresql_archive::configuration::matcher,
+    )?;
+
     Ok(())
 }
