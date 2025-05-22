@@ -1,5 +1,6 @@
 use crate::Error::{PoisonedLock, UnsupportedMatcher};
 use crate::Result;
+use crate::configuration::matcher;
 #[cfg(feature = "theseus")]
 use crate::configuration::theseus;
 #[cfg(feature = "zonky")]
@@ -66,7 +67,7 @@ impl Default for MatchersRegistry {
     fn default() -> Self {
         let mut registry = Self::new();
         #[cfg(feature = "theseus")]
-        registry.register(|url| Ok(url == theseus::URL), theseus::matcher);
+        registry.register(|url| Ok(url == theseus::URL), matcher);
         #[cfg(feature = "zonky")]
         registry.register(|url| Ok(url == zonky::URL), zonky::matcher);
         registry
