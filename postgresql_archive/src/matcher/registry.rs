@@ -10,7 +10,7 @@ use std::sync::{Arc, LazyLock, Mutex, RwLock};
 static REGISTRY: LazyLock<Arc<Mutex<MatchersRegistry>>> =
     LazyLock::new(|| Arc::new(Mutex::new(MatchersRegistry::default())));
 
-pub type SupportsFn = Box<dyn Fn(&str) -> Result<bool> + Send + Sync + 'static>;
+pub type SupportsFn = fn(&str) -> Result<bool>;
 pub type MatcherFn = fn(&str, &str, &Version) -> Result<bool>;
 
 /// Singleton struct to store matchers
@@ -66,9 +66,9 @@ impl Default for MatchersRegistry {
     fn default() -> Self {
         let mut registry = Self::new();
         #[cfg(feature = "theseus")]
-        registry.register(Box::new(|url| Ok(url == theseus::URL)), theseus::matcher);
+        registry.register(|url| Ok(url == theseus::URL), theseus::matcher);
         #[cfg(feature = "zonky")]
-        registry.register(Box::new(|url| Ok(url == zonky::URL)), zonky::matcher);
+        registry.register(|url| Ok(url == zonky::URL), zonky::matcher);
         registry
     }
 }
@@ -78,14 +78,12 @@ impl Default for MatchersRegistry {
 ///
 /// # Errors
 /// * If the registry is poisoned.
-pub fn register<F>(supports_fn: F, matcher_fn: MatcherFn) -> Result<()>
-where
-    F: Fn(&str) -> Result<bool> + Send + Sync + 'static,
-{
+pub fn register(supports_fn: SupportsFn, matcher_fn: MatcherFn) -> Result<()>
+where {
     let mut registry = REGISTRY
         .lock()
         .map_err(|error| PoisonedLock(error.to_string()))?;
-    registry.register(Box::new(supports_fn), matcher_fn);
+    registry.register(supports_fn, matcher_fn);
     Ok(())
 }
 

@@ -2,7 +2,6 @@
 
 use anyhow::Result;
 use postgresql_archive::configuration::custom;
-use postgresql_archive::matcher::registry::SupportsFn;
 use postgresql_archive::repository::github::repository::GitHub;
 use postgresql_archive::{VersionReq, matcher};
 use postgresql_archive::{get_archive, repository};
@@ -10,7 +9,6 @@ use std::fs::File;
 use std::io::Write;
 use std::path::PathBuf;
 use std::str::FromStr;
-use std::sync::Arc;
 use std::{env, fs};
 use url::Url;
 
@@ -25,13 +23,11 @@ pub(crate) async fn stage_postgresql_archive() -> Result<()> {
     let default_releases_url = String::new();
 
     let releases_url = match env::var("POSTGRESQL_RELEASES_URL") {
-        Ok(custom_url) => {
-            if !custom_url.is_empty() {
-                register_github_repository(&custom_url)?;
-            }
+        Ok(custom_url) if !default_releases_url.is_empty() => {
+            register_github_repository()?;
             custom_url
         }
-        Err(_) => default_releases_url,
+        _ => default_releases_url,
     };
     println!("PostgreSQL releases URL: {releases_url}");
     let postgres_version_req = env::var("POSTGRESQL_VERSION").unwrap_or("*".to_string());
@@ -63,21 +59,14 @@ pub(crate) async fn stage_postgresql_archive() -> Result<()> {
     Ok(())
 }
 
-fn register_github_repository(custom_url: &str) -> Result<()> {
-    repository::registry::register(
-        |url| {
-            let parsed_url = Url::parse(url)?;
-            let host = parsed_url.host_str().unwrap_or_default();
-            Ok(host.ends_with("github.com"))
-        },
-        Box::new(GitHub::new),
-    )?;
+fn supports_github_url(url: &str) -> postgresql_archive::Result<bool> {
+    let parsed_url = Url::parse(url)?;
+    let host = parsed_url.host_str().unwrap_or_default();
+    Ok(host.ends_with("github.com"))
+}
 
-    // make custom_url as Send + Sync + 'static
-    let custom_url = Arc::new(custom_url.to_string());
-    let supports_fn: SupportsFn = Box::new(move |url| Ok(url == custom_url.as_str()));
-    // register the matcher
-    matcher::registry::register(supports_fn, custom::matcher::matcher)?;
-
+fn register_github_repository() -> Result<()> {
+    repository::registry::register(supports_github_url, Box::new(GitHub::new))?;
+    matcher::registry::register(supports_github_url, custom::matcher::matcher)?;
     Ok(())
 }
