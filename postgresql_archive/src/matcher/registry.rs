@@ -78,8 +78,7 @@ impl Default for MatchersRegistry {
 ///
 /// # Errors
 /// * If the registry is poisoned.
-pub fn register(supports_fn: SupportsFn, matcher_fn: MatcherFn) -> Result<()>
-where {
+pub fn register(supports_fn: SupportsFn, matcher_fn: MatcherFn) -> Result<()> {
     let mut registry = REGISTRY
         .lock()
         .map_err(|error| PoisonedLock(error.to_string()))?;
