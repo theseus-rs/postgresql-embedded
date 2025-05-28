@@ -53,6 +53,7 @@ default = [
 ]
 blocking = ["dep:tokio"]
 github = [
+    "dep:target-triple",
     "dep:serde_json",
 ]
 indicatif = [
