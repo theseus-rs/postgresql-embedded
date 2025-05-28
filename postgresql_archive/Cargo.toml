@@ -54,6 +54,7 @@ default = [
 blocking = ["dep:tokio"]
 github = [
     "dep:serde_json",
+    "dep:target-triple",
 ]
 indicatif = [
     "dep:tracing-indicatif"

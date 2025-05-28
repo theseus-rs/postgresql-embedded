@@ -175,8 +175,8 @@ mod test {
     #[test]
     fn test_from_strip_prefix_error() {
         let path = PathBuf::from("test");
-        let stip_prefix_error = path.strip_prefix("foo").expect_err("strip prefix error");
-        let error = Error::from(stip_prefix_error);
+        let strip_prefix_error = path.strip_prefix("foo").expect_err("strip prefix error");
+        let error = Error::from(strip_prefix_error);
         assert_eq!(error.to_string(), "prefix not found");
     }
 
