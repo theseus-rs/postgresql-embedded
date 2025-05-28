@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## `postgresql_extensions` - [0.18.4](https://github.com/theseus-rs/postgresql-embedded/compare/postgresql_extensions-v0.18.3...postgresql_extensions-v0.18.4) - 2025-05-15
+
+### Other
+- update Cargo.toml dependencies
+
+## `postgresql_embedded` - [0.18.4](https://github.com/theseus-rs/postgresql-embedded/compare/v0.18.3...v0.18.4) - 2025-05-15
+
+### Other
+- update to Rust 1.87.0
+- update dependencies
+- update Cargo.toml dependencies
+
+## `postgresql_commands` - [0.18.4](https://github.com/theseus-rs/postgresql-embedded/compare/postgresql_commands-v0.18.3...postgresql_commands-v0.18.4) - 2025-05-15
+
+### Other
+- update to Rust 1.87.0
+
+## `postgresql_archive` - [0.18.4](https://github.com/theseus-rs/postgresql-embedded/compare/postgresql_archive-v0.18.3...postgresql_archive-v0.18.4) - 2025-05-15
+
+### Other
+- update to Rust 1.87.0
+- update dependencies
+
 ## `postgresql_extensions` - [0.18.3](https://github.com/theseus-rs/postgresql-embedded/compare/postgresql_extensions-v0.18.2...postgresql_extensions-v0.18.3) - 2025-04-03
 
 ### Other
