@@ -7,6 +7,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## `postgresql_extensions` - [0.18.5](https://github.com/theseus-rs/postgresql-embedded/compare/postgresql_extensions-v0.18.4...postgresql_extensions-v0.18.5) - 2025-05-28
+
+### Other
+- update Cargo.toml dependencies
+
+## `postgresql_embedded` - [0.18.5](https://github.com/theseus-rs/postgresql-embedded/compare/v0.18.4...v0.18.5) - 2025-05-28
+
+### Fixed
+- correct theseus build bundle
+- revert SupportFn type change
+- custom release url not working and compilation failure
+
+### Other
+- Merge branch 'main' into main
+- update to criterion=0.6.0, pgvector=0.4.1, reqwest=0.12.18, sqlx=0.8.6, tokio=1.45.1, zip=4.0.0
+- minor syntax change
+- update Cargo.toml dependencies
+
+## `postgresql_commands` - [0.18.5](https://github.com/theseus-rs/postgresql-embedded/compare/postgresql_commands-v0.18.4...postgresql_commands-v0.18.5) - 2025-05-28
+
+### Other
+- update Cargo.toml dependencies
+
+## `postgresql_archive` - [0.18.5](https://github.com/theseus-rs/postgresql-embedded/compare/postgresql_archive-v0.18.4...postgresql_archive-v0.18.5) - 2025-05-28
+
+### Fixed
+- correct theseus build bundle
+- revert SupportFn type change
+- custom release url not working and compilation failure
+
+### Other
+- update to criterion=0.6.0, pgvector=0.4.1, reqwest=0.12.18, sqlx=0.8.6, tokio=1.45.1, zip=4.0.0
+- minor syntax change
+
 ## `postgresql_extensions` - [0.18.4](https://github.com/theseus-rs/postgresql-embedded/compare/postgresql_extensions-v0.18.3...postgresql_extensions-v0.18.4) - 2025-05-15
 
 ### Other
