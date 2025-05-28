@@ -1,7 +1,7 @@
 #![allow(dead_code)]
 
 use anyhow::Result;
-use postgresql_archive::configuration::custom;
+use postgresql_archive::configuration::{custom, theseus};
 use postgresql_archive::repository::github::repository::GitHub;
 use postgresql_archive::{VersionReq, matcher};
 use postgresql_archive::{get_archive, repository};
@@ -24,10 +24,13 @@ pub(crate) async fn stage_postgresql_archive() -> Result<()> {
 
     let releases_url = match env::var("POSTGRESQL_RELEASES_URL") {
         Ok(custom_url) if !default_releases_url.is_empty() => {
-            register_github_repository()?;
+            register_custom_repository()?;
             custom_url
         }
-        _ => default_releases_url,
+        _ => {
+            register_theseus_repository()?;
+            default_releases_url
+        }
     };
     println!("PostgreSQL releases URL: {releases_url}");
     let postgres_version_req = env::var("POSTGRESQL_VERSION").unwrap_or("*".to_string());
@@ -65,8 +68,14 @@ fn supports_github_url(url: &str) -> postgresql_archive::Result<bool> {
     Ok(host.ends_with("github.com"))
 }
 
-fn register_github_repository() -> Result<()> {
+fn register_custom_repository() -> Result<()> {
     repository::registry::register(supports_github_url, Box::new(GitHub::new))?;
-    matcher::registry::register(supports_github_url, custom::matcher::matcher)?;
+    matcher::registry::register(supports_github_url, custom::matcher)?;
+    Ok(())
+}
+
+fn register_theseus_repository() -> Result<()> {
+    repository::registry::register(supports_github_url, Box::new(GitHub::new))?;
+    matcher::registry::register(supports_github_url, theseus::matcher)?;
     Ok(())
 }
