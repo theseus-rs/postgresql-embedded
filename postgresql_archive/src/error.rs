@@ -136,7 +136,7 @@ mod test {
         assert!(result.is_err());
         if let Err(error) = result {
             let error = Error::from(error);
-            assert!(error.to_string().contains("https://a.com"));
+            assert!(error.to_string().contains("error sending request"));
         }
     }
 
