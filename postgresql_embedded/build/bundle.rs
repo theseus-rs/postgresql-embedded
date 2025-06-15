@@ -17,6 +17,8 @@ use url::Url;
 /// self-contained binary that does not require the PostgreSQL archive to be
 /// downloaded at runtime.
 pub(crate) async fn stage_postgresql_archive() -> Result<()> {
+    println!("cargo:rerun-if-env-changed=POSTGRESQL_VERSION");
+    println!("cargo:rerun-if-env-changed=POSTGRESQL_RELEASES_URL");
     #[cfg(feature = "theseus")]
     let default_releases_url = postgresql_archive::configuration::theseus::URL.to_string();
     #[cfg(not(feature = "theseus"))]
