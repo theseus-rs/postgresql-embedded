@@ -12,7 +12,7 @@ static REGISTRY: LazyLock<Arc<Mutex<RepositoryRegistry>>> =
     LazyLock::new(|| Arc::new(Mutex::new(RepositoryRegistry::default())));
 
 type SupportsFn = fn(&str) -> Result<bool>;
-type ExtractFn = fn(&Vec<u8>, ExtractDirectories) -> Result<Vec<PathBuf>>;
+type ExtractFn = fn(&Vec<u8>, &ExtractDirectories) -> Result<Vec<PathBuf>>;
 
 /// Singleton struct to store extractors
 #[expect(clippy::type_complexity)]
@@ -107,7 +107,7 @@ mod tests {
         let extractor = get(url)?;
         let mut extract_directories = ExtractDirectories::default();
         extract_directories.add_mapping(Regex::new(".*")?, PathBuf::from("test"));
-        assert!(extractor(&Vec::new(), extract_directories).is_ok());
+        assert!(extractor(&Vec::new(), &extract_directories).is_ok());
         Ok(())
     }
 

@@ -13,7 +13,7 @@ use tracing::{debug, instrument, warn};
 /// # Errors
 /// Returns an error if the extraction fails.
 #[instrument(skip(bytes))]
-pub fn extract(bytes: &Vec<u8>, extract_directories: ExtractDirectories) -> Result<Vec<PathBuf>> {
+pub fn extract(bytes: &Vec<u8>, extract_directories: &ExtractDirectories) -> Result<Vec<PathBuf>> {
     let out_dir = extract_directories.get_path(".")?;
 
     let parent_dir = if let Some(parent) = out_dir.parent() {
@@ -41,7 +41,7 @@ pub fn extract(bytes: &Vec<u8>, extract_directories: ExtractDirectories) -> Resu
     debug!("Extracting archive to {}", extract_dir.to_string_lossy());
     let mut archive_extract_directories = ExtractDirectories::default();
     archive_extract_directories.add_mapping(Regex::new(".*")?, extract_dir.clone());
-    let files = tar_gz_extract(bytes, archive_extract_directories)?;
+    let files = tar_gz_extract(bytes, &archive_extract_directories)?;
 
     if out_dir.exists() {
         debug!(

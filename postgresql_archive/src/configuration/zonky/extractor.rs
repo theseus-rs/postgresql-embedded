@@ -16,7 +16,7 @@ use zip::ZipArchive;
 /// Returns an error if the extraction fails.
 #[expect(clippy::case_sensitive_file_extension_comparisons)]
 #[instrument(skip(bytes))]
-pub fn extract(bytes: &Vec<u8>, extract_directories: ExtractDirectories) -> Result<Vec<PathBuf>> {
+pub fn extract(bytes: &Vec<u8>, extract_directories: &ExtractDirectories) -> Result<Vec<PathBuf>> {
     let out_dir = extract_directories.get_path(".")?;
     let parent_dir = if let Some(parent) = out_dir.parent() {
         parent
@@ -63,7 +63,7 @@ pub fn extract(bytes: &Vec<u8>, extract_directories: ExtractDirectories) -> Resu
 
     let mut archive_extract_directories = ExtractDirectories::default();
     archive_extract_directories.add_mapping(Regex::new(".*")?, extract_dir.clone());
-    let files = tar_xz_extract(&archive_bytes, archive_extract_directories)?;
+    let files = tar_xz_extract(&archive_bytes, &archive_extract_directories)?;
 
     if out_dir.exists() {
         debug!(
