@@ -7,6 +7,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## `postgresql_extensions` - [0.18.6](https://github.com/theseus-rs/postgresql-embedded/compare/postgresql_extensions-v0.18.5...postgresql_extensions-v0.18.6) - 2025-06-17
+
+### Added
+
+- add extractor feature flags
+
+### Other
+
+- correct lint errors
+
+## `postgresql_embedded` - [0.18.6](https://github.com/theseus-rs/postgresql-embedded/compare/v0.18.5...v0.18.6) - 2025-06-17
+
+### Added
+
+- add extractor feature flags
+
+### Other
+
+- make liblzma an optional dependency
+- add documentation for bundled feature flag
+- correct lint errors
+
+## `postgresql_archive` - [0.18.6](https://github.com/theseus-rs/postgresql-embedded/compare/postgresql_archive-v0.18.5...postgresql_archive-v0.18.6) - 2025-06-17
+
+### Added
+
+- add extractor feature flags
+
+### Other
+
+- make liblzma an optional dependency
+- correct lint errors
+
 ## `postgresql_extensions` - [0.18.5](https://github.com/theseus-rs/postgresql-embedded/compare/postgresql_extensions-v0.18.4...postgresql_extensions-v0.18.5) - 2025-05-28
 
 ### Other
