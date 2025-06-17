@@ -14,7 +14,7 @@ use tracing::{debug, instrument, warn};
 /// # Errors
 /// Returns an error if the extraction fails.
 #[instrument(skip(bytes))]
-pub fn extract(bytes: &Vec<u8>, extract_directories: ExtractDirectories) -> Result<Vec<PathBuf>> {
+pub fn extract(bytes: &Vec<u8>, extract_directories: &ExtractDirectories) -> Result<Vec<PathBuf>> {
     let mut files = Vec::new();
     let input = BufReader::new(Cursor::new(bytes));
     let decoder = GzDecoder::new(input);
