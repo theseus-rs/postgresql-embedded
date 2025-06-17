@@ -7,8 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-##
-`postgresql_extensions` - [0.18.6](https://github.com/theseus-rs/postgresql-embedded/compare/postgresql_extensions-v0.18.5...postgresql_extensions-v0.18.6) - 2025-06-17
+## `postgresql_extensions` - [0.18.6](https://github.com/theseus-rs/postgresql-embedded/compare/postgresql_extensions-v0.18.5...postgresql_extensions-v0.18.6) - 2025-06-17
 
 ### Added
 
@@ -18,8 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - correct lint errors
 
-##
-`postgresql_embedded` - [0.18.6](https://github.com/theseus-rs/postgresql-embedded/compare/v0.18.5...v0.18.6) - 2025-06-17
+## `postgresql_embedded` - [0.18.6](https://github.com/theseus-rs/postgresql-embedded/compare/v0.18.5...v0.18.6) - 2025-06-17
 
 ### Added
 
@@ -31,8 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - add documentation for bundled feature flag
 - correct lint errors
 
-##
-`postgresql_archive` - [0.18.6](https://github.com/theseus-rs/postgresql-embedded/compare/postgresql_archive-v0.18.5...postgresql_archive-v0.18.6) - 2025-06-17
+## `postgresql_archive` - [0.18.6](https://github.com/theseus-rs/postgresql-embedded/compare/postgresql_archive-v0.18.5...postgresql_archive-v0.18.6) - 2025-06-17
 
 ### Added
 
@@ -43,217 +40,163 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - make liblzma an optional dependency
 - correct lint errors
 
-##
-`postgresql_extensions` - [0.18.5](https://github.com/theseus-rs/postgresql-embedded/compare/postgresql_extensions-v0.18.4...postgresql_extensions-v0.18.5) - 2025-05-28
+## `postgresql_extensions` - [0.18.5](https://github.com/theseus-rs/postgresql-embedded/compare/postgresql_extensions-v0.18.4...postgresql_extensions-v0.18.5) - 2025-05-28
 
 ### Other
-
 - update Cargo.toml dependencies
 
-##
-`postgresql_embedded` - [0.18.5](https://github.com/theseus-rs/postgresql-embedded/compare/v0.18.4...v0.18.5) - 2025-05-28
+## `postgresql_embedded` - [0.18.5](https://github.com/theseus-rs/postgresql-embedded/compare/v0.18.4...v0.18.5) - 2025-05-28
 
 ### Fixed
-
 - correct theseus build bundle
 - revert SupportFn type change
 - custom release url not working and compilation failure
 
 ### Other
-
 - Merge branch 'main' into main
 - update to criterion=0.6.0, pgvector=0.4.1, reqwest=0.12.18, sqlx=0.8.6, tokio=1.45.1, zip=4.0.0
 - minor syntax change
 - update Cargo.toml dependencies
 
-##
-`postgresql_commands` - [0.18.5](https://github.com/theseus-rs/postgresql-embedded/compare/postgresql_commands-v0.18.4...postgresql_commands-v0.18.5) - 2025-05-28
+## `postgresql_commands` - [0.18.5](https://github.com/theseus-rs/postgresql-embedded/compare/postgresql_commands-v0.18.4...postgresql_commands-v0.18.5) - 2025-05-28
 
 ### Other
-
 - update Cargo.toml dependencies
 
-##
-`postgresql_archive` - [0.18.5](https://github.com/theseus-rs/postgresql-embedded/compare/postgresql_archive-v0.18.4...postgresql_archive-v0.18.5) - 2025-05-28
+## `postgresql_archive` - [0.18.5](https://github.com/theseus-rs/postgresql-embedded/compare/postgresql_archive-v0.18.4...postgresql_archive-v0.18.5) - 2025-05-28
 
 ### Fixed
-
 - correct theseus build bundle
 - revert SupportFn type change
 - custom release url not working and compilation failure
 
 ### Other
-
 - update to criterion=0.6.0, pgvector=0.4.1, reqwest=0.12.18, sqlx=0.8.6, tokio=1.45.1, zip=4.0.0
 - minor syntax change
 
-##
-`postgresql_extensions` - [0.18.4](https://github.com/theseus-rs/postgresql-embedded/compare/postgresql_extensions-v0.18.3...postgresql_extensions-v0.18.4) - 2025-05-15
+## `postgresql_extensions` - [0.18.4](https://github.com/theseus-rs/postgresql-embedded/compare/postgresql_extensions-v0.18.3...postgresql_extensions-v0.18.4) - 2025-05-15
 
 ### Other
-
 - update Cargo.toml dependencies
 
-##
-`postgresql_embedded` - [0.18.4](https://github.com/theseus-rs/postgresql-embedded/compare/v0.18.3...v0.18.4) - 2025-05-15
+## `postgresql_embedded` - [0.18.4](https://github.com/theseus-rs/postgresql-embedded/compare/v0.18.3...v0.18.4) - 2025-05-15
 
 ### Other
-
 - update to Rust 1.87.0
 - update dependencies
 - update Cargo.toml dependencies
 
-##
-`postgresql_commands` - [0.18.4](https://github.com/theseus-rs/postgresql-embedded/compare/postgresql_commands-v0.18.3...postgresql_commands-v0.18.4) - 2025-05-15
+## `postgresql_commands` - [0.18.4](https://github.com/theseus-rs/postgresql-embedded/compare/postgresql_commands-v0.18.3...postgresql_commands-v0.18.4) - 2025-05-15
 
 ### Other
-
 - update to Rust 1.87.0
 
-##
-`postgresql_archive` - [0.18.4](https://github.com/theseus-rs/postgresql-embedded/compare/postgresql_archive-v0.18.3...postgresql_archive-v0.18.4) - 2025-05-15
+## `postgresql_archive` - [0.18.4](https://github.com/theseus-rs/postgresql-embedded/compare/postgresql_archive-v0.18.3...postgresql_archive-v0.18.4) - 2025-05-15
 
 ### Other
-
 - update to Rust 1.87.0
 - update dependencies
 
-##
-`postgresql_extensions` - [0.18.3](https://github.com/theseus-rs/postgresql-embedded/compare/postgresql_extensions-v0.18.2...postgresql_extensions-v0.18.3) - 2025-04-03
+## `postgresql_extensions` - [0.18.3](https://github.com/theseus-rs/postgresql-embedded/compare/postgresql_extensions-v0.18.2...postgresql_extensions-v0.18.3) - 2025-04-03
 
 ### Other
-
 - update to Rust 1.86.0
 
-##
-`postgresql_embedded` - [0.18.3](https://github.com/theseus-rs/postgresql-embedded/compare/v0.18.2...v0.18.3) - 2025-04-03
+## `postgresql_embedded` - [0.18.3](https://github.com/theseus-rs/postgresql-embedded/compare/v0.18.2...v0.18.3) - 2025-04-03
 
 ### Other
-
 - update Cargo.toml dependencies
 - update to Rust 1.86.0
 
-##
-`postgresql_archive` - [0.18.3](https://github.com/theseus-rs/postgresql-embedded/compare/postgresql_archive-v0.18.2...postgresql_archive-v0.18.3) - 2025-04-03
+## `postgresql_archive` - [0.18.3](https://github.com/theseus-rs/postgresql-embedded/compare/postgresql_archive-v0.18.2...postgresql_archive-v0.18.3) - 2025-04-03
 
 ### Other
-
 - update Cargo.toml dependencies
 
-##
-`postgresql_extensions` - [0.18.2](https://github.com/theseus-rs/postgresql-embedded/compare/postgresql_extensions-v0.18.1...postgresql_extensions-v0.18.2) - 2025-03-21
+## `postgresql_extensions` - [0.18.2](https://github.com/theseus-rs/postgresql-embedded/compare/postgresql_extensions-v0.18.1...postgresql_extensions-v0.18.2) - 2025-03-21
 
 ### Other
-
 - update Cargo.toml dependencies
 
-##
-`postgresql_embedded` - [0.18.2](https://github.com/theseus-rs/postgresql-embedded/compare/v0.18.1...v0.18.2) - 2025-03-21
+## `postgresql_embedded` - [0.18.2](https://github.com/theseus-rs/postgresql-embedded/compare/v0.18.1...v0.18.2) - 2025-03-21
 
 ### Other
-
 - update Cargo.toml dependencies
 
-##
-`postgresql_commands` - [0.18.2](https://github.com/theseus-rs/postgresql-embedded/compare/postgresql_commands-v0.18.1...postgresql_commands-v0.18.2) - 2025-03-21
+## `postgresql_commands` - [0.18.2](https://github.com/theseus-rs/postgresql-embedded/compare/postgresql_commands-v0.18.1...postgresql_commands-v0.18.2) - 2025-03-21
 
 ### Other
-
 - update Cargo.toml dependencies
 
-##
-`postgresql_archive` - [0.18.2](https://github.com/theseus-rs/postgresql-embedded/compare/postgresql_archive-v0.18.1...postgresql_archive-v0.18.2) - 2025-03-21
+## `postgresql_archive` - [0.18.2](https://github.com/theseus-rs/postgresql-embedded/compare/postgresql_archive-v0.18.1...postgresql_archive-v0.18.2) - 2025-03-21
 
 ### Other
-
 - update Cargo.toml dependencies
 
-##
-`postgresql_embedded` - [0.18.1](https://github.com/theseus-rs/postgresql-embedded/compare/v0.18.0...v0.18.1) - 2025-02-26
+## `postgresql_embedded` - [0.18.1](https://github.com/theseus-rs/postgresql-embedded/compare/v0.18.0...v0.18.1) - 2025-02-26
 
 ### Fix
-
 - Check for existing installations in children before installing
 
-##
-`postgresql_extensions` - [0.18.0](https://github.com/theseus-rs/postgresql-embedded/compare/postgresql_extensions-v0.17.5...postgresql_extensions-v0.18.0) - 2025-02-20
+## `postgresql_extensions` - [0.18.0](https://github.com/theseus-rs/postgresql-embedded/compare/postgresql_extensions-v0.17.5...postgresql_extensions-v0.18.0) - 2025-02-20
 
 ### Added
-
 - update to Rust 2024 edition
 
 ### Other
-
 - [**breaking**] rename feature rustls-tls to rustls
 
-##
-`postgresql_commands` - [0.18.0](https://github.com/theseus-rs/postgresql-embedded/compare/postgresql_commands-v0.17.5...postgresql_commands-v0.18.0) - 2025-02-20
+## `postgresql_commands` - [0.18.0](https://github.com/theseus-rs/postgresql-embedded/compare/postgresql_commands-v0.17.5...postgresql_commands-v0.18.0) - 2025-02-20
 
 ### Added
-
 - update to Rust 2024 edition
 
-##
-`postgresql_embedded` - [0.18.0](https://github.com/theseus-rs/postgresql-embedded/compare/v0.17.5...v0.18.0) - 2025-02-20
+## `postgresql_embedded` - [0.18.0](https://github.com/theseus-rs/postgresql-embedded/compare/v0.17.5...v0.18.0) - 2025-02-20
 
 ### Added
-
 - update to Rust 2024 edition
 
 ### Other
-
 - update dependencies
 - [**breaking**] rename feature rustls-tls to rustls
 
-##
-`postgresql_archive` - [0.18.0](https://github.com/theseus-rs/postgresql-embedded/compare/postgresql_archive-v0.17.5...postgresql_archive-v0.18.0) - 2025-02-20
+## `postgresql_archive` - [0.18.0](https://github.com/theseus-rs/postgresql-embedded/compare/postgresql_archive-v0.17.5...postgresql_archive-v0.18.0) - 2025-02-20
 
 ### Added
-
 - update to Rust 2024 edition
 
 ### Other
-
 - [**breaking**] rename feature rustls-tls to rustls
 
-##
-`postgresql_extensions` - [0.17.5](https://github.com/theseus-rs/postgresql-embedded/compare/postgresql_extensions-v0.17.4...postgresql_extensions-v0.17.5) - 2025-01-25
+## `postgresql_extensions` - [0.17.5](https://github.com/theseus-rs/postgresql-embedded/compare/postgresql_extensions-v0.17.4...postgresql_extensions-v0.17.5) - 2025-01-25
 
 ### Other
-
 - replace regex with regex-lite to reduce dependencies
 - update ci configuration
 
-##
-`postgresql_commands` - [0.17.5](https://github.com/theseus-rs/postgresql-embedded/compare/postgresql_commands-v0.17.4...postgresql_commands-v0.17.5) - 2025-01-25
+## `postgresql_commands` - [0.17.5](https://github.com/theseus-rs/postgresql-embedded/compare/postgresql_commands-v0.17.4...postgresql_commands-v0.17.5) - 2025-01-25
 
 ### Other
-
 - remove anyhow and human_bytes dependencies
 
-##
-`postgresql_embedded` - [0.17.5](https://github.com/theseus-rs/postgresql-embedded/compare/v0.17.4...v0.17.5) - 2025-01-25
+## `postgresql_embedded` - [0.17.5](https://github.com/theseus-rs/postgresql-embedded/compare/v0.17.4...v0.17.5) - 2025-01-25
 
 ### Other
-
 - make tracing-indicatif optional
 - remove anyhow and human_bytes dependencies
 - replace regex with regex-lite to reduce dependencies
 - remove http dependency
 - update ci configuration
 
-##
-`postgresql_archive` - [0.17.5](https://github.com/theseus-rs/postgresql-embedded/compare/postgresql_archive-v0.17.4...postgresql_archive-v0.17.5) - 2025-01-25
+## `postgresql_archive` - [0.17.5](https://github.com/theseus-rs/postgresql-embedded/compare/postgresql_archive-v0.17.4...postgresql_archive-v0.17.5) - 2025-01-25
 
 ### Other
-
 - replace regex with regex-lite to reduce dependencies
 - remove http dependency
 - make tracing-indicatif optional
 - remove anyhow and human_bytes dependencies
 
-##
-`postgresql_embedded` - [v0.17.4](https://github.com/theseus-rs/postgresql-embedded/compare/v0.17.3...v0.17.4) - 2025-01-17
+## `postgresql_embedded` - [v0.17.4](https://github.com/theseus-rs/postgresql-embedded/compare/v0.17.3...v0.17.4) - 2025-01-17
 
 ### Chore
 
@@ -265,8 +208,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - correct deny.toml
 - use tokio::process::spawn() for pc_ctl on Windows
 
-##
-`postgresql_embedded` - [v0.17.3](https://github.com/theseus-rs/postgresql-embedded/compare/v0.17.2...v0.17.3) - 2024-11-12
+## `postgresql_embedded` - [v0.17.3](https://github.com/theseus-rs/postgresql-embedded/compare/v0.17.2...v0.17.3) - 2024-11-12
 
 ### Build
 
@@ -286,23 +228,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - correct zonky extractor
 
-##
-`postgresql_embedded` - [v0.17.2](https://github.com/theseus-rs/postgresql-embedded/compare/v0.17.1...v0.17.2) - 2024-10-01
+## `postgresql_embedded` - [v0.17.2](https://github.com/theseus-rs/postgresql-embedded/compare/v0.17.1...v0.17.2) - 2024-10-01
 
 ### Build
 
 - correct documentation build
 
-##
-`postgresql_embedded` - [v0.17.1](https://github.com/theseus-rs/postgresql-embedded/compare/v0.17.0...v0.17.1) - 2024-10-01
+## `postgresql_embedded` - [v0.17.1](https://github.com/theseus-rs/postgresql-embedded/compare/v0.17.0...v0.17.1) - 2024-10-01
 
 ### Build
 
 - correct documentation build
 - update dependencies
 
-##
-`postgresql_embedded` - [v0.17.0](https://github.com/theseus-rs/postgresql-embedded/compare/v0.16.3...v0.17.0) - 2024-09-28
+## `postgresql_embedded` - [v0.17.0](https://github.com/theseus-rs/postgresql-embedded/compare/v0.16.3...v0.17.0) - 2024-09-28
 
 ### Chore
 
@@ -324,16 +263,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - update extension test to run with specific postgresql version
 
-##
-`postgresql_embedded` - [v0.16.3](https://github.com/theseus-rs/postgresql-embedded/compare/v0.16.2...v0.16.3) - 2024-09-04
+## `postgresql_embedded` - [v0.16.3](https://github.com/theseus-rs/postgresql-embedded/compare/v0.16.2...v0.16.3) - 2024-09-04
 
 ### Chore
 
 - switch from xz2 to liblzma
 - ignore .idea directory
 
-##
-`postgresql_embedded` - [v0.16.2](https://github.com/theseus-rs/postgresql-embedded/compare/v0.16.1...v0.16.2) - 2024-08-24
+## `postgresql_embedded` - [v0.16.2](https://github.com/theseus-rs/postgresql-embedded/compare/v0.16.1...v0.16.2) - 2024-08-24
 
 ### Build
 
@@ -352,8 +289,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - rename embedded_async_diesel_r2d2 to diesel_embedded
 
-##
-`postgresql_embedded` - [v0.16.1](https://github.com/theseus-rs/postgresql-embedded/compare/v0.16.0...v0.16.1) - 2024-08-13
+## `postgresql_embedded` - [v0.16.1](https://github.com/theseus-rs/postgresql-embedded/compare/v0.16.0...v0.16.1) - 2024-08-13
 
 ### Build
 
@@ -377,8 +313,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - update version of postgresql used for testing from 16.3.0 to 16.4.0
 - update windows test assertion
 
-##
-`postgresql_embedded` - [v0.16.0](https://github.com/theseus-rs/postgresql-embedded/compare/v0.15.0...v0.16.0) - 2024-08-04
+## `postgresql_embedded` - [v0.16.0](https://github.com/theseus-rs/postgresql-embedded/compare/v0.15.0...v0.16.0) - 2024-08-04
 
 ### Build
 
@@ -417,8 +352,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - improve matcher error tests
 - enable portal corp test for all platforms
 
-##
-`postgresql_embedded` - [v0.15.0](https://github.com/theseus-rs/postgresql-embedded/compare/v0.14.2...v0.15.0) - 2024-08-01
+## `postgresql_embedded` - [v0.15.0](https://github.com/theseus-rs/postgresql-embedded/compare/v0.14.2...v0.15.0) - 2024-08-01
 
 ### Build
 
@@ -460,8 +394,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - update steampipe matcher test
 - improve model test coverage
 
-##
-`postgresql_embedded` - [v0.14.2](https://github.com/theseus-rs/postgresql-embedded/compare/v0.14.1...v0.14.2) - 2024-07-17
+## `postgresql_embedded` - [v0.14.2](https://github.com/theseus-rs/postgresql-embedded/compare/v0.14.1...v0.14.2) - 2024-07-17
 
 ### Build
 
@@ -481,8 +414,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - correct windows test failure
 
-##
-`postgresql_embedded` - [v0.14.1](https://github.com/theseus-rs/postgresql-embedded/compare/v0.14.0...v0.14.1) - 2024-07-06
+## `postgresql_embedded` - [v0.14.1](https://github.com/theseus-rs/postgresql-embedded/compare/v0.14.0...v0.14.1) - 2024-07-06
 
 ### Build
 
@@ -510,8 +442,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - increase timeout to 30 seconds
 - revert timeout to 5 seconds
 
-##
-`postgresql_embedded` - [v0.14.0](https://github.com/theseus-rs/postgresql-embedded/compare/v0.13.0...v0.14.0) - 2024-07-03
+## `postgresql_embedded` - [v0.14.0](https://github.com/theseus-rs/postgresql-embedded/compare/v0.13.0...v0.14.0) - 2024-07-03
 
 ### Feat
 
@@ -521,8 +452,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - correct extract test implementations
 
-##
-`postgresql_embedded` - [v0.13.0](https://github.com/theseus-rs/postgresql-embedded/compare/v0.12.0...v0.13.0) - 2024-07-01
+## `postgresql_embedded` - [v0.13.0](https://github.com/theseus-rs/postgresql-embedded/compare/v0.12.0...v0.13.0) - 2024-07-01
 
 ### Build
 
@@ -580,15 +510,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - add zonky archive integration test
 - correct hash test
 
-##
-`postgresql_embedded` - [v0.12.0](https://github.com/theseus-rs/postgresql-embedded/compare/v0.11.0...v0.12.0) - 2024-06-21
+## `postgresql_embedded` - [v0.12.0](https://github.com/theseus-rs/postgresql-embedded/compare/v0.11.0...v0.12.0) - 2024-06-21
 
 ### Refactor
 
 - [**breaking**] move version from PostgreSQL::new() to Settings
 
-##
-`postgresql_embedded` - [v0.11.0](https://github.com/theseus-rs/postgresql-embedded/compare/v0.10.2...v0.11.0) - 2024-06-20
+## `postgresql_embedded` - [v0.11.0](https://github.com/theseus-rs/postgresql-embedded/compare/v0.10.2...v0.11.0) - 2024-06-20
 
 ### Build
 
@@ -616,15 +544,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - add missing command error tests and clean up lint directives
 
-##
-`postgresql_embedded` - [v0.10.2](https://github.com/theseus-rs/postgresql-embedded/compare/v0.10.1...v0.10.2) - 2024-06-18
+## `postgresql_embedded` - [v0.10.2](https://github.com/theseus-rs/postgresql-embedded/compare/v0.10.1...v0.10.2) - 2024-06-18
 
 ### Fix
 
 - correct errors when PGDATABASE envar is set
 
-##
-`postgresql_embedded` - [v0.10.1](https://github.com/theseus-rs/postgresql-embedded/compare/v0.9.5...v0.10.1) - 2024-06-14
+## `postgresql_embedded` - [v0.10.1](https://github.com/theseus-rs/postgresql-embedded/compare/v0.9.5...v0.10.1) - 2024-06-14
 
 ### Build
 
@@ -634,8 +560,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - [**breaking**] add ability to specify multiple pg_ctl options and define server configuration in Settings
 
-##
-`postgresql_embedded` - [v0.9.5](https://github.com/theseus-rs/postgresql-embedded/compare/v0.9.4...v0.9.5) - 2024-06-03
+## `postgresql_embedded` - [v0.9.5](https://github.com/theseus-rs/postgresql-embedded/compare/v0.9.4...v0.9.5) - 2024-06-03
 
 ### Build
 
@@ -645,23 +570,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - don't require rustls for the build script. only enable by default.
 
-##
-`postgresql_embedded` - [v0.9.4](https://github.com/theseus-rs/postgresql-embedded/compare/v0.9.3...v0.9.4) - 2024-05-31
+## `postgresql_embedded` - [v0.9.4](https://github.com/theseus-rs/postgresql-embedded/compare/v0.9.3...v0.9.4) - 2024-05-31
 
 ### Feat
 
 - add native-tls support
 
-##
-`postgresql_embedded` - [v0.9.3](https://github.com/theseus-rs/postgresql-embedded/compare/v0.9.2...v0.9.3) - 2024-05-21
+## `postgresql_embedded` - [v0.9.3](https://github.com/theseus-rs/postgresql-embedded/compare/v0.9.2...v0.9.3) - 2024-05-21
 
 ### PostgreSQL
 
 - don't trace self, and when tracing commands only trace the base name. makes the traces less enormous and also avoids
   dumping passwords into traces.
 
-##
-`postgresql_embedded` - [v0.9.2](https://github.com/theseus-rs/postgresql-embedded/compare/v0.9.1...v0.9.2) - 2024-05-19
+## `postgresql_embedded` - [v0.9.2](https://github.com/theseus-rs/postgresql-embedded/compare/v0.9.1...v0.9.2) - 2024-05-19
 
 ### Build
 
@@ -681,15 +603,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - add authentication tests
 - improve test coverage
 
-##
-`postgresql_embedded` - [v0.9.1](https://github.com/theseus-rs/postgresql-embedded/compare/v0.9.0...v0.9.1) - 2024-05-01
+## `postgresql_embedded` - [v0.9.1](https://github.com/theseus-rs/postgresql-embedded/compare/v0.9.0...v0.9.1) - 2024-05-01
 
 ### Fix
 
 - create extract_dir on same filesystem as out_dir
 
 ##
-
 `postgresql_embedded` - [v0.9.0](https://github.com/theseus-rs/postgresql-embedded/compare/v0.8.3...v0.9.0) - 2024-04-26
 
 ### Fix
@@ -698,7 +618,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [**breaking**] define bootstrap superuser as postgres
 
 ##
-
 `postgresql_embedded` - [v0.8.3](https://github.com/theseus-rs/postgresql-embedded/compare/v0.8.2...v0.8.3) - 2024-04-21
 
 ### Build
@@ -711,15 +630,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - update reqwest libraries
 - address format error
 
-##
-`postgresql_embedded` - [v0.8.2](https://github.com/theseus-rs/postgresql-embedded/compare/v0.8.1...v0.8.2) - 2024-04-05
+## `postgresql_embedded` - [v0.8.2](https://github.com/theseus-rs/postgresql-embedded/compare/v0.8.1...v0.8.2) - 2024-04-05
 
 ### Fix
 
 - suppress bytes parameter in tracing instrumentation
 
-##
-`postgresql_embedded` - [v0.8.1](https://github.com/theseus-rs/postgresql-embedded/compare/v0.8.0...v0.8.1) - 2024-04-03
+## `postgresql_embedded` - [v0.8.1](https://github.com/theseus-rs/postgresql-embedded/compare/v0.8.0...v0.8.1) - 2024-04-03
 
 ### Build
 
@@ -729,8 +646,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - add command integration test
 
-##
-`postgresql_embedded` - [v0.8.0](https://github.com/theseus-rs/postgresql-embedded/compare/v0.7.3...v0.8.0) - 2024-04-03
+## `postgresql_embedded` - [v0.8.0](https://github.com/theseus-rs/postgresql-embedded/compare/v0.7.3...v0.8.0) - 2024-04-03
 
 ### Build
 
@@ -741,8 +657,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - [**breaking**] move commands into postgresql_commands crate
 
-##
-`postgresql_embedded` - [v0.7.3](https://github.com/theseus-rs/postgresql-embedded/compare/v0.7.2...v0.7.3) - 2024-03-25
+## `postgresql_embedded` - [v0.7.3](https://github.com/theseus-rs/postgresql-embedded/compare/v0.7.2...v0.7.3) - 2024-03-25
 
 ### Chore
 
@@ -756,8 +671,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - remove use of embedded=true parameter
 
-##
-`postgresql_embedded` - [v0.7.2](https://github.com/theseus-rs/postgresql-embedded/compare/v0.7.1...v0.7.2) - 2024-03-16
+## `postgresql_embedded` - [v0.7.2](https://github.com/theseus-rs/postgresql-embedded/compare/v0.7.1...v0.7.2) - 2024-03-16
 
 ### Chore
 
@@ -767,15 +681,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - add tracing instrumentation
 
-##
-`postgresql_embedded` - [v0.7.1](https://github.com/theseus-rs/postgresql-embedded/compare/v0.7.0...v0.7.1) - 2024-03-15
+## `postgresql_embedded` - [v0.7.1](https://github.com/theseus-rs/postgresql-embedded/compare/v0.7.0...v0.7.1) - 2024-03-15
 
 ### Fix
 
 - correct parallel archive extract failures
 
-##
-`postgresql_embedded` - [v0.7.0](https://github.com/theseus-rs/postgresql-embedded/compare/v0.6.2...v0.7.0) - 2024-03-15
+## `postgresql_embedded` - [v0.7.0](https://github.com/theseus-rs/postgresql-embedded/compare/v0.6.2...v0.7.0) - 2024-03-15
 
 ### Docs
 
@@ -785,8 +697,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - [**breaking**] correct parallel archive extract failures
 
-##
-`postgresql_embedded` - [v0.6.2](https://github.com/theseus-rs/postgresql-embedded/compare/v0.6.1...v0.6.2) - 2024-03-07
+## `postgresql_embedded` - [v0.6.2](https://github.com/theseus-rs/postgresql-embedded/compare/v0.6.1...v0.6.2) - 2024-03-07
 
 ### Chore
 
@@ -796,8 +707,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - add reqwest backoff/retry logic and tracing support
 
-##
-`postgresql_embedded` - [v0.6.1](https://github.com/theseus-rs/postgresql-embedded/compare/v0.6.0...v0.6.1) - 2024-03-06
+## `postgresql_embedded` - [v0.6.1](https://github.com/theseus-rs/postgresql-embedded/compare/v0.6.0...v0.6.1) - 2024-03-06
 
 ### Chore
 
@@ -809,8 +719,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - update dependencies to address RUSTSEC-2024-0020
 
-##
-`postgresql_embedded` - [v0.6.0](https://github.com/theseus-rs/postgresql-embedded/compare/v0.5.0...v0.6.0) - 2024-02-24
+## `postgresql_embedded` - [v0.6.0](https://github.com/theseus-rs/postgresql-embedded/compare/v0.5.0...v0.6.0) - 2024-02-24
 
 ### Chore
 
@@ -821,8 +730,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - [**breaking**] remove bundled as a default feature and corrected bug when the bundled feature is not used
 
-##
-`postgresql_embedded` - [v0.5.0](https://github.com/theseus-rs/postgresql-embedded/compare/v0.4.1...v0.5.0) - 2024-02-22
+## `postgresql_embedded` - [v0.5.0](https://github.com/theseus-rs/postgresql-embedded/compare/v0.4.1...v0.5.0) - 2024-02-22
 
 ### Chore
 
@@ -849,8 +757,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - remove unused code
 
-##
-`postgresql_embedded` - [v0.4.1](https://github.com/theseus-rs/postgresql-embedded/compare/v0.4.0...v0.4.1) - 2024-02-18
+## `postgresql_embedded` - [v0.4.1](https://github.com/theseus-rs/postgresql-embedded/compare/v0.4.0...v0.4.1) - 2024-02-18
 
 ### Chore
 
@@ -902,8 +809,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - reduce embedded sample size to 10 to reduce benchmark runtime
 - update benchmark pull request configuration
 
-##
-`postgresql_embedded` - [v0.4.0](https://github.com/theseus-rs/postgresql-embedded/compare/v0.3.2...v0.4.0) - 2024-02-13
+## `postgresql_embedded` - [v0.4.0](https://github.com/theseus-rs/postgresql-embedded/compare/v0.3.2...v0.4.0) - 2024-02-13
 
 ### Docs
 
@@ -922,8 +828,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - improve lifecycle test coverage
 - update elapsed error test to sleep longer to prevent intermittent test failure
 
-##
-`postgresql_embedded` - [v0.3.2](https://github.com/theseus-rs/postgresql-embedded/compare/v0.3.1...v0.3.2) - 2024-02-13
+## `postgresql_embedded` - [v0.3.2](https://github.com/theseus-rs/postgresql-embedded/compare/v0.3.1...v0.3.2) - 2024-02-13
 
 ### Bug
 
@@ -939,8 +844,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - update test code coverage
 - add tests for examples
 
-##
-`postgresql_embedded` - [v0.3.1](https://github.com/theseus-rs/postgresql-embedded/compare/v0.3.0...v0.3.1) - 2024-02-12
+## `postgresql_embedded` - [v0.3.1](https://github.com/theseus-rs/postgresql-embedded/compare/v0.3.0...v0.3.1) - 2024-02-12
 
 ### Chore
 
@@ -959,8 +863,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - update postgresql_embedded::ArchiveError argument
 
-##
-`postgresql_embedded` - [v0.3.0](https://github.com/theseus-rs/postgresql-embedded/compare/v0.2.3...v0.3.0) - 2024-02-11
+## `postgresql_embedded` - [v0.3.0](https://github.com/theseus-rs/postgresql-embedded/compare/v0.2.3...v0.3.0) - 2024-02-11
 
 ### Ci
 
@@ -970,15 +873,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - [**breaking**] rename ArchiveError to postgresql_archive::Error and EmbeddedError to postgresql_embedded::Error
 
-##
-`postgresql_embedded` - [v0.2.3](https://github.com/theseus-rs/postgresql-embedded/compare/v0.2.2...v0.2.3) - 2024-02-11
+## `postgresql_embedded` - [v0.2.3](https://github.com/theseus-rs/postgresql-embedded/compare/v0.2.2...v0.2.3) - 2024-02-11
 
 ### Ci
 
 - add scheduled action to clear github caches
 
-##
-`postgresql_embedded` - [v0.2.2](https://github.com/theseus-rs/postgresql-embedded/compare/v0.2.1...v0.2.2) - 2024-02-11
+## `postgresql_embedded` - [v0.2.2](https://github.com/theseus-rs/postgresql-embedded/compare/v0.2.1...v0.2.2) - 2024-02-11
 
 ### Bug
 
@@ -1005,8 +906,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - add tests to improve code coverage
 - updated valid initial statuses
 
-##
-`postgresql_embedded` - [v0.2.1](https://github.com/theseus-rs/postgresql-embedded/compare/v0.2.0...v0.2.1) - 2024-02-10
+## `postgresql_embedded` - [v0.2.1](https://github.com/theseus-rs/postgresql-embedded/compare/v0.2.0...v0.2.1) - 2024-02-10
 
 ### Chore
 
@@ -1016,8 +916,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - enable documentation features
 
-##
-`postgresql_embedded` - [v0.2.0](https://github.com/theseus-rs/postgresql-embedded/compare/v0.1.2...v0.2.0) - 2024-02-10
+## `postgresql_embedded` - [v0.2.0](https://github.com/theseus-rs/postgresql-embedded/compare/v0.1.2...v0.2.0) - 2024-02-10
 
 ### Chore
 
@@ -1027,8 +926,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - updated examples to use no_run to prevent documentation build failures
 
-##
-`postgresql_embedded` - [v0.1.2](https://github.com/theseus-rs/postgresql-embedded/compare/v0.1.1...v0.1.2) - 2024-02-10
+## `postgresql_embedded` - [v0.1.2](https://github.com/theseus-rs/postgresql-embedded/compare/v0.1.1...v0.1.2) - 2024-02-10
 
 ### Chore
 
@@ -1044,15 +942,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - remove note regarding tokio usage for the example
 - added documentation for POSTGRESQL_VERSION and GITHUB_TOKEN usage
 
-##
-`postgresql_embedded` - [v0.1.1](https://github.com/theseus-rs/postgresql-embedded/compare/v0.1.0...v0.1.1) - 2024-02-10
+## `postgresql_embedded` - [v0.1.1](https://github.com/theseus-rs/postgresql-embedded/compare/v0.1.0...v0.1.1) - 2024-02-10
 
 ### Docs
 
 - mark docs as ignored to prevent doc release failures
 
-##
-`postgresql_embedded` - [v0.1.0](https://github.com/theseus-rs/postgresql-embedded/compare/bd97bf1b5b53beb503034d499a0186c75ba6271e...v0.1.0) - 2024-02-10
+## `postgresql_embedded` - [v0.1.0](https://github.com/theseus-rs/postgresql-embedded/compare/bd97bf1b5b53beb503034d499a0186c75ba6271e...v0.1.0) - 2024-02-10
 
 ### Bug
 
