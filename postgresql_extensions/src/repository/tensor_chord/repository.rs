@@ -80,7 +80,7 @@ impl Repository for TensorChord {
         extract_directories.add_mapping(Regex::new(r"\.(dll|dylib|so)$")?, library_dir);
         extract_directories.add_mapping(Regex::new(r"\.(control|sql)$")?, extension_dir);
         let bytes = &archive.to_vec();
-        let files = zip_extract(bytes, extract_directories)?;
+        let files = zip_extract(bytes, &extract_directories)?;
         Ok(files)
     }
 }

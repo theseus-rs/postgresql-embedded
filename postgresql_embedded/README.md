@@ -110,6 +110,30 @@ The following features are available:
 | `tokio`      | Enables using tokio for async                            | No       |
 | `zonky`      | Enables zonky PostgreSQL binaries                        | No       |
 
+## Bundling PostgreSQL
+
+To bundle PostgreSQL with your application, you can enable the `bundled` feature. This will download the PostgreSQL
+archive at compile time and include it in your binary. You should specify the version of PostgreSQL to bundle by
+setting the environment variable `POSTGRESQL_VERSION` to a specific version, e.g. `=17.2.0`. In order to use the bundled
+PostgreSQL, you will also need to set an explicit matching version at runtime in `Settings`:
+
+```rust
+use postgresql_embedded::{Result, Settings, VersionReq};
+
+#[tokio::main]
+async fn main() -> Result<()> {
+    let settings = Settings {
+        version: VersionReq::from_str("=17.2.0")?,
+        ..Default::default()
+    };
+    Ok(())
+}
+```
+
+The PostgreSQL binaries can also be obtained from a different GitHub source by setting the `POSTGRESQL_RELEASES_URL`
+environment variable. The repository must contain the releases with archives in same structure as
+[theseus-rs/postgresql_binaries](https://github.com/theseus-rs/postgresql-binaries).
+
 ## Safety
 
 This crate uses `#![forbid(unsafe_code)]` to ensure everything is implemented in 100% safe Rust.
