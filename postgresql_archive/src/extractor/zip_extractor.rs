@@ -13,7 +13,7 @@ use zip::ZipArchive;
 /// # Errors
 /// Returns an error if the extraction fails.
 #[instrument(skip(bytes))]
-pub fn extract(bytes: &Vec<u8>, extract_directories: ExtractDirectories) -> Result<Vec<PathBuf>> {
+pub fn extract(bytes: &Vec<u8>, extract_directories: &ExtractDirectories) -> Result<Vec<PathBuf>> {
     let mut files = Vec::new();
     let reader = Cursor::new(bytes);
     let mut archive = ZipArchive::new(reader).map_err(|_| io::Error::other("Zip error"))?;

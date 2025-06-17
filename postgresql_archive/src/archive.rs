@@ -45,7 +45,7 @@ pub async fn extract(url: &str, bytes: &Vec<u8>, out_dir: &Path) -> Result<Vec<P
     let extractor_fn = extractor::registry::get(url)?;
     let mut extract_directories = extractor::ExtractDirectories::default();
     extract_directories.add_mapping(Regex::new(".*")?, out_dir.to_path_buf());
-    extractor_fn(bytes, extract_directories)
+    extractor_fn(bytes, &extract_directories)
 }
 
 #[cfg(test)]

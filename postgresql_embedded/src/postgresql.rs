@@ -145,6 +145,10 @@ impl PostgreSQL {
     /// Set up the database by extracting the archive and initializing the database.
     /// If the installation directory already exists, the archive will not be extracted.
     /// If the data directory already exists, the database will not be initialized.
+    ///
+    /// # Errors
+    ///
+    /// If the installation fails, an error will be returned.
     #[instrument(skip(self))]
     pub async fn setup(&mut self) -> Result<()> {
         match self.installed_dir() {
@@ -259,6 +263,10 @@ impl PostgreSQL {
 
     /// Start the database and wait for the startup to complete.
     /// If the port is set to `0`, the database will be started on a random port.
+    ///
+    /// # Errors
+    ///
+    /// If the database fails to start, an error will be returned.
     #[instrument(skip(self))]
     pub async fn start(&mut self) -> Result<()> {
         if self.settings.port == 0 {
@@ -299,6 +307,10 @@ impl PostgreSQL {
     }
 
     /// Stop the database gracefully (smart mode) and wait for the shutdown to complete.
+    ///
+    /// # Errors
+    ///
+    /// If the database fails to stop, an error will be returned.
     #[instrument(skip(self))]
     pub async fn stop(&self) -> Result<()> {
         debug!(
@@ -333,6 +345,10 @@ impl PostgreSQL {
     }
 
     /// Create a new database with the given name.
+    ///
+    /// # Errors
+    ///
+    /// If the database creation fails, an error will be returned.
     #[instrument(skip(self))]
     pub async fn create_database<S>(&self, database_name: S) -> Result<()>
     where
@@ -359,6 +375,10 @@ impl PostgreSQL {
     }
 
     /// Check if a database with the given name exists.
+    ///
+    /// # Errors
+    ///
+    /// If the query fails, an error will be returned.
     #[instrument(skip(self))]
     pub async fn database_exists<S>(&self, database_name: S) -> Result<bool>
     where
@@ -383,6 +403,10 @@ impl PostgreSQL {
     }
 
     /// Drop a database with the given name.
+    ///
+    /// # Errors
+    ///
+    /// If the database does not exist or if the drop command fails, an error will be returned.
     #[instrument(skip(self))]
     pub async fn drop_database<S>(&self, database_name: S) -> Result<()>
     where
