@@ -43,14 +43,17 @@ blocking = ["tokio"]
 portal-corp = [
     "dep:target-triple",
     "postgresql_archive/github",
+    "postgresql_archive/zip",
 ]
 steampipe = [
     "dep:serde_json",
     "postgresql_archive/github",
+    "postgresql_archive/tar-gz",
 ]
 tensor-chord = [
     "dep:target-triple",
     "postgresql_archive/github",
+    "postgresql_archive/zip",
 ]
 tokio = [
     "postgresql_commands/tokio",
