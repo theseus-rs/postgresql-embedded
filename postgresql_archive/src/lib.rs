@@ -68,6 +68,14 @@
 //! | `theseus` | Enables theseus PostgreSQL binaries | Yes      |
 //! | `zonky`   | Enables zonky PostgreSQL binaries   | No       |
 //!
+//! ### Extractors
+//!
+//! | Name     | Description          | Default? |
+//! |----------|----------------------|----------|
+//! | `tar-gz` | Enables md5 hashers  | Yes      |
+//! | `tar-xz` | Enables sha1 hashers | No       |
+//! | `zip`    | Enables sha2 hashers | No       |
+//!
 //! ### Hashers
 //!
 //! | Name   | Description          | Default? |
