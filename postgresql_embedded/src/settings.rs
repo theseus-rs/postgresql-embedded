@@ -58,6 +58,8 @@ pub struct Settings {
     pub timeout: Option<Duration>,
     /// Server configuration options
     pub configuration: HashMap<String, String>,
+    /// Skip installation and inferrence of the installation dir. Trust what the user provided.
+    pub trust_installation_dir: bool,
 }
 
 /// Settings implementation
@@ -109,6 +111,7 @@ impl Settings {
             temporary: true,
             timeout: Some(Duration::from_secs(5)),
             configuration: HashMap::new(),
+            trust_installation_dir: false,
         }
     }
 
