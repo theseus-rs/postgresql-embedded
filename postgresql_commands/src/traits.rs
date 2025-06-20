@@ -2,10 +2,22 @@ use crate::error::{Error, Result};
 use std::env::consts::OS;
 use std::ffi::{OsStr, OsString};
 use std::fmt::Debug;
+#[cfg(target_os = "windows")]
+use std::os::windows::process::CommandExt;
 use std::path::PathBuf;
 use std::process::ExitStatus;
 use std::time::Duration;
 use tracing::debug;
+
+/// Constant for the `CREATE_NO_WINDOW` flag on Windows to prevent the creation of a console window
+/// when executing commands. This is useful for background processes or services that do not require
+/// user interaction.
+///
+/// # References
+///
+/// - [Windows API: Process Creation Flags](https://learn.microsoft.com/en-us/windows/win32/procthread/process-creation-flags#flags)
+#[cfg(target_os = "windows")]
+const CREATE_NO_WINDOW: u32 = 0x0800_0000;
 
 /// Interface for `PostgreSQL` settings
 pub trait Settings {
@@ -79,6 +91,11 @@ pub trait CommandBuilder: Debug {
         let program_file = self.get_program_file();
         let mut command = std::process::Command::new(program_file);
 
+        #[cfg(target_os = "windows")]
+        {
+            command.creation_flags(CREATE_NO_WINDOW);
+        }
+
         command.args(self.get_args());
         command.envs(self.get_envs());
         command
@@ -92,6 +109,11 @@ pub trait CommandBuilder: Debug {
     {
         let program_file = self.get_program_file();
         let mut command = tokio::process::Command::new(program_file);
+
+        #[cfg(target_os = "windows")]
+        {
+            command.creation_flags(CREATE_NO_WINDOW);
+        }
 
         command.args(self.get_args());
         command.envs(self.get_envs());
