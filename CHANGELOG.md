@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## `postgresql_embedded` - [0.18.8](https://github.com/theseus-rs/postgresql-embedded/compare/v0.18.7...v0.18.8) - 2025-06-21
+
+### Other
+- update extractor feature documentation
+
+## `postgresql_archive` - [0.18.8](https://github.com/theseus-rs/postgresql-embedded/compare/postgresql_archive-v0.18.7...postgresql_archive-v0.18.8) - 2025-06-21
+
+### Other
+- update extractor feature documentation
+
 ## `postgresql_embedded` - [0.18.7](https://github.com/theseus-rs/postgresql-embedded/compare/v0.18.6...v0.18.7) - 2025-06-20
 
 ### Fixed
