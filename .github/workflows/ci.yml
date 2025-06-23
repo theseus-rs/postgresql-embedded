@@ -89,6 +89,8 @@ jobs:
       - name: Install benchmarking tools
         if: ${{ github.ref == 'refs/heads/main' && matrix.platform == 'linux-x64' }}
         uses: bencherdev/bencher@main
+        with:
+          version: 0.5.1
 
       - name: Run benchmarks
         if: ${{ github.ref == 'refs/heads/main' && matrix.platform == 'linux-x64' }}
