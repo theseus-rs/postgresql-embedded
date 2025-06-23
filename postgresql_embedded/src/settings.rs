@@ -67,12 +67,12 @@ impl Settings {
     /// Create a new instance of [`Settings`]
     pub fn new() -> Self {
         let home_dir = home_dir().unwrap_or_else(|| env::current_dir().unwrap_or_default());
-        let passwword_file_name = ".pgpass";
+        let password_file_name = ".pgpass";
         let password_file = if let Ok(dir) = tempfile::tempdir() {
-            dir.into_path().join(passwword_file_name)
+            dir.into_path().join(password_file_name)
         } else {
             let current_dir = current_dir().unwrap_or(PathBuf::from("."));
-            current_dir.join(passwword_file_name)
+            current_dir.join(password_file_name)
         };
         let data_dir = if let Ok(dir) = tempfile::tempdir() {
             dir.into_path()
