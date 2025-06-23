@@ -193,6 +193,9 @@ impl Settings {
                 }
             };
         }
+        if let Some(trust_installation_dir) = query_parameters.get("trust_installation_dir") {
+            settings.trust_installation_dir = trust_installation_dir == "true";
+        }
         let configuration_prefix = "configuration.";
         for (key, value) in &query_parameters {
             if key.starts_with(configuration_prefix) {
@@ -299,10 +302,11 @@ mod tests {
         let password_file = "password_file=/tmp/.pgpass";
         let data_dir = "data_dir=/tmp/data";
         let temporary = "temporary=false";
+        let trust_installation_dir = "trust_installation_dir=true";
         let timeout = "timeout=10";
         let configuration = "configuration.max_connections=42";
         let url = format!(
-            "{base_url}?{releases_url}&{version}&{installation_dir}&{password_file}&{data_dir}&{temporary}&{temporary}&{timeout}&{configuration}"
+            "{base_url}?{releases_url}&{version}&{installation_dir}&{password_file}&{data_dir}&{temporary}&{trust_installation_dir}&{timeout}&{configuration}"
         );
 
         let settings = Settings::from_url(url)?;
@@ -317,6 +321,7 @@ mod tests {
         assert_eq!(BOOTSTRAP_SUPERUSER, settings.username);
         assert_eq!("password", settings.password);
         assert!(!settings.temporary);
+        assert!(settings.trust_installation_dir);
         assert_eq!(Some(Duration::from_secs(10)), settings.timeout);
         let configuration = HashMap::from([("max_connections".to_string(), "42".to_string())]);
         assert_eq!(configuration, settings.configuration);
