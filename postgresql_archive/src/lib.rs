@@ -70,11 +70,11 @@
 //!
 //! ### Extractors
 //!
-//! | Name     | Description          | Default? |
-//! |----------|----------------------|----------|
-//! | `tar-gz` | Enables md5 hashers  | Yes      |
-//! | `tar-xz` | Enables sha1 hashers | No       |
-//! | `zip`    | Enables sha2 hashers | No       |
+//! | Name     | Description              | Default? |
+//! |----------|--------------------------|----------|
+//! | `tar-gz` | Enables tar gz extractor | Yes      |
+//! | `tar-xz` | Enables tar xz extractor | No       |
+//! | `zip`    | Enables zip extractor    | No       |
 //!
 //! ### Hashers
 //!
