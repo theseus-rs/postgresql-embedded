@@ -11,8 +11,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Other
 - correct typo in variable name
-- Merge branch 'main' into nmj/skip-installation
-- Add URL parsing and add unit test
 - Allow skipping the installation step during setup
 - update extractor feature documentation
 
