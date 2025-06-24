@@ -50,4 +50,4 @@ jobs:
           BENCHER_PROJECT: theseus-rs-postgresql-embedded
           BENCHER_ADAPTER: rust_criterion
         run: |
-          bencher run "cargo bench"
+          bencher run "cargo bench --features blocking"
