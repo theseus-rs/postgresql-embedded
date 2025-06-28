@@ -41,7 +41,7 @@ jobs:
             --ci-number "${{ github.event.number }}" \
             --github-actions "${{ secrets.GITHUB_TOKEN }}" \
             --err \
-            "cargo bench"
+            "cargo bench --features blocking"
 
       - name: Run benchmarks
         if: ${{ github.event_name != 'pull_request' }}
