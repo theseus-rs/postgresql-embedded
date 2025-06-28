@@ -41,7 +41,7 @@ pub(crate) async fn stage_postgresql_archive() -> Result<()> {
     println!("Target: {}", target_triple::TARGET);
 
     let out_dir = PathBuf::from(env::var("OUT_DIR")?);
-    println!("OUT_DIR: {:?}", out_dir);
+    println!("OUT_DIR: {out_dir:?}");
 
     let mut archive_version_file = out_dir.clone();
     archive_version_file.push("postgresql.version");
@@ -49,7 +49,7 @@ pub(crate) async fn stage_postgresql_archive() -> Result<()> {
     archive_file.push("postgresql.tar.gz");
 
     if archive_version_file.exists() && archive_file.exists() {
-        println!("PostgreSQL archive exists: {:?}", archive_file);
+        println!("PostgreSQL archive exists: {archive_file:?}");
         return Ok(());
     }
 
@@ -59,7 +59,7 @@ pub(crate) async fn stage_postgresql_archive() -> Result<()> {
     let mut file = File::create(archive_file.clone())?;
     file.write_all(&archive)?;
     file.sync_data()?;
-    println!("PostgreSQL archive written to: {:?}", archive_file);
+    println!("PostgreSQL archive written to: {archive_file:?}");
 
     Ok(())
 }

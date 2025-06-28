@@ -21,7 +21,7 @@ edition = "2024"
 keywords = ["postgresql", "postgres", "embedded", "database", "server"]
 license = "(Apache-2.0 OR MIT) AND PostgreSQL"
 repository = "https://github.com/theseus-rs/postgresql-embedded"
-rust-version = "1.87.0"
+rust-version = "1.88.0"
 version = "0.19.0"
 
 [workspace.dependencies]
@@ -65,7 +65,7 @@ tracing = "0.1.41"
 tracing-indicatif = "0.3.9"
 tracing-subscriber = "0.3.19"
 url = "2.5.4"
-zip = { version = "4.1.0", default-features = false, features = ["deflate"] }
+zip = { version = "4.2.0", default-features = false, features = ["deflate"] }
 
 [workspace.metadata.release]
 shared-version = true
