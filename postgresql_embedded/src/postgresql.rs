@@ -1,9 +1,11 @@
 use crate::error::Error::{DatabaseInitializationError, DatabaseStartError, DatabaseStopError};
 use crate::error::Result;
 use crate::settings::{BOOTSTRAP_DATABASE, BOOTSTRAP_SUPERUSER, Settings};
-use postgresql_archive::get_version;
-use postgresql_archive::{ExactVersion, ExactVersionReq};
-use postgresql_archive::{extract, get_archive};
+use std::fmt::Debug;
+
+use postgresql_archive::{ExactVersion, extract};
+#[cfg(not(feature = "bundled"))]
+use postgresql_archive::{ExactVersionReq, get_archive, get_version};
 #[cfg(feature = "tokio")]
 use postgresql_commands::AsyncCommandExecutor;
 use postgresql_commands::CommandBuilder;
@@ -186,11 +188,19 @@ impl PostgreSQL {
         // If the exact version is not set, determine the latest version and update the version and
         // installation directory accordingly. This is an optimization to avoid downloading the
         // archive if the latest version is already installed.
+        #[cfg(not(feature = "bundled"))]
         if self.settings.version.exact_version().is_none() {
             let version = get_version(&self.settings.releases_url, &self.settings.version).await?;
             self.settings.version = version.exact_version_req()?;
             self.settings.installation_dir =
                 self.settings.installation_dir.join(version.to_string());
+        }
+        #[cfg(feature = "bundled")]
+        if self.settings.version.exact_version().is_none() {
+            panic!(
+                "Bundled version should always be set to an exact version e.g. \"=15.4.1\", got - {:?}",
+                self.settings.version
+            );
         }
 
         if self.settings.installation_dir.exists() {
@@ -202,8 +212,7 @@ impl PostgreSQL {
 
         #[cfg(feature = "bundled")]
         // If the requested version is the same as the version of the bundled archive, use the bundled
-        // archive. This avoids downloading the archive in environments where internet access is
-        // restricted or undesirable.
+        // archive. Otherwise don't download the archive, because user expects the bundled archive to be used not the one from internet.
         let (version, bytes) = if *crate::settings::ARCHIVE_VERSION == self.settings.version {
             debug!("Using bundled installation archive");
             (
@@ -211,8 +220,11 @@ impl PostgreSQL {
                 crate::settings::ARCHIVE.to_vec(),
             )
         } else {
-            let (version, bytes) = get_archive(url, &self.settings.version).await?;
-            (version.exact_version_req()?, bytes)
+            panic!(
+                "Bundled version \n\"{:?}\", settings version - \"{:?}\"",
+                *crate::settings::ARCHIVE_VERSION,
+                self.settings.version
+            );
         };
 
         #[cfg(not(feature = "bundled"))]
