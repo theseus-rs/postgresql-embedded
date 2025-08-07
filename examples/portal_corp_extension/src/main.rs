@@ -10,7 +10,7 @@ use tracing::info;
 
 use postgresql_embedded::{PostgreSQL, Settings, VersionReq};
 
-/// Example of how to install and configure the PortalCorp pgvector extension.
+/// Example of how to install and configure the `PortalCorp` pgvector extension.
 ///
 /// See: <https://github.com/pgvector/pgvector?tab=readme-ov-file#getting-started>
 #[tokio::main]

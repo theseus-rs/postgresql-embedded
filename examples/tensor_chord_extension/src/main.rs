@@ -9,7 +9,7 @@ use tracing::info;
 
 use postgresql_embedded::{PostgreSQL, Settings, VersionReq};
 
-/// Example of how to install and configure the TensorChord vector extension.
+/// Example of how to install and configure the `TensorChord` vector extension.
 ///
 /// See: <https://github.com/tensorchord/pgvecto.rs/?tab=readme-ov-file#quick-start>
 #[tokio::main]
