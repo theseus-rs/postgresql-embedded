@@ -55,15 +55,15 @@ impl PostgreSQL {
         // conflicts with other versions.  This will also facilitate setting the status of the
         // server to the correct initial value.  If the minor and release version are not set, the
         // installation directory will be determined dynamically during the installation process.
-        if !postgresql.settings.trust_installation_dir {
-            if let Some(version) = postgresql.settings.version.exact_version() {
-                let path = &postgresql.settings.installation_dir;
-                let version_string = version.to_string();
+        if !postgresql.settings.trust_installation_dir
+            && let Some(version) = postgresql.settings.version.exact_version()
+        {
+            let path = &postgresql.settings.installation_dir;
+            let version_string = version.to_string();
 
-                if !path.ends_with(&version_string) {
-                    postgresql.settings.installation_dir =
-                        postgresql.settings.installation_dir.join(version_string);
-                }
+            if !path.ends_with(&version_string) {
+                postgresql.settings.installation_dir =
+                    postgresql.settings.installation_dir.join(version_string);
             }
         }
         postgresql
@@ -103,10 +103,11 @@ impl PostgreSQL {
             .file_name()
             .and_then(|file_name| Version::parse(&file_name.to_string_lossy()).ok());
         // If this directory matches the version requirement, we're done.
-        if let Some(path_version) = maybe_path_version {
-            if self.settings.version.matches(&path_version) && path.exists() {
-                return Some(path.clone());
-            }
+        if let Some(path_version) = maybe_path_version
+            && self.settings.version.matches(&path_version)
+            && path.exists()
+        {
+            return Some(path.clone());
         }
 
         // Get all directories in the path as versions.

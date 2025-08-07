@@ -198,12 +198,12 @@ impl Settings {
         }
         let configuration_prefix = "configuration.";
         for (key, value) in &query_parameters {
-            if key.starts_with(configuration_prefix) {
-                if let Some(configuration_key) = key.strip_prefix(configuration_prefix) {
-                    settings
-                        .configuration
-                        .insert(configuration_key.to_string(), value.to_string());
-                }
+            if key.starts_with(configuration_prefix)
+                && let Some(configuration_key) = key.strip_prefix(configuration_prefix)
+            {
+                settings
+                    .configuration
+                    .insert(configuration_key.to_string(), value.to_string());
             }
         }
 
