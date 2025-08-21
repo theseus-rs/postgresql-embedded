@@ -78,23 +78,8 @@ Supports using PostgreSQL binaries from:
 
 ## Contribution
 
-Unless you explicitly state otherwise, any contribution intentionally submitted
-for inclusion in the work by you, as defined in the Apache-2.0 license, shall be dual licensed as above, without any
-additional terms or conditions.
-
-<a href="https://vscode.dev/redirect?url=vscode://ms-vscode-remote.remote-containers/cloneInVolume?url=https://github.com/theseus-rs/postgresql-embedded">
-<img
-  src="https://img.shields.io/static/v1?label=VSCode%20Development%20Container&logo=visualstudiocode&message=Open&color=orange"
-  alt="VSCode Development Container"
-/>
-</a>
-<br/>
-<a href="https://github.dev/theseus-rs/postgresql-embedded">
-<img
-  src="https://img.shields.io/static/v1?label=GitHub%20Codespaces&logo=github&message=Open&color=orange"
-  alt="GitHub Codespaces"
-/>
-</a>
+Unless you explicitly state otherwise, any contribution intentionally submitted for inclusion in the work by you, as
+defined in the Apache-2.0 license, shall be dual licensed as above, without any additional terms or conditions.
 
 ## Prior Art
 
