@@ -66,6 +66,14 @@ pub struct Settings {
 impl Settings {
     /// Create a new instance of [`Settings`]
     pub fn new() -> Self {
+        fn random_dir_name() -> String {
+            rand::thread_rng()
+                .sample_iter(&Alphanumeric)
+                .take(16)
+                .map(char::from)
+                .collect()
+        }
+
         let home_dir = home_dir().unwrap_or_else(|| env::current_dir().unwrap_or_default());
         let password_file_name = ".pgpass";
         // We keep password_file and data_dir.
@@ -73,26 +81,14 @@ impl Settings {
         let password_file = if let Ok(dir) = tempfile::tempdir() {
             dir.keep().join(password_file_name)
         } else {
-            let temp_dir: String = rand::thread_rng()
-                .sample_iter(&Alphanumeric)
-                .take(16)
-                .map(char::from)
-                .collect();
-
             let current_dir = current_dir().unwrap_or(PathBuf::from("."));
-            current_dir.join(temp_dir).join(password_file_name)
+            current_dir.join(random_dir_name()).join(password_file_name)
         };
         let data_dir = if let Ok(dir) = tempfile::tempdir() {
             dir.keep()
         } else {
-            let temp_dir: String = rand::thread_rng()
-                .sample_iter(&Alphanumeric)
-                .take(16)
-                .map(char::from)
-                .collect();
-
             let data_dir = current_dir().unwrap_or(PathBuf::from("."));
-            data_dir.join(temp_dir)
+            data_dir.join(random_dir_name())
         };
 
         let password = rand::thread_rng()
