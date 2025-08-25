@@ -216,7 +216,11 @@ impl Settings {
 impl Drop for Settings {
     fn drop(&mut self) {
         if self.temporary {
-            let _ = &self.password_file.parent().map(std::fs::remove_dir_all);
+            let _ = &self
+                .password_file
+                .parent()
+                .map(std::fs::remove_dir_all)
+                .ok_or_else(|| std::fs::remove_file(&self.password_file));
 
             let _ = std::fs::remove_dir_all(&self.data_dir);
         }
