@@ -73,8 +73,14 @@ impl Settings {
         let password_file = if let Ok(dir) = tempfile::tempdir() {
             dir.keep().join(password_file_name)
         } else {
+            let temp_dir: String = rand::thread_rng()
+                .sample_iter(&Alphanumeric)
+                .take(16)
+                .map(char::from)
+                .collect();
+
             let current_dir = current_dir().unwrap_or(PathBuf::from("."));
-            current_dir.join(password_file_name)
+            current_dir.join(temp_dir).join(password_file_name)
         };
         let data_dir = if let Ok(dir) = tempfile::tempdir() {
             dir.keep()
