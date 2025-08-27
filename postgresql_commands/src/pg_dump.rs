@@ -30,7 +30,7 @@ pub struct PgDumpBuilder {
     verbose: bool,
     version: bool,
     no_privileges: bool,
-    compression: Option<OsString>,
+    compress: Option<OsString>,
     binary_upgrade: bool,
     column_inserts: bool,
     attribute_inserts: bool,
@@ -243,10 +243,10 @@ impl PgDumpBuilder {
         self
     }
 
-    /// Set the compression level to use
+    /// Set the compress level to use
     #[must_use]
-    pub fn compression<S: AsRef<OsStr>>(mut self, compress: S) -> Self {
-        self.compression = Some(compress.as_ref().to_os_string());
+    pub fn compress<S: AsRef<OsStr>>(mut self, compress: S) -> Self {
+        self.compress = Some(compress.as_ref().to_os_string());
         self
     }
 
@@ -638,9 +638,9 @@ impl CommandBuilder for PgDumpBuilder {
             args.push("--no-privileges".into());
         }
 
-        if let Some(compression) = &self.compression {
-            args.push("--compression".into());
-            args.push(compression.into());
+        if let Some(compress) = &self.compress {
+            args.push("--compress".into());
+            args.push(compress.into());
         }
 
         if self.binary_upgrade {
@@ -887,7 +887,7 @@ mod tests {
             .verbose()
             .version()
             .no_privileges()
-            .compression("compression")
+            .compress("compress")
             .binary_upgrade()
             .column_inserts()
             .attribute_inserts()
@@ -935,7 +935,7 @@ mod tests {
 
         assert_eq!(
             format!(
-                r#"{command_prefix}"pg_dump" "--data-only" "--large-objects" "--no-large-objects" "--clean" "--create" "--extension" "extension" "--encoding" "UTF8" "--file" "file" "--format" "format" "--jobs" "jobs" "--schema" "schema" "--exclude-schema" "exclude_schema" "--no-owner" "--no-reconnect" "--schema-only" "--superuser" "superuser" "--table" "table" "--exclude-table" "exclude_table" "--verbose" "--version" "--no-privileges" "--compression" "compression" "--binary-upgrade" "--column-inserts" "--attribute-inserts" "--disable-dollar-quoting" "--disable-triggers" "--enable-row-security" "--exclude-table-data-and-children" "exclude_table_data_and_children" "--extra-float-digits" "extra_float_digits" "--if-exists" "--include-foreign-data" "include_foreign_data" "--inserts" "--load-via-partition-root" "--lock-wait-timeout" "10" "--no-comments" "--no-publications" "--no-security-labels" "--no-subscriptions" "--no-table-access-method" "--no-tablespaces" "--no-toast-compression" "--no-unlogged-table-data" "--on-conflict-do-nothing" "--quote-all-identifiers" "--rows-per-insert" "100" "--section" "section" "--serializable-deferrable" "--snapshot" "snapshot" "--strict-names" "--table-and-children" "table_and_children" "--use-set-session-authorization" "--help" "--dbname" "dbname" "--host" "localhost" "--port" "5432" "--username" "postgres" "--no-password" "--password" "--role" "role""#
+                r#"{command_prefix}"pg_dump" "--data-only" "--large-objects" "--no-large-objects" "--clean" "--create" "--extension" "extension" "--encoding" "UTF8" "--file" "file" "--format" "format" "--jobs" "jobs" "--schema" "schema" "--exclude-schema" "exclude_schema" "--no-owner" "--no-reconnect" "--schema-only" "--superuser" "superuser" "--table" "table" "--exclude-table" "exclude_table" "--verbose" "--version" "--no-privileges" "--compress" "compress" "--binary-upgrade" "--column-inserts" "--attribute-inserts" "--disable-dollar-quoting" "--disable-triggers" "--enable-row-security" "--exclude-table-data-and-children" "exclude_table_data_and_children" "--extra-float-digits" "extra_float_digits" "--if-exists" "--include-foreign-data" "include_foreign_data" "--inserts" "--load-via-partition-root" "--lock-wait-timeout" "10" "--no-comments" "--no-publications" "--no-security-labels" "--no-subscriptions" "--no-table-access-method" "--no-tablespaces" "--no-toast-compression" "--no-unlogged-table-data" "--on-conflict-do-nothing" "--quote-all-identifiers" "--rows-per-insert" "100" "--section" "section" "--serializable-deferrable" "--snapshot" "snapshot" "--strict-names" "--table-and-children" "table_and_children" "--use-set-session-authorization" "--help" "--dbname" "dbname" "--host" "localhost" "--port" "5432" "--username" "postgres" "--no-password" "--password" "--role" "role""#
             ),
             command.to_command_string()
         );
