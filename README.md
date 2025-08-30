@@ -54,6 +54,13 @@ async fn main() -> Result<()> {
 }
 ```
 
+## Notes
+
+Supports using PostgreSQL binaries from:
+
+* [theseus-rs/postgresql-binaries](https://github.com/theseus-rs/postgresql-binaries) (default)
+* [zonkyio/embedded-postgres-binaries](https://github.com/zonkyio/embedded-postgres-binaries)
+
 ## Safety
 
 These crates use `#![forbid(unsafe_code)]` to ensure everything is implemented in 100% safe Rust.
@@ -68,13 +75,6 @@ Licensed under either of
 at your option.
 
 PostgreSQL is covered under [The PostgreSQL License](https://opensource.org/licenses/postgresql).
-
-## Notes
-
-Supports using PostgreSQL binaries from:
-
-* [theseus-rs/postgresql-binaries](https://github.com/theseus-rs/postgresql-binaries) (default)
-* [zonkyio/embedded-postgres-binaries](https://github.com/zonkyio/embedded-postgres-binaries)
 
 ## Contribution
 

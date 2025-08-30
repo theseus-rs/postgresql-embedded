@@ -134,6 +134,13 @@ The PostgreSQL binaries can also be obtained from a different GitHub source by s
 environment variable. The repository must contain the releases with archives in same structure as
 [theseus-rs/postgresql_binaries](https://github.com/theseus-rs/postgresql-binaries).
 
+## Notes
+
+Supports using PostgreSQL binaries from:
+
+* [theseus-rs/postgresql-binaries](https://github.com/theseus-rs/postgresql-binaries) (default)
+* [zonkyio/embedded-postgres-binaries](https://github.com/zonkyio/embedded-postgres-binaries)
+
 ## Safety
 
 This crate uses `#![forbid(unsafe_code)]` to ensure everything is implemented in 100% safe Rust.
@@ -146,11 +153,6 @@ Licensed under either of
 * MIT license ([LICENSE-MIT](LICENSE-MIT) or https://opensource.org/licenses/MIT)
 
 at your option.
-
-## Notes
-
-Uses PostgreSQL binaries from [theseus-rs/postgresql-binaries](https://github.com/theseus-rs/postgresql_binaries) by
-default.
 
 ## Contribution
 

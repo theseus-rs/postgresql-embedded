@@ -27,8 +27,8 @@ impl MatchersRegistry {
         }
     }
 
-    /// Registers a matcher for a supports function. Newly registered matchers with the take
-    /// precedence over existing ones.
+    /// Registers a matcher for a supports function. Newly registered matchers will take precedence
+    /// over existing ones.
     fn register(&mut self, supports_fn: SupportsFn, matcher_fn: MatcherFn) {
         self.matchers.insert(
             0,
@@ -73,8 +73,8 @@ impl Default for MatchersRegistry {
     }
 }
 
-/// Registers a matcher for a supports function. Newly registered matchers with the take
-/// precedence over existing ones.
+/// Registers a matcher for a supports function. Newly registered matchers will take precedence over
+/// existing ones.
 ///
 /// # Errors
 /// * If the registry is poisoned.
