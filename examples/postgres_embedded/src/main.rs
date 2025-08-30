@@ -93,7 +93,7 @@ mod test {
     use super::*;
 
     #[test]
-    fn test_main() -> Result<()> {
+    fn test_postgres_embedded_main() -> Result<()> {
         main()
     }
 }

@@ -1,11 +1,11 @@
 #[cfg(any(target_os = "linux", target_os = "macos"))]
 #[cfg(feature = "steampipe")]
 #[tokio::test]
-async fn test_lifecycle() -> anyhow::Result<()> {
+async fn test_extensions_steampipe_lifecycle() -> anyhow::Result<()> {
     let installation_dir = tempfile::tempdir()?.path().to_path_buf();
     let postgresql_version = semver::VersionReq::parse("=15.7.0")?;
     let settings = postgresql_embedded::Settings {
-        version: postgresql_version,
+        version: postgresql_version.clone(),
         installation_dir: installation_dir.clone(),
         ..Default::default()
     };
@@ -14,6 +14,12 @@ async fn test_lifecycle() -> anyhow::Result<()> {
     postgresql.setup().await?;
 
     let settings = postgresql.settings();
+    // Skip the test if the PostgreSQL version does not match; when testing with the 'bundled'
+    // feature, the version may vary and the test will fail.
+    if settings.version != postgresql_version {
+        return Ok(());
+    }
+
     let namespace = "steampipe";
     let name = "csv";
     let version = semver::VersionReq::parse("=0.12.0")?;

@@ -34,7 +34,7 @@ async fn lifecycle() -> Result<()> {
 }
 
 #[test(tokio::test)]
-async fn test_lifecycle() -> Result<()> {
+async fn test_embedded_async_lifecycle() -> Result<()> {
     lifecycle().await
 }
 

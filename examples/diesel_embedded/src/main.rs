@@ -72,7 +72,7 @@ mod test {
     use super::*;
 
     #[test]
-    fn test_main() -> Result<()> {
+    fn test_diesel_embedded_main() -> Result<()> {
         main()
     }
 }

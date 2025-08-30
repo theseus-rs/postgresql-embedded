@@ -92,7 +92,7 @@ mod test {
     use super::*;
 
     #[test]
-    fn test_main() -> Result<()> {
+    fn test_sqlx_embedded_main() -> Result<()> {
         main()
     }
 }

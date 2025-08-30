@@ -7,7 +7,7 @@ use test_log::test;
 
 #[cfg(feature = "blocking")]
 #[test]
-fn test_lifecycle() -> Result<()> {
+fn test_embedded_blocking_lifecycle() -> Result<()> {
     let mut postgresql = PostgreSQL::default();
     let settings = postgresql.settings();
 

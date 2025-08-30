@@ -23,7 +23,7 @@ mod test {
     use super::*;
 
     #[test]
-    fn test_main() -> Result<()> {
+    fn test_embedded_sync_main() -> Result<()> {
         main()
     }
 }
