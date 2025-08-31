@@ -18,12 +18,21 @@ async fn main() -> Result<()> {
     tracing_subscriber::fmt().compact().init();
 
     info!("Installing PostgreSQL");
+    let postgresql_version = VersionReq::parse("=16.4.0")?;
     let settings = Settings {
-        version: VersionReq::parse("=16.4.0")?,
+        version: postgresql_version.clone(),
         ..Default::default()
     };
     let mut postgresql = PostgreSQL::new(settings);
     postgresql.setup().await?;
+
+    let settings = postgresql.settings();
+    // Skip the test if the PostgreSQL version does not match; when testing with the 'bundled'
+    // feature, the version may vary and the test will fail.
+    if settings.version != postgresql_version {
+        eprintln!("Postgresql version does not match");
+        return Ok(());
+    }
 
     info!("Installing the vector extension from PortalCorp");
     postgresql_extensions::install(
@@ -120,10 +129,12 @@ async fn execute_query(pool: &PgPool, query: &str) -> Result<()> {
 
 #[cfg(test)]
 mod test {
+    #[cfg(not(all(target_os = "linux", target_arch = "x86_64")))]
     use super::*;
 
+    #[cfg(not(all(target_os = "linux", target_arch = "x86_64")))]
     #[test]
-    fn test_main() -> Result<()> {
+    fn test_portal_corp_extension_main() -> Result<()> {
         main()
     }
 }

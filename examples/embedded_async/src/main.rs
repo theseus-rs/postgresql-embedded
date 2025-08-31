@@ -27,7 +27,7 @@ mod test {
     use super::*;
 
     #[test]
-    fn test_main() -> Result<()> {
+    fn test_embedded_async_main() -> Result<()> {
         main()
     }
 }

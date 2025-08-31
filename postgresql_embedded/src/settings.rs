@@ -1,5 +1,7 @@
 use crate::error::{Error, Result};
 use postgresql_archive::VersionReq;
+#[cfg(feature = "bundled")]
+use postgresql_archive::{ExactVersionReq, Version};
 use rand::Rng;
 use rand::distr::Alphanumeric;
 use std::collections::HashMap;
@@ -7,8 +9,6 @@ use std::env;
 use std::env::{current_dir, home_dir};
 use std::ffi::OsString;
 use std::path::PathBuf;
-#[cfg(feature = "bundled")]
-use std::str::FromStr;
 #[cfg(feature = "bundled")]
 use std::sync::LazyLock;
 use std::time::Duration;
@@ -18,7 +18,8 @@ use url::Url;
 #[expect(clippy::unwrap_used)]
 pub(crate) static ARCHIVE_VERSION: LazyLock<VersionReq> = LazyLock::new(|| {
     let version_string = include_str!(concat!(std::env!("OUT_DIR"), "/postgresql.version"));
-    let version_req = VersionReq::from_str(&format!("={version_string}")).unwrap();
+    let version = Version::parse(version_string).unwrap();
+    let version_req = version.exact_version_req().unwrap();
     tracing::debug!("Bundled installation archive version {version_string}");
     version_req
 });

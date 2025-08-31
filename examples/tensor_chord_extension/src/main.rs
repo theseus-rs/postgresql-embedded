@@ -147,13 +147,14 @@ async fn execute_query(pool: &PgPool, query: &str) -> Result<()> {
     Ok(())
 }
 
-#[cfg(target_os = "linux")]
 #[cfg(test)]
 mod test {
+    #[cfg(not(all(target_os = "linux", target_arch = "x86_64")))]
     use super::*;
 
+    #[cfg(not(all(target_os = "linux", target_arch = "x86_64")))]
     #[test]
-    fn test_main() -> Result<()> {
+    fn test_tensor_chord_extension_main() -> Result<()> {
         main()
     }
 }

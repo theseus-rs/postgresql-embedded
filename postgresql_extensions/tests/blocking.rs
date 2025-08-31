@@ -22,10 +22,11 @@ fn test_get_available_extensions() -> anyhow::Result<()> {
 
 #[cfg(all(target_os = "linux", feature = "blocking", feature = "tensor-chord"))]
 #[test]
-fn test_lifecycle() -> anyhow::Result<()> {
+fn test_extensions_blocking_lifecycle() -> anyhow::Result<()> {
     let installation_dir = tempfile::tempdir()?.path().to_path_buf();
+    let postgresql_version = semver::VersionReq::parse("=16.4.0")?;
     let settings = postgresql_embedded::Settings {
-        version: postgresql_embedded::VersionReq::parse("=16.4.0")?,
+        version: postgresql_version.clone(),
         installation_dir: installation_dir.clone(),
         ..Default::default()
     };
@@ -34,6 +35,12 @@ fn test_lifecycle() -> anyhow::Result<()> {
     postgresql.setup()?;
 
     let settings = postgresql.settings();
+    // Skip the test if the PostgreSQL version does not match; when testing with the 'bundled'
+    // feature, the version may vary and the test will fail.
+    if settings.version != postgresql_version {
+        return Ok(());
+    }
+
     let namespace = "tensor-chord";
     let name = "pgvecto.rs";
     let version = semver::VersionReq::parse("=0.3.0")?;

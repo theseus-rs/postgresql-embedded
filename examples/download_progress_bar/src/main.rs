@@ -43,7 +43,7 @@ mod test {
     use super::*;
 
     #[test]
-    fn test_main() -> Result<()> {
+    fn test_download_progress_bar_main() -> Result<()> {
         main()
     }
 }

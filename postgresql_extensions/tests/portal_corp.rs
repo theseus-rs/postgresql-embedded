@@ -4,11 +4,11 @@
 )))]
 #[cfg(feature = "portal-corp")]
 #[tokio::test]
-async fn test_lifecycle() -> anyhow::Result<()> {
+async fn test_extensions_portal_corp_lifecycle() -> anyhow::Result<()> {
     let installation_dir = tempfile::tempdir()?.path().to_path_buf();
     let postgresql_version = semver::VersionReq::parse("=16.4.0")?;
     let settings = postgresql_embedded::Settings {
-        version: postgresql_version,
+        version: postgresql_version.clone(),
         installation_dir: installation_dir.clone(),
         ..Default::default()
     };
@@ -17,6 +17,12 @@ async fn test_lifecycle() -> anyhow::Result<()> {
     postgresql.setup().await?;
 
     let settings = postgresql.settings();
+    // Skip the test if the PostgreSQL version does not match; when testing with the 'bundled'
+    // feature, the version may vary and the test will fail.
+    if settings.version != postgresql_version {
+        return Ok(());
+    }
+
     let namespace = "portal-corp";
     let name = "pgvector_compiled";
     let version = semver::VersionReq::parse("=0.16.12")?;

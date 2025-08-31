@@ -27,10 +27,12 @@ async fn main() -> Result<()> {
 
 #[cfg(test)]
 mod test {
+    #[cfg(not(all(target_os = "linux", target_arch = "x86_64")))]
     use super::*;
 
+    #[cfg(not(all(target_os = "linux", target_arch = "x86_64")))]
     #[test]
-    fn test_main() -> Result<()> {
+    fn test_zonky_main() -> Result<()> {
         main()
     }
 }

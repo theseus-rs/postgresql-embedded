@@ -25,7 +25,7 @@ mod test {
     use super::*;
 
     #[test]
-    fn test_main() -> Result<()> {
+    fn test_archive_sync_main() -> Result<()> {
         main()
     }
 }

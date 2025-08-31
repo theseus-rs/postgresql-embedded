@@ -1,9 +1,11 @@
 use crate::error::Error::{DatabaseInitializationError, DatabaseStartError, DatabaseStopError};
 use crate::error::Result;
 use crate::settings::{BOOTSTRAP_DATABASE, BOOTSTRAP_SUPERUSER, Settings};
+use postgresql_archive::extract;
+#[cfg(not(feature = "bundled"))]
+use postgresql_archive::get_archive;
 use postgresql_archive::get_version;
 use postgresql_archive::{ExactVersion, ExactVersionReq};
-use postgresql_archive::{extract, get_archive};
 #[cfg(feature = "tokio")]
 use postgresql_commands::AsyncCommandExecutor;
 use postgresql_commands::CommandBuilder;
@@ -179,6 +181,11 @@ impl PostgreSQL {
     /// returned.
     #[instrument(skip(self))]
     async fn install(&mut self) -> Result<()> {
+        #[cfg(feature = "bundled")]
+        {
+            self.settings.version = crate::settings::ARCHIVE_VERSION.clone();
+        }
+
         debug!(
             "Starting installation process for version {}",
             self.settings.version
@@ -201,28 +208,21 @@ impl PostgreSQL {
 
         let url = &self.settings.releases_url;
 
+        // When the `bundled` feature is enabled, use the bundled archive instead of downloading it
+        // from the internet.
         #[cfg(feature = "bundled")]
-        // If the requested version is the same as the version of the bundled archive, use the bundled
-        // archive. This avoids downloading the archive in environments where internet access is
-        // restricted or undesirable.
-        let (version, bytes) = if *crate::settings::ARCHIVE_VERSION == self.settings.version {
+        let bytes = {
             debug!("Using bundled installation archive");
-            (
-                self.settings.version.clone(),
-                crate::settings::ARCHIVE.to_vec(),
-            )
-        } else {
-            let (version, bytes) = get_archive(url, &self.settings.version).await?;
-            (version.exact_version_req()?, bytes)
+            crate::settings::ARCHIVE.to_vec()
         };
 
         #[cfg(not(feature = "bundled"))]
-        let (version, bytes) = {
+        let bytes = {
             let (version, bytes) = get_archive(url, &self.settings.version).await?;
-            (version.exact_version_req()?, bytes)
+            self.settings.version = version.exact_version_req()?;
+            bytes
         };
 
-        self.settings.version = version;
         extract(url, &bytes, &self.settings.installation_dir).await?;
 
         debug!(
