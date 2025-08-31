@@ -7,6 +7,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## `postgresql_extensions` - [0.20.0](https://github.com/theseus-rs/postgresql-embedded/compare/postgresql_extensions-v0.19.0...postgresql_extensions-v0.20.0) - 2025-08-31
+
+### Fixed
+- always use the build version of postgresql when the bundled feature is enabled to avoid network access
+
+### Other
+- remove devcontainer support
+
+## `postgresql_embedded` - [0.20.0](https://github.com/theseus-rs/postgresql-embedded/compare/v0.19.0...v0.20.0) - 2025-08-31
+
+### Fixed
+- always use the build version of postgresql when the bundled feature is enabled to avoid network access
+- [**breaking**] rename pg_dump compression argument to compress
+
+### Other
+- minor doc updates
+- remove devcontainer support
+- correct lint errors
+- update to Rust 1.88.0
+
+## `postgresql_commands` - [0.20.0](https://github.com/theseus-rs/postgresql-embedded/compare/postgresql_commands-v0.19.0...postgresql_commands-v0.20.0) - 2025-08-31
+
+### Fixed
+- [**breaking**] rename pg_dump compression argument to compress
+
+### Other
+- remove devcontainer support
+
+## `postgresql_archive` - [0.20.0](https://github.com/theseus-rs/postgresql-embedded/compare/postgresql_archive-v0.19.0...postgresql_archive-v0.20.0) - 2025-08-31
+
+### Other
+- minor doc updates
+- remove devcontainer support
+
 ## `postgresql_embedded` - [0.19.0](https://github.com/theseus-rs/postgresql-embedded/compare/v0.18.7...v0.19.0) - 2025-06-24
 
 ### Added
