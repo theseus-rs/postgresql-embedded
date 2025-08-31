@@ -25,7 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - minor doc updates
 - remove devcontainer support
 - correct lint errors
-- update to Rust 1.88.0
+- update to Rust 1.89.0
 
 ## `postgresql_commands` - [0.20.0](https://github.com/theseus-rs/postgresql-embedded/compare/postgresql_commands-v0.19.0...postgresql_commands-v0.20.0) - 2025-08-31
 
