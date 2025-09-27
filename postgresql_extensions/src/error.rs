@@ -38,3 +38,15 @@ impl<T> From<PoisonError<T>> for Error {
         Error::PoisonedLock(value.to_string())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_from_poison_error() {
+        let error = Error::from(std::sync::PoisonError::new(()));
+        assert!(matches!(error, Error::PoisonedLock(_)));
+        assert!(error.to_string().contains("poisoned lock"));
+    }
+}
