@@ -16,13 +16,11 @@ use zip::ZipArchive;
 pub fn extract(bytes: &Vec<u8>, extract_directories: &ExtractDirectories) -> Result<Vec<PathBuf>> {
     let mut files = Vec::new();
     let reader = Cursor::new(bytes);
-    let mut archive = ZipArchive::new(reader).map_err(|_| io::Error::other("Zip error"))?;
+    let mut archive = ZipArchive::new(reader)?;
     let mut extracted_bytes = 0;
 
     for i in 0..archive.len() {
-        let mut file = archive
-            .by_index(i)
-            .map_err(|_| io::Error::other("Zip error"))?;
+        let mut file = archive.by_index(i)?;
         let file_path = PathBuf::from(file.name());
         let file_path = PathBuf::from(file_path.file_name().unwrap_or_default());
         let file_name = file_path.to_string_lossy();

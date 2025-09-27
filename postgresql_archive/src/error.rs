@@ -1,3 +1,5 @@
+use std::sync::PoisonError;
+
 /// PostgreSQL archive result type
 pub type Result<T, E = Error> = core::result::Result<T, E>;
 
@@ -111,6 +113,29 @@ impl From<url::ParseError> for Error {
     }
 }
 
+#[cfg(feature = "maven")]
+/// Converts a [`quick_xml::DeError`] into a [`ParseError`](Error::ParseError)
+impl From<quick_xml::DeError> for Error {
+    fn from(error: quick_xml::DeError) -> Self {
+        Error::ParseError(error.to_string())
+    }
+}
+
+#[cfg(feature = "zip")]
+/// Converts a [`zip::result::ZipError`] into a [`ParseError`](Error::Unexpected)
+impl From<zip::result::ZipError> for Error {
+    fn from(error: zip::result::ZipError) -> Self {
+        Error::Unexpected(error.to_string())
+    }
+}
+
+/// Converts a [`std::sync::PoisonError<T>`] into a [`ParseError`](Error::PoisonedLock)
+impl<T> From<PoisonError<T>> for Error {
+    fn from(value: PoisonError<T>) -> Self {
+        Error::PoisonedLock(value.to_string())
+    }
+}
+
 /// These are relatively low value tests; they are here to reduce the coverage gap and
 /// ensure that the error conversions are working as expected.
 #[cfg(test)]
@@ -198,5 +223,34 @@ mod test {
         let parse_error = url::ParseError::EmptyHost;
         let error = Error::from(parse_error);
         assert_eq!(error.to_string(), "empty host");
+    }
+
+    #[cfg(feature = "maven")]
+    #[test]
+    fn test_from_quick_xml_error() {
+        let xml = "<invalid>";
+        let quick_xml_error = quick_xml::de::from_str::<String>(xml).expect_err("quick_xml error");
+        let error = Error::from(quick_xml_error);
+        assert!(matches!(error, Error::ParseError(_)));
+    }
+
+    #[cfg(feature = "zip")]
+    #[test]
+    fn test_from_zip_error() {
+        let zip_error = zip::result::ZipError::FileNotFound;
+        let error = Error::from(zip_error);
+        assert!(matches!(error, Error::Unexpected(_)));
+        assert!(
+            error
+                .to_string()
+                .contains("specified file not found in archive")
+        );
+    }
+
+    #[test]
+    fn test_from_poisoned_lock() {
+        let error = Error::from(std::sync::PoisonError::new(()));
+        assert!(matches!(error, Error::PoisonedLock(_)));
+        assert!(error.to_string().contains("poisoned lock"));
     }
 }
