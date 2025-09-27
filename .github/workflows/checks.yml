@@ -50,6 +50,7 @@ jobs:
         uses: dtolnay/rust-toolchain@master
         with:
           toolchain: stable
+          components: clippy
       - name: Check lints
         env:
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
