@@ -1,3 +1,5 @@
+use std::sync::PoisonError;
+
 /// PostgreSQL archive result type
 pub type Result<T, E = Error> = core::result::Result<T, E>;
 
@@ -108,6 +110,29 @@ impl From<std::path::StripPrefixError> for Error {
 impl From<url::ParseError> for Error {
     fn from(error: url::ParseError) -> Self {
         Error::ParseError(error.to_string())
+    }
+}
+
+#[cfg(feature = "maven")]
+/// Converts a [`quick_xml::DeError`] into a [`ParseError`](Error::ParseError)
+impl From<quick_xml::DeError> for Error {
+    fn from(error: quick_xml::DeError) -> Self {
+        Error::ParseError(error.to_string())
+    }
+}
+
+#[cfg(feature = "zip")]
+/// Converts a [`zip::result::ZipError`] into a [`ParseError`](Error::Unexpected)
+impl From<zip::result::ZipError> for Error {
+    fn from(error: zip::result::ZipError) -> Self {
+        Error::Unexpected(error.to_string())
+    }
+}
+
+/// Converts a [`std::sync::PoisonError<T>`] into a [`ParseError`](Error::PoisonedLock)
+impl<T> From<PoisonError<T>> for Error {
+    fn from(value: PoisonError<T>) -> Self {
+        Error::PoisonedLock(value.to_string())
     }
 }
 

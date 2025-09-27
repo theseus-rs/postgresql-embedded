@@ -43,12 +43,10 @@ pub fn extract(bytes: &Vec<u8>, extract_directories: &ExtractDirectories) -> Res
     debug!("Extracting archive to {}", extract_dir.to_string_lossy());
 
     let reader = Cursor::new(bytes);
-    let mut archive = ZipArchive::new(reader).map_err(|error| Unexpected(error.to_string()))?;
+    let mut archive = ZipArchive::new(reader)?;
     let mut archive_bytes = Vec::new();
     for i in 0..archive.len() {
-        let mut file = archive
-            .by_index(i)
-            .map_err(|error| Unexpected(error.to_string()))?;
+        let mut file = archive.by_index(i)?;
         let file_name = file.name().to_string();
         if file_name.ends_with(".txz") {
             debug!("Found archive file: {file_name}");

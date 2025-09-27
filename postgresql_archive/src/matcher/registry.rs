@@ -1,4 +1,4 @@
-use crate::Error::{PoisonedLock, UnsupportedMatcher};
+use crate::Error::UnsupportedMatcher;
 use crate::Result;
 #[cfg(feature = "theseus")]
 use crate::configuration::theseus;
@@ -46,13 +46,9 @@ impl MatchersRegistry {
     fn get<S: AsRef<str>>(&self, url: S) -> Result<MatcherFn> {
         let url = url.as_ref();
         for (supports_fn, matcher_fn) in &self.matchers {
-            let supports_function = supports_fn
-                .read()
-                .map_err(|error| PoisonedLock(error.to_string()))?;
+            let supports_function = supports_fn.read()?;
             if supports_function(url)? {
-                let matcher_function = matcher_fn
-                    .read()
-                    .map_err(|error| PoisonedLock(error.to_string()))?;
+                let matcher_function = matcher_fn.read()?;
                 return Ok(*matcher_function);
             }
         }
@@ -79,10 +75,7 @@ impl Default for MatchersRegistry {
 /// # Errors
 /// * If the registry is poisoned.
 pub fn register(supports_fn: SupportsFn, matcher_fn: MatcherFn) -> Result<()> {
-    let mut registry = REGISTRY
-        .lock()
-        .map_err(|error| PoisonedLock(error.to_string()))?;
-    registry.register(supports_fn, matcher_fn);
+    REGISTRY.lock()?.register(supports_fn, matcher_fn);
     Ok(())
 }
 
@@ -91,10 +84,7 @@ pub fn register(supports_fn: SupportsFn, matcher_fn: MatcherFn) -> Result<()> {
 /// # Errors
 /// * If the registry is poisoned.
 pub fn get<S: AsRef<str>>(url: S) -> Result<MatcherFn> {
-    let registry = REGISTRY
-        .lock()
-        .map_err(|error| PoisonedLock(error.to_string()))?;
-    registry.get(url)
+    REGISTRY.lock()?.get(url)
 }
 
 #[cfg(test)]

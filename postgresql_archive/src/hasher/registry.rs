@@ -1,4 +1,4 @@
-use crate::Error::{PoisonedLock, UnsupportedHasher};
+use crate::Error::UnsupportedHasher;
 use crate::Result;
 #[cfg(feature = "theseus")]
 use crate::configuration::theseus;
@@ -54,13 +54,9 @@ impl HasherRegistry {
         let url = url.as_ref();
         let extension = extension.as_ref();
         for (supports_fn, hasher_fn) in &self.hashers {
-            let supports_function = supports_fn
-                .read()
-                .map_err(|error| PoisonedLock(error.to_string()))?;
+            let supports_function = supports_fn.read()?;
             if supports_function(url, extension)? {
-                let hasher_function = hasher_fn
-                    .read()
-                    .map_err(|error| PoisonedLock(error.to_string()))?;
+                let hasher_function = hasher_fn.read()?;
                 return Ok(*hasher_function);
             }
         }
@@ -109,10 +105,7 @@ impl Default for HasherRegistry {
 /// # Errors
 /// * If the registry is poisoned.
 pub fn register(supports_fn: SupportsFn, hasher_fn: HasherFn) -> Result<()> {
-    let mut registry = REGISTRY
-        .lock()
-        .map_err(|error| PoisonedLock(error.to_string()))?;
-    registry.register(supports_fn, hasher_fn);
+    REGISTRY.lock()?.register(supports_fn, hasher_fn);
     Ok(())
 }
 
@@ -121,10 +114,7 @@ pub fn register(supports_fn: SupportsFn, hasher_fn: HasherFn) -> Result<()> {
 /// # Errors
 /// * If the registry is poisoned.
 pub fn get<S: AsRef<str>>(url: S, extension: S) -> Result<HasherFn> {
-    let registry = REGISTRY
-        .lock()
-        .map_err(|error| PoisonedLock(error.to_string()))?;
-    registry.get(url, extension)
+    REGISTRY.lock()?.get(url, extension)
 }
 
 #[cfg(test)]

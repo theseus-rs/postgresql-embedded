@@ -1,4 +1,4 @@
-use crate::Error::{PoisonedLock, UnsupportedNamespace};
+use crate::Error::UnsupportedNamespace;
 use crate::Result;
 use crate::repository::model::Repository;
 #[cfg(feature = "portal-corp")]
@@ -44,9 +44,7 @@ impl RepositoryRegistry {
         let Some(new_fn) = self.repositories.get(&namespace) else {
             return Err(UnsupportedNamespace(namespace.to_string()));
         };
-        let new_function = new_fn
-            .read()
-            .map_err(|error| PoisonedLock(error.to_string()))?;
+        let new_function = new_fn.read()?;
         new_function()
     }
 }
@@ -79,10 +77,7 @@ impl Default for RepositoryRegistry {
 /// # Errors
 /// * If the registry is poisoned.
 pub fn register(namespace: &str, new_fn: Box<NewFn>) -> Result<()> {
-    let mut registry = REGISTRY
-        .lock()
-        .map_err(|error| PoisonedLock(error.to_string()))?;
-    registry.register(namespace, new_fn);
+    REGISTRY.lock()?.register(namespace, new_fn);
     Ok(())
 }
 
@@ -91,10 +86,7 @@ pub fn register(namespace: &str, new_fn: Box<NewFn>) -> Result<()> {
 /// # Errors
 /// * If the namespace is not supported.
 pub fn get(namespace: &str) -> Result<Box<dyn Repository>> {
-    let registry = REGISTRY
-        .lock()
-        .map_err(|error| PoisonedLock(error.to_string()))?;
-    registry.get(namespace)
+    REGISTRY.lock()?.get(namespace)
 }
 
 /// Gets the namespaces of the registered repositories.
@@ -102,10 +94,7 @@ pub fn get(namespace: &str) -> Result<Box<dyn Repository>> {
 /// # Errors
 /// * If the registry is poisoned.
 pub fn get_namespaces() -> Result<Vec<String>> {
-    let registry = REGISTRY
-        .lock()
-        .map_err(|error| PoisonedLock(error.to_string()))?;
-    Ok(registry.repositories.keys().cloned().collect())
+    Ok(REGISTRY.lock()?.repositories.keys().cloned().collect())
 }
 
 /// Gets all the registered repositories.

@@ -1,4 +1,4 @@
-use crate::Error::{PoisonedLock, UnsupportedExtractor};
+use crate::Error::UnsupportedExtractor;
 use crate::Result;
 #[cfg(feature = "theseus")]
 use crate::configuration::theseus;
@@ -45,13 +45,10 @@ impl RepositoryRegistry {
     /// * If the URL is not supported.
     fn get(&self, url: &str) -> Result<ExtractFn> {
         for (supports_fn, extractor_fn) in &self.extractors {
-            let supports_function = supports_fn
-                .read()
-                .map_err(|error| PoisonedLock(error.to_string()))?;
+            let supports_function = supports_fn.read()?;
+
             if supports_function(url)? {
-                let extractor_function = extractor_fn
-                    .read()
-                    .map_err(|error| PoisonedLock(error.to_string()))?;
+                let extractor_function = extractor_fn.read()?;
                 return Ok(*extractor_function);
             }
         }
@@ -77,10 +74,7 @@ impl Default for RepositoryRegistry {
 /// # Errors
 /// * If the registry is poisoned.
 pub fn register(supports_fn: SupportsFn, extractor_fn: ExtractFn) -> Result<()> {
-    let mut registry = REGISTRY
-        .lock()
-        .map_err(|error| PoisonedLock(error.to_string()))?;
-    registry.register(supports_fn, extractor_fn);
+    REGISTRY.lock()?.register(supports_fn, extractor_fn);
     Ok(())
 }
 
@@ -89,10 +83,7 @@ pub fn register(supports_fn: SupportsFn, extractor_fn: ExtractFn) -> Result<()> 
 /// # Errors
 /// * If the URL is not supported.
 pub fn get(url: &str) -> Result<ExtractFn> {
-    let registry = REGISTRY
-        .lock()
-        .map_err(|error| PoisonedLock(error.to_string()))?;
-    registry.get(url)
+    REGISTRY.lock()?.get(url)
 }
 
 #[cfg(test)]

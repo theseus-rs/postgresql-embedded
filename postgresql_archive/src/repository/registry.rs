@@ -1,4 +1,4 @@
-use crate::Error::{PoisonedLock, UnsupportedRepository};
+use crate::Error::UnsupportedRepository;
 use crate::Result;
 #[cfg(feature = "theseus")]
 use crate::configuration::theseus;
@@ -46,13 +46,9 @@ impl RepositoryRegistry {
     /// * If the URL is not supported.
     fn get(&self, url: &str) -> Result<Box<dyn Repository>> {
         for (supports_fn, new_fn) in &self.repositories {
-            let supports_function = supports_fn
-                .read()
-                .map_err(|error| PoisonedLock(error.to_string()))?;
+            let supports_function = supports_fn.read()?;
             if supports_function(url)? {
-                let new_function = new_fn
-                    .read()
-                    .map_err(|error| PoisonedLock(error.to_string()))?;
+                let new_function = new_fn.read()?;
                 return new_function(url);
             }
         }
@@ -84,10 +80,7 @@ impl Default for RepositoryRegistry {
 /// # Errors
 /// * If the registry is poisoned.
 pub fn register(supports_fn: SupportsFn, new_fn: Box<NewFn>) -> Result<()> {
-    let mut registry = REGISTRY
-        .lock()
-        .map_err(|error| PoisonedLock(error.to_string()))?;
-    registry.register(supports_fn, new_fn);
+    REGISTRY.lock()?.register(supports_fn, new_fn);
     Ok(())
 }
 
@@ -96,10 +89,7 @@ pub fn register(supports_fn: SupportsFn, new_fn: Box<NewFn>) -> Result<()> {
 /// # Errors
 /// * If the URL is not supported.
 pub fn get(url: &str) -> Result<Box<dyn Repository>> {
-    let registry = REGISTRY
-        .lock()
-        .map_err(|error| PoisonedLock(error.to_string()))?;
-    registry.get(url)
+    REGISTRY.lock()?.get(url)
 }
 
 #[cfg(test)]

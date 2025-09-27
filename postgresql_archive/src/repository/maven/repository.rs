@@ -1,4 +1,4 @@
-use crate::Error::{ArchiveHashMismatch, ParseError, RepositoryFailure, VersionNotFound};
+use crate::Error::{ArchiveHashMismatch, RepositoryFailure, VersionNotFound};
 use crate::repository::Archive;
 use crate::repository::maven::models::Metadata;
 use crate::repository::model::Repository;
@@ -60,8 +60,7 @@ impl Maven {
         let request = client.get(&url).headers(Self::headers());
         let response = request.send().await?.error_for_status()?;
         let text = response.text().await?;
-        let metadata: Metadata =
-            quick_xml::de::from_str(&text).map_err(|error| ParseError(error.to_string()))?;
+        let metadata: Metadata = quick_xml::de::from_str(&text)?;
         let artifact = metadata.artifact_id;
         let mut result = None;
         for version in &metadata.versioning.versions.version {
