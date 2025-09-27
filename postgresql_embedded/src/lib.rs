@@ -75,7 +75,7 @@
 //! - Unix: `$HOME/.theseus/postgresql`
 //! - Windows: `%USERPROFILE%\.theseus\postgresql`
 //!
-//! Performance can be improved by using a specific version of the PostgreSQL binaries (e.g. `=16.4.0`).
+//! Performance can be improved by using a specific version of the PostgreSQL binaries (e.g. `=16.10.0`).
 //! After the first download, the PostgreSQL binaries will be cached and reused for subsequent runs.
 //! Further, the repository will no longer be queried to calculate the version match.
 //!
@@ -134,6 +134,9 @@ use std::sync::LazyLock;
 /// The latest PostgreSQL version requirement
 pub static LATEST: VersionReq = VersionReq::STAR;
 
+/// The latest PostgreSQL version 18
+pub static V18: LazyLock<VersionReq> = LazyLock::new(|| VersionReq::parse("=18").unwrap());
+
 /// The latest PostgreSQL version 17
 pub static V17: LazyLock<VersionReq> = LazyLock::new(|| VersionReq::parse("=17").unwrap());
 
@@ -162,14 +165,19 @@ mod tests {
 
     #[test]
     fn test_version() -> Result<()> {
-        let version = VersionReq::parse("=16.4.0")?;
-        assert_eq!(version.to_string(), "=16.4.0");
+        let version = VersionReq::parse("=16.10.0")?;
+        assert_eq!(version.to_string(), "=16.10.0");
         Ok(())
     }
 
     #[test]
     fn test_version_latest() {
         assert_eq!(LATEST.to_string(), "*");
+    }
+
+    #[test]
+    fn test_version_18() {
+        assert_eq!(V18.to_string(), "=18");
     }
 
     #[test]
