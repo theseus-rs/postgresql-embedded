@@ -3,8 +3,9 @@
 use anyhow::Result;
 use postgresql_archive::configuration::{custom, theseus};
 use postgresql_archive::repository::github::repository::GitHub;
-use postgresql_archive::{VersionReq, matcher};
+use postgresql_archive::{ExactVersion, VersionReq, matcher};
 use postgresql_archive::{get_archive, repository};
+use std::env::home_dir;
 use std::fs::File;
 use std::io::Write;
 use std::path::PathBuf;
@@ -53,7 +54,43 @@ pub(crate) async fn stage_postgresql_archive() -> Result<()> {
         return Ok(());
     }
 
-    let (asset_version, archive) = get_archive(&releases_url, &version_req).await?;
+    let (asset_version, archive);
+
+    // Only works when exact version is specified and with the `bundled` feature
+    // In runtime, the archive seems to be cached
+    if cfg!(feature = "bundled") && let Some(exact_version) = version_req.exact_version() {
+        println!("Using existing version: {exact_version:?}");
+        let ver = exact_version.to_string();
+        let target_os = if cfg!(target_os = "windows") {
+            "windows"
+        } else if cfg!(target_os = "linux") {
+            "linux"
+        } else {
+            panic!("Unsupported target OS: only windows and linux are supported");
+        };
+        let cached_file_name = home_dir()
+            .unwrap_or_else(|| env::current_dir().unwrap_or_default())
+            .join(".theseus")
+            .join("postgresql")
+            .join(format!("postgresql-{}-{}.tar.gz", ver, target_os));
+
+        println!(
+            "Cached file name: {cached_file_name:?} - exists: {}",
+            cached_file_name.exists()
+        );
+        if !cached_file_name.is_file() {
+            (asset_version, archive) = get_archive(&releases_url, &version_req).await?;
+            fs::create_dir_all(cached_file_name.parent().unwrap())?;
+            fs::write(&cached_file_name, &archive)?;
+            println!("Cached PostgreSQL archive to: {cached_file_name:?}");
+        } else {
+            asset_version = exact_version;
+            archive = fs::read(&cached_file_name)?;
+            println!("Using cached PostgreSQL archive: {cached_file_name:?}");
+        }
+    } else {
+        (asset_version, archive) = get_archive(&releases_url, &version_req).await?;
+    }
 
     fs::write(archive_version_file.clone(), asset_version.to_string())?;
     let mut file = File::create(archive_file.clone())?;
