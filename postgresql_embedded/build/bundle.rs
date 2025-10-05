@@ -61,9 +61,9 @@ pub(crate) async fn stage_postgresql_archive() -> Result<()> {
     if cfg!(feature = "bundled") && let Some(exact_version) = version_req.exact_version() {
         println!("Using existing version: {exact_version:?}");
         let ver = exact_version.to_string();
-        let target_os = if cfg!(target_os = "windows") {
+        let target_os = if target_triple::TARGET.contains("windows") {
             "windows"
-        } else if cfg!(target_os = "linux") {
+        } else if target_triple::TARGET.contains("linux") {
             "linux"
         } else {
             panic!("Unsupported target OS: only windows and linux are supported");
