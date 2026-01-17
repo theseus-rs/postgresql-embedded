@@ -65,5 +65,5 @@ native-tls = [
 ]
 rustls = [
     "postgresql_archive/rustls",
-    "reqwest/rustls-tls-native-roots",
+    "reqwest/rustls",
 ]

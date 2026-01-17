@@ -1,7 +1,3 @@
-#![forbid(unsafe_code)]
-#![forbid(clippy::allow_attributes)]
-#![deny(clippy::pedantic)]
-
 use anyhow::Result;
 use indicatif::ProgressStyle;
 use postgresql_embedded::{PostgreSQL, Settings, VersionReq};

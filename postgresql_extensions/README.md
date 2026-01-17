@@ -64,10 +64,6 @@ The following features are available:
 * [steampipe/repositories](https://github.com/orgs/turbot/repositories)
 * [tensor-chord/pgvecto.rs](https://github.com/tensor-chord/pgvecto.rs)
 
-## Safety
-
-This crate uses `#![forbid(unsafe_code)]` to ensure everything is implemented in 100% safe Rust.
-
 ## License
 
 Licensed under either of

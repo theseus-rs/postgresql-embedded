@@ -1,7 +1,3 @@
-#![forbid(unsafe_code)]
-#![forbid(clippy::allow_attributes)]
-#![deny(clippy::pedantic)]
-
 use anyhow::Result;
 use axum::extract::State;
 use axum::{Json, Router, http::StatusCode, routing::get};

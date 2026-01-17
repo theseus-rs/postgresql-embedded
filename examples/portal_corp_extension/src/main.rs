@@ -1,7 +1,3 @@
-#![forbid(unsafe_code)]
-#![forbid(clippy::allow_attributes)]
-#![deny(clippy::pedantic)]
-
 use anyhow::Result;
 use indoc::indoc;
 use pgvector::Vector;

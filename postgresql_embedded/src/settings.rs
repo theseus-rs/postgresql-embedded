@@ -2,7 +2,7 @@ use crate::error::{Error, Result};
 use postgresql_archive::VersionReq;
 #[cfg(feature = "bundled")]
 use postgresql_archive::{ExactVersionReq, Version};
-use rand::Rng;
+use rand::RngExt;
 use rand::distr::Alphanumeric;
 use std::collections::HashMap;
 use std::env;
@@ -70,15 +70,15 @@ impl Settings {
         let home_dir = home_dir().unwrap_or_else(|| env::current_dir().unwrap_or_default());
         let password_file_name = ".pgpass";
         let password_file = if let Ok(dir) = tempfile::tempdir() {
-            dir.into_path().join(password_file_name)
+            dir.keep().join(password_file_name)
         } else {
             let current_dir = current_dir().unwrap_or(PathBuf::from("."));
             current_dir.join(password_file_name)
         };
         let data_dir = if let Ok(dir) = tempfile::tempdir() {
-            dir.into_path()
+            dir.keep()
         } else {
-            let temp_dir: String = rand::thread_rng()
+            let temp_dir: String = rand::rng()
                 .sample_iter(&Alphanumeric)
                 .take(16)
                 .map(char::from)
@@ -88,7 +88,7 @@ impl Settings {
             data_dir.join(temp_dir)
         };
 
-        let password = rand::thread_rng()
+        let password = rand::rng()
             .sample_iter(&Alphanumeric)
             .take(16)
             .map(char::from)

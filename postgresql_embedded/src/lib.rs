@@ -112,13 +112,6 @@
 //!
 //! PostgreSQL is covered under [The PostgreSQL License](https://opensource.org/licenses/postgresql).
 
-#![forbid(unsafe_code)]
-#![forbid(clippy::allow_attributes)]
-#![deny(clippy::pedantic)]
-#![allow(dead_code)]
-#![allow(clippy::doc_markdown)]
-#![allow(deprecated)]
-
 #[cfg(feature = "blocking")]
 pub mod blocking;
 mod error;
@@ -201,6 +194,7 @@ mod tests {
     }
 
     #[test]
+    #[allow(deprecated)]
     fn test_version_13() {
         assert_eq!(V13.to_string(), "=13");
     }

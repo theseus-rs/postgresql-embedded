@@ -82,12 +82,6 @@
 //! for inclusion in the work by you, as defined in the Apache-2.0 license, shall be dual licensed as above, without any
 //! additional terms or conditions.
 
-#![forbid(unsafe_code)]
-#![forbid(clippy::allow_attributes)]
-#![deny(clippy::pedantic)]
-#![allow(clippy::doc_markdown)]
-#![allow(clippy::module_name_repetitions)]
-
 #[cfg(feature = "blocking")]
 pub mod blocking;
 mod error;
