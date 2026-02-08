@@ -3,7 +3,7 @@
 use anyhow::Result;
 use postgresql_archive::configuration::{custom, theseus};
 use postgresql_archive::repository::github::repository::GitHub;
-use postgresql_archive::{VersionReq, matcher};
+use postgresql_archive::{ExactVersion, Version, VersionReq, matcher};
 use postgresql_archive::{get_archive, repository};
 use std::fs::File;
 use std::io::Write;
@@ -53,7 +53,27 @@ pub(crate) async fn stage_postgresql_archive() -> Result<()> {
         return Ok(());
     }
 
-    let (asset_version, archive) = get_archive(&releases_url, &version_req).await?;
+    let (asset_version, archive) = if let Some(exact_version) = version_req.exact_version() {
+        let cached_file = cached_archive_path(&exact_version);
+        println!(
+            "Cached file: {cached_file:?}; exists: {}",
+            cached_file.exists()
+        );
+        if cached_file.is_file() {
+            println!("Using cached PostgreSQL archive: {cached_file:?}");
+            (exact_version, fs::read(&cached_file)?)
+        } else {
+            let result = get_archive(&releases_url, &version_req).await?;
+            if let Some(parent) = cached_file.parent() {
+                fs::create_dir_all(parent)?;
+            }
+            fs::write(&cached_file, &result.1)?;
+            println!("Cached PostgreSQL archive to: {cached_file:?}");
+            result
+        }
+    } else {
+        get_archive(&releases_url, &version_req).await?
+    };
 
     fs::write(archive_version_file.clone(), asset_version.to_string())?;
     let mut file = File::create(archive_file.clone())?;
@@ -62,6 +82,15 @@ pub(crate) async fn stage_postgresql_archive() -> Result<()> {
     println!("PostgreSQL archive written to: {archive_file:?}");
 
     Ok(())
+}
+
+/// Returns the path for a cached archive.
+fn cached_archive_path(version: &Version) -> PathBuf {
+    let home = std::env::home_dir().unwrap_or_else(|| env::current_dir().unwrap_or_default());
+    let target = target_triple::TARGET;
+    home.join(".theseus")
+        .join("postgresql")
+        .join(format!("postgresql-{version}-{target}.tar.gz"))
 }
 
 fn supports_github_url(url: &str) -> postgresql_archive::Result<bool> {
