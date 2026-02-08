@@ -3,9 +3,8 @@
 use anyhow::Result;
 use postgresql_archive::configuration::{custom, theseus};
 use postgresql_archive::repository::github::repository::GitHub;
-use postgresql_archive::{ExactVersion, VersionReq, matcher};
+use postgresql_archive::{ExactVersion, Version, VersionReq, matcher};
 use postgresql_archive::{get_archive, repository};
-use std::env::home_dir;
 use std::fs::File;
 use std::io::Write;
 use std::path::PathBuf;
@@ -54,43 +53,27 @@ pub(crate) async fn stage_postgresql_archive() -> Result<()> {
         return Ok(());
     }
 
-    let (asset_version, archive);
-
-    // Only works when exact version is specified and with the `bundled` feature
-    // In runtime, the archive seems to be cached
-    if cfg!(feature = "bundled") && let Some(exact_version) = version_req.exact_version() {
-        println!("Using existing version: {exact_version:?}");
-        let ver = exact_version.to_string();
-        let target_os = if target_triple::TARGET.contains("windows") {
-            "windows"
-        } else if target_triple::TARGET.contains("linux") {
-            "linux"
-        } else {
-            panic!("Unsupported target OS: only windows and linux are supported");
-        };
-        let cached_file_name = home_dir()
-            .unwrap_or_else(|| env::current_dir().unwrap_or_default())
-            .join(".theseus")
-            .join("postgresql")
-            .join(format!("postgresql-{}-{}.tar.gz", ver, target_os));
-
+    let (asset_version, archive) = if let Some(exact_version) = version_req.exact_version() {
+        let cached_file = cached_archive_path(&exact_version);
         println!(
-            "Cached file name: {cached_file_name:?} - exists: {}",
-            cached_file_name.exists()
+            "Cached file: {cached_file:?}; exists: {}",
+            cached_file.exists()
         );
-        if !cached_file_name.is_file() {
-            (asset_version, archive) = get_archive(&releases_url, &version_req).await?;
-            fs::create_dir_all(cached_file_name.parent().unwrap())?;
-            fs::write(&cached_file_name, &archive)?;
-            println!("Cached PostgreSQL archive to: {cached_file_name:?}");
+        if cached_file.is_file() {
+            println!("Using cached PostgreSQL archive: {cached_file:?}");
+            (exact_version, fs::read(&cached_file)?)
         } else {
-            asset_version = exact_version;
-            archive = fs::read(&cached_file_name)?;
-            println!("Using cached PostgreSQL archive: {cached_file_name:?}");
+            let result = get_archive(&releases_url, &version_req).await?;
+            if let Some(parent) = cached_file.parent() {
+                fs::create_dir_all(parent)?;
+            }
+            fs::write(&cached_file, &result.1)?;
+            println!("Cached PostgreSQL archive to: {cached_file:?}");
+            result
         }
     } else {
-        (asset_version, archive) = get_archive(&releases_url, &version_req).await?;
-    }
+        get_archive(&releases_url, &version_req).await?
+    };
 
     fs::write(archive_version_file.clone(), asset_version.to_string())?;
     let mut file = File::create(archive_file.clone())?;
@@ -99,6 +82,15 @@ pub(crate) async fn stage_postgresql_archive() -> Result<()> {
     println!("PostgreSQL archive written to: {archive_file:?}");
 
     Ok(())
+}
+
+/// Returns the path for a cached archive.
+fn cached_archive_path(version: &Version) -> PathBuf {
+    let home = std::env::home_dir().unwrap_or_else(|| env::current_dir().unwrap_or_default());
+    let target = target_triple::TARGET;
+    home.join(".theseus")
+        .join("postgresql")
+        .join(format!("postgresql-{version}-{target}.tar.gz"))
 }
 
 fn supports_github_url(url: &str) -> postgresql_archive::Result<bool> {
