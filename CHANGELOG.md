@@ -10,6 +10,45 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## `postgresql_extensions` - [0.20.1](https://github.com/theseus-rs/postgresql-embedded/compare/postgresql_extensions-v0.20.0...postgresql_extensions-v0.20.1) - 2026-02-08
 
 ### Other
+- postgresql-embedded-v0.20.1
+- update rust to 1.92.0
+- reduce map_err by adding some From<Error> implementations
+- reduce map_err by adding some From<Error> implementations
+
+## `postgresql_embedded` - [0.20.1](https://github.com/theseus-rs/postgresql-embedded/compare/v0.20.0...v0.20.1) - 2026-02-08
+
+### Added
+- add postgresql v18 support
+
+### Fixed
+- update to support all targets
+
+### Other
+- postgresql-embedded-v0.20.1
+- Merge branch 'main' into caching_builds
+- Target
+- Cache archives
+- update rust to 1.92.0
+- Merge pull request #222 from gazure/ga/refactor-error-from-impls
+- reduce map_err by adding some From<Error> implementations
+- reduce map_err by adding some From<Error> implementations
+
+## `postgresql_commands` - [0.20.1](https://github.com/theseus-rs/postgresql-embedded/compare/postgresql_commands-v0.20.0...postgresql_commands-v0.20.1) - 2026-02-08
+
+### Other
+- update rust to 1.92.0
+
+## `postgresql_archive` - [0.20.1](https://github.com/theseus-rs/postgresql-embedded/compare/postgresql_archive-v0.20.0...postgresql_archive-v0.20.1) - 2026-02-08
+
+### Other
+- update rust to 1.92.0
+- Merge pull request #222 from gazure/ga/refactor-error-from-impls
+- reduce map_err by adding some From<Error> implementations
+- reduce map_err by adding some From<Error> implementations
+
+## `postgresql_extensions` - [0.20.1](https://github.com/theseus-rs/postgresql-embedded/compare/postgresql_extensions-v0.20.0...postgresql_extensions-v0.20.1) - 2026-02-08
+
+### Other
 - update rust to 1.92.0
 - reduce map_err by adding some From<Error> implementations
 
