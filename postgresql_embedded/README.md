@@ -141,10 +141,6 @@ Supports using PostgreSQL binaries from:
 * [theseus-rs/postgresql-binaries](https://github.com/theseus-rs/postgresql-binaries) (default)
 * [zonkyio/embedded-postgres-binaries](https://github.com/zonkyio/embedded-postgres-binaries)
 
-## Safety
-
-This crate uses `#![forbid(unsafe_code)]` to ensure everything is implemented in 100% safe Rust.
-
 ## License
 
 Licensed under either of

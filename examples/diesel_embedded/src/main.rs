@@ -1,7 +1,3 @@
-#![forbid(unsafe_code)]
-#![forbid(clippy::allow_attributes)]
-#![deny(clippy::pedantic)]
-
 use crate::models::{NewPost, Post};
 use diesel::r2d2::{ConnectionManager, Pool};
 use diesel::{PgConnection, RunQueryDsl, SelectableHelper};

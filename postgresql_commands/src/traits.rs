@@ -156,6 +156,7 @@ pub trait CommandExecutor {
 /// Interface for executing a command
 pub trait AsyncCommandExecutor {
     /// Execute the command and return the stdout and stderr
+    #[expect(async_fn_in_trait)]
     async fn execute(&mut self, timeout: Option<Duration>) -> Result<(String, String)>;
 }
 

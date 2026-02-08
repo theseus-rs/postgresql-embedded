@@ -20,8 +20,8 @@ md-5 = { workspace = true, optional = true }
 num-format = { workspace = true }
 quick-xml = { workspace = true, features = ["serialize"], optional = true }
 regex-lite = { workspace = true }
-reqwest = { workspace = true, default-features = false, features = ["json", "stream"] }
-reqwest-middleware = { workspace = true }
+reqwest = { workspace = true, default-features = false, features = ["http2", "json", "query", "stream"] }
+reqwest-middleware = { workspace = true, features = ["query"] }
 reqwest-retry = { workspace = true }
 reqwest-tracing = { workspace = true }
 semver = { workspace = true }
@@ -66,7 +66,7 @@ maven = [
 ]
 md5 = ["dep:md-5"]
 native-tls = ["reqwest/native-tls"]
-rustls = ["reqwest/rustls-tls-native-roots"]
+rustls = ["reqwest/rustls"]
 sha1 = ["dep:sha1"]
 sha2 = ["dep:sha2"]
 tar-gz = [
