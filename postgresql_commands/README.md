@@ -37,10 +37,6 @@ The following features are available:
 |---------|-----------------------------------|----------|
 | `tokio` | Enables the use of tokio commands | No       |
 
-## Safety
-
-This crate uses `#![forbid(unsafe_code)]` to ensure everything is implemented in 100% safe Rust.
-
 ## License
 
 Licensed under either of

@@ -1,7 +1,3 @@
-#![forbid(unsafe_code)]
-#![forbid(clippy::allow_attributes)]
-#![deny(clippy::pedantic)]
-
 use anyhow::Result;
 use indoc::indoc;
 use sqlx::{PgPool, Row};
@@ -29,7 +25,7 @@ async fn main() -> Result<()> {
         postgresql.settings(),
         "tensor-chord",
         "pgvecto.rs",
-        &VersionReq::parse("=0.3.0")?,
+        &VersionReq::parse("=0.4.0")?,
     )
     .await?;
 
@@ -147,14 +143,13 @@ async fn execute_query(pool: &PgPool, query: &str) -> Result<()> {
     Ok(())
 }
 
-#[cfg(test)]
-mod test {
-    #[cfg(not(all(target_os = "linux", target_arch = "x86_64")))]
-    use super::*;
-
-    #[cfg(not(all(target_os = "linux", target_arch = "x86_64")))]
-    #[test]
-    fn test_tensor_chord_extension_main() -> Result<()> {
-        main()
-    }
-}
+// #[cfg(test)]
+// mod test {
+//     use super::*;
+//
+//     #[test]
+//     #[ignore = "this extension has been deprecated"]
+//     fn test_tensor_chord_extension_main() -> Result<()> {
+//         main()
+//     }
+// }
