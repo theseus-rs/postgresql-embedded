@@ -50,12 +50,16 @@ impl CreateUserBuilder {
 
     /// Create a new [`CreateUserBuilder`] from [Settings]
     pub fn from(settings: &dyn Settings) -> Self {
-        Self::new()
+        let mut builder = Self::new()
             .program_dir(settings.get_binary_dir())
             .host(settings.get_host())
             .port(settings.get_port())
             .username(settings.get_username())
-            .pg_password(settings.get_password())
+            .pg_password(settings.get_password());
+        if let Some(socket_dir) = settings.get_socket_dir() {
+            builder = builder.host(socket_dir.to_string_lossy().to_string());
+        }
+        builder
     }
 
     /// Location of the program binary
@@ -441,6 +445,7 @@ impl CommandBuilder for CreateUserBuilder {
 mod tests {
     use super::*;
     use crate::TestSettings;
+    use crate::TestSocketSettings;
     use crate::traits::CommandToString;
     use test_log::test;
 
@@ -512,6 +517,22 @@ mod tests {
         assert_eq!(
             format!(
                 r#"{command_prefix}"createuser" "--with-admin" "admin" "--connection-limit" "10" "--createdb" "--no-createdb" "--echo" "--member-of" "member" "--inherit" "--no-inherit" "--login" "--no-login" "--with-member" "member" "--pwprompt" "--createrole" "--no-createrole" "--superuser" "--no-superuser" "--valid-until" "2021-12-31" "--version" "--interactive" "--bypassrls" "--no-bypassrls" "--replication" "--no-replication" "--help" "--host" "localhost" "--port" "5432" "--username" "username" "--no-password" "--password""#
+            ),
+            command.to_command_string()
+        );
+    }
+
+    #[test]
+    fn test_builder_from_socket() {
+        let command = CreateUserBuilder::from(&TestSocketSettings).build();
+        #[cfg(not(target_os = "windows"))]
+        let command_prefix = r#"PGPASSWORD="password" "./createuser" "#;
+        #[cfg(target_os = "windows")]
+        let command_prefix = r#"".\\createuser" "#;
+
+        assert_eq!(
+            format!(
+                r#"{command_prefix}"--host" "/tmp/pg_socket" "--port" "5432" "--username" "postgres""#
             ),
             command.to_command_string()
         );

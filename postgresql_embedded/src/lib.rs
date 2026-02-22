@@ -57,6 +57,55 @@
 //! }
 //! ```
 //!
+//! ### Settings Builder
+//!
+//! ```no_run
+//! use postgresql_embedded::{PostgreSQL, Result, SettingsBuilder};
+//!
+//! #[tokio::main]
+//! async fn main() -> Result<()> {
+//!     let settings = SettingsBuilder::new()
+//!         .host("127.0.0.1")
+//!         .port(5433)
+//!         .username("admin")
+//!         .password("secret")
+//!         .temporary(false)
+//!         .config("max_connections", "100")
+//!         .build();
+//!
+//!     let mut postgresql = PostgreSQL::new(settings);
+//!     postgresql.setup().await?;
+//!     postgresql.start().await?;
+//!
+//!     postgresql.stop().await
+//! }
+//! ```
+//!
+//! ### Unix Socket
+//!
+//! ```no_run
+//! use postgresql_embedded::{PostgreSQL, Result, SettingsBuilder};
+//! use std::path::PathBuf;
+//!
+//! #[tokio::main]
+//! async fn main() -> Result<()> {
+//!     let settings = SettingsBuilder::new()
+//!         .socket_dir(PathBuf::from("/tmp/pg_socket"))
+//!         .build();
+//!
+//!     let mut postgresql = PostgreSQL::new(settings);
+//!     postgresql.setup().await?;
+//!     postgresql.start().await?;
+//!
+//!     let database_name = "test";
+//!     postgresql.create_database(database_name).await?;
+//!     postgresql.database_exists(database_name).await?;
+//!     postgresql.drop_database(database_name).await?;
+//!
+//!     postgresql.stop().await
+//! }
+//! ```
+//!
 //! ## Information
 //!
 //! During the build process, when the `bundled` feature is enabled, the PostgreSQL binaries are
@@ -121,7 +170,7 @@ mod settings;
 pub use error::{Error, Result};
 pub use postgresql::{PostgreSQL, Status};
 pub use postgresql_archive::{Version, VersionReq};
-pub use settings::Settings;
+pub use settings::{Settings, SettingsBuilder};
 use std::sync::LazyLock;
 
 /// The latest PostgreSQL version requirement
@@ -140,14 +189,11 @@ pub static V16: LazyLock<VersionReq> = LazyLock::new(|| VersionReq::parse("=16")
 pub static V15: LazyLock<VersionReq> = LazyLock::new(|| VersionReq::parse("=15").unwrap());
 
 /// The latest PostgreSQL version 14
-pub static V14: LazyLock<VersionReq> = LazyLock::new(|| VersionReq::parse("=14").unwrap());
-
-/// The latest PostgreSQL version 13
 #[deprecated(
-    since = "0.17.0",
+    since = "0.18.0",
     note = "See https://www.postgresql.org/developer/roadmap/"
 )]
-pub static V13: LazyLock<VersionReq> = LazyLock::new(|| VersionReq::parse("=13").unwrap());
+pub static V14: LazyLock<VersionReq> = LazyLock::new(|| VersionReq::parse("=14").unwrap());
 
 pub use settings::BOOTSTRAP_DATABASE;
 pub use settings::BOOTSTRAP_SUPERUSER;
@@ -158,8 +204,8 @@ mod tests {
 
     #[test]
     fn test_version() -> Result<()> {
-        let version = VersionReq::parse("=16.10.0")?;
-        assert_eq!(version.to_string(), "=16.10.0");
+        let version = VersionReq::parse("=18.2.0")?;
+        assert_eq!(version.to_string(), "=18.2.0");
         Ok(())
     }
 
@@ -189,13 +235,8 @@ mod tests {
     }
 
     #[test]
+    #[allow(deprecated)]
     fn test_version_14() {
         assert_eq!(V14.to_string(), "=14");
-    }
-
-    #[test]
-    #[allow(deprecated)]
-    fn test_version_13() {
-        assert_eq!(V13.to_string(), "=13");
     }
 }

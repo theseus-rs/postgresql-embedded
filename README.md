@@ -23,13 +23,14 @@ In either case, PostgreSQL will run in a separate process space.
 
 - installing and running PostgreSQL
 - running PostgreSQL on ephemeral ports
+- Unix socket support
 - async and blocking API
 - bundling the PostgreSQL archive in an executable
 - semantic version resolution
-- support for custom PostgreSQL archives / binaries
 - ability to configure PostgreSQL startup options
+- settings builder for fluent configuration
 - URL based configuration
-- choice of native-tls vs rustls
+- choice of native-tls or rustls
 - support for installing PostgreSQL extensions
 
 ## Getting Started

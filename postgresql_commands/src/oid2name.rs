@@ -34,11 +34,15 @@ impl Oid2NameBuilder {
 
     /// Create a new [`Oid2NameBuilder`] from [Settings]
     pub fn from(settings: &dyn Settings) -> Self {
-        Self::new()
+        let mut builder = Self::new()
             .program_dir(settings.get_binary_dir())
             .host(settings.get_host())
             .port(settings.get_port())
-            .username(settings.get_username())
+            .username(settings.get_username());
+        if let Some(socket_dir) = settings.get_socket_dir() {
+            builder = builder.host(socket_dir.to_string_lossy().to_string());
+        }
+        builder
     }
 
     /// Location of the program binary
@@ -245,6 +249,7 @@ impl CommandBuilder for Oid2NameBuilder {
 mod tests {
     use super::*;
     use crate::TestSettings;
+    use crate::TestSocketSettings;
     use crate::traits::CommandToString;
     use test_log::test;
 
@@ -300,6 +305,22 @@ mod tests {
         assert_eq!(
             format!(
                 r#"{command_prefix}"oid2name" "--filenode" "filenode" "--indexes" "--oid" "oid" "--quiet" "--tablespaces" "--system-objects" "--table" "table" "--version" "--extended" "--help" "--dbname" "dbname" "--host" "localhost" "--port" "5432" "--username" "username""#
+            ),
+            command.to_command_string()
+        );
+    }
+
+    #[test]
+    fn test_builder_from_socket() {
+        let command = Oid2NameBuilder::from(&TestSocketSettings).build();
+        #[cfg(not(target_os = "windows"))]
+        let command_prefix = r#""./oid2name" "#;
+        #[cfg(target_os = "windows")]
+        let command_prefix = r#"".\\oid2name" "#;
+
+        assert_eq!(
+            format!(
+                r#"{command_prefix}"--host" "/tmp/pg_socket" "--port" "5432" "--username" "postgres""#
             ),
             command.to_command_string()
         );

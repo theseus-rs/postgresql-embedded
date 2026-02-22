@@ -21,11 +21,21 @@ const CREATE_NO_WINDOW: u32 = 0x0800_0000;
 
 /// Interface for `PostgreSQL` settings
 pub trait Settings {
+    /// Get the directory where the PostgreSQL binaries are located.
     fn get_binary_dir(&self) -> PathBuf;
+    /// Get the host for the PostgreSQL connection.
     fn get_host(&self) -> OsString;
+    /// Get the port for the PostgreSQL connection.
     fn get_port(&self) -> u16;
+    /// Get the username for the PostgreSQL connection.
     fn get_username(&self) -> OsString;
+    /// Get the password for the PostgreSQL connection.
     fn get_password(&self) -> OsString;
+    /// Get the Unix socket directory, if configured.
+    /// Returns `None` when using TCP/IP connections (the default).
+    fn get_socket_dir(&self) -> Option<PathBuf> {
+        None
+    }
 }
 
 #[cfg(test)]
@@ -51,6 +61,37 @@ impl Settings for TestSettings {
 
     fn get_password(&self) -> OsString {
         "password".into()
+    }
+}
+
+/// Test settings that include a Unix socket directory
+#[cfg(test)]
+pub struct TestSocketSettings;
+
+#[cfg(test)]
+impl Settings for TestSocketSettings {
+    fn get_binary_dir(&self) -> PathBuf {
+        PathBuf::from(".")
+    }
+
+    fn get_host(&self) -> OsString {
+        "localhost".into()
+    }
+
+    fn get_port(&self) -> u16 {
+        5432
+    }
+
+    fn get_username(&self) -> OsString {
+        "postgres".into()
+    }
+
+    fn get_password(&self) -> OsString {
+        "password".into()
+    }
+
+    fn get_socket_dir(&self) -> Option<PathBuf> {
+        Some(PathBuf::from("/tmp/pg_socket"))
     }
 }
 

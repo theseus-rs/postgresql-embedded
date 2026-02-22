@@ -43,4 +43,6 @@ pub mod vacuumlo;
 pub use error::{Error, Result};
 #[cfg(test)]
 pub use traits::TestSettings;
+#[cfg(test)]
+pub use traits::TestSocketSettings;
 pub use traits::{AsyncCommandExecutor, CommandBuilder, CommandExecutor, Settings};

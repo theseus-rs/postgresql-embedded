@@ -1,0 +1,11 @@
+[package]
+edition.workspace = true
+name = "unix_socket"
+publish = false
+license.workspace = true
+version.workspace = true
+
+[dependencies]
+postgresql_embedded = { path = "../../postgresql_embedded" }
+tempfile = { workspace = true }
+tokio = { workspace = true, features = ["full"] }

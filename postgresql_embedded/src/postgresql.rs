@@ -269,6 +269,7 @@ impl PostgreSQL {
 
     /// Start the database and wait for the startup to complete.
     /// If the port is set to `0`, the database will be started on a random port.
+    /// If `socket_dir` is configured, the server will also listen on a Unix socket.
     ///
     /// # Errors
     ///
@@ -280,14 +281,35 @@ impl PostgreSQL {
             self.settings.port = listener.local_addr()?.port();
         }
 
+        // Create the socket directory if configured and it doesn't exist
+        #[cfg(unix)]
+        if let Some(ref socket_dir) = self.settings.socket_dir
+            && !socket_dir.exists()
+        {
+            std::fs::create_dir_all(socket_dir)?;
+        }
+
         debug!(
-            "Starting database {} on port {}",
+            "Starting database {} on port {}{}",
             self.settings.data_dir.to_string_lossy(),
-            self.settings.port
+            self.settings.port,
+            self.settings
+                .socket_dir
+                .as_ref()
+                .map_or(String::new(), |d| format!(
+                    " with socket dir {}",
+                    d.to_string_lossy()
+                ))
         );
         let start_log = self.settings.data_dir.join("start.log");
         let mut options = Vec::new();
         options.push(format!("-F -p {}", self.settings.port));
+
+        #[cfg(unix)]
+        if let Some(ref socket_dir) = self.settings.socket_dir {
+            options.push(format!("-k {}", socket_dir.to_string_lossy()));
+        }
+
         for (key, value) in &self.settings.configuration {
             options.push(format!("-c {key}={value}"));
         }
@@ -302,9 +324,16 @@ impl PostgreSQL {
         match self.execute_command(pg_ctl).await {
             Ok((_stdout, _stderr)) => {
                 debug!(
-                    "Started database {} on port {}",
+                    "Started database {} on port {}{}",
                     self.settings.data_dir.to_string_lossy(),
-                    self.settings.port
+                    self.settings.port,
+                    self.settings
+                        .socket_dir
+                        .as_ref()
+                        .map_or(String::new(), |d| format!(
+                            " with socket dir {}",
+                            d.to_string_lossy()
+                        ))
                 );
                 Ok(())
             }
@@ -485,6 +514,9 @@ impl Drop for PostgreSQL {
         if self.settings.temporary {
             let _ = remove_dir_all(&self.settings.data_dir);
             let _ = remove_file(&self.settings.password_file);
+            if let Some(ref socket_dir) = self.settings.socket_dir {
+                let _ = remove_dir_all(socket_dir);
+            }
         }
     }
 }

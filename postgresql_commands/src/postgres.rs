@@ -50,10 +50,14 @@ impl PostgresBuilder {
 
     /// Create a new [`PostgresBuilder`] from [Settings]
     pub fn from(settings: &dyn Settings) -> Self {
-        Self::new()
+        let mut builder = Self::new()
             .program_dir(settings.get_binary_dir())
             .host(settings.get_host())
-            .port(settings.get_port())
+            .port(settings.get_port());
+        if let Some(socket_dir) = settings.get_socket_dir() {
+            builder = builder.socket_location(socket_dir);
+        }
+        builder
     }
 
     /// Location of the program binary
@@ -126,7 +130,7 @@ impl PostgresBuilder {
         self
     }
 
-    /// Unix-domain socket location
+    /// Unix socket location
     #[must_use]
     pub fn socket_location<P: Into<PathBuf>>(mut self, dir: P) -> Self {
         self.socket_location = Some(dir.into());
@@ -456,6 +460,7 @@ impl CommandBuilder for PostgresBuilder {
 mod tests {
     use super::*;
     use crate::TestSettings;
+    use crate::TestSocketSettings;
     use crate::traits::CommandToString;
     use test_log::test;
 
@@ -482,6 +487,18 @@ mod tests {
         );
     }
 
+    #[test]
+    fn test_builder_from_socket() {
+        let command = PostgresBuilder::from(&TestSocketSettings).build();
+        #[cfg(not(target_os = "windows"))]
+        let command_prefix = r#""./postgres" "#;
+        #[cfg(target_os = "windows")]
+        let command_prefix = r#"".\\postgres" "#;
+        assert_eq!(
+            format!(r#"{command_prefix}"-h" "localhost" "-k" "/tmp/pg_socket" "-p" "5432""#),
+            command.to_command_string()
+        );
+    }
     #[test]
     fn test_builder() {
         let command = PostgresBuilder::new()

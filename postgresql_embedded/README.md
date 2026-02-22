@@ -21,12 +21,14 @@ In either case, PostgreSQL will run in a separate process space.
 
 - installing and running PostgreSQL
 - running PostgreSQL on ephemeral ports
+- Unix socket support
 - async and blocking API
 - bundling the PostgreSQL archive in an executable
-- dynamic version resolution
+- semantic version resolution
 - ability to configure PostgreSQL startup options
+- settings builder for fluent configuration
 - URL based configuration
-- choice of native-tls vs rustls
+- choice of native-tls or rustls
 
 ## Examples
 
@@ -67,6 +69,55 @@ fn main() -> Result<()> {
     postgresql.drop_database(database_name)?;
 
     postgresql.stop()
+}
+```
+
+### Settings Builder
+
+```rust
+use postgresql_embedded::{PostgreSQL, Result, SettingsBuilder};
+
+#[tokio::main]
+async fn main() -> Result<()> {
+    let settings = SettingsBuilder::new()
+        .host("127.0.0.1")
+        .port(5433)
+        .username("admin")
+        .password("secret")
+        .temporary(false)
+        .config("max_connections", "100")
+        .build();
+
+    let mut postgresql = PostgreSQL::new(settings);
+    postgresql.setup().await?;
+    postgresql.start().await?;
+
+    postgresql.stop().await
+}
+```
+
+### Unix Socket
+
+```rust
+use postgresql_embedded::{PostgreSQL, Result, SettingsBuilder};
+use std::path::PathBuf;
+
+#[tokio::main]
+async fn main() -> Result<()> {
+    let settings = SettingsBuilder::new()
+        .socket_dir(PathBuf::from("/tmp/pg_socket"))
+        .build();
+
+    let mut postgresql = PostgreSQL::new(settings);
+    postgresql.setup().await?;
+    postgresql.start().await?;
+
+    let database_name = "test";
+    postgresql.create_database(database_name).await?;
+    postgresql.database_exists(database_name).await?;
+    postgresql.drop_database(database_name).await?;
+
+    postgresql.stop().await
 }
 ```
 
