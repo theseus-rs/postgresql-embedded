@@ -2,7 +2,6 @@ use crate::Error::Unexpected;
 use crate::Result;
 use crate::extractor::ExtractDirectories;
 use flate2::bufread::GzDecoder;
-use num_format::{Locale, ToFormattedString};
 use std::fs::{File, create_dir_all};
 use std::io::{BufReader, Cursor, copy};
 use std::path::PathBuf;
@@ -69,11 +68,7 @@ pub fn extract(bytes: &Vec<u8>, extract_directories: &ExtractDirectories) -> Res
     }
 
     let number_of_files = files.len();
-    debug!(
-        "Extracted {} files totalling {}",
-        number_of_files.to_formatted_string(&Locale::en),
-        extracted_bytes,
-    );
+    debug!("Extracted {number_of_files} files totalling {extracted_bytes}");
 
     Ok(files)
 }
