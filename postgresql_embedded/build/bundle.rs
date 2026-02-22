@@ -63,13 +63,13 @@ pub(crate) async fn stage_postgresql_archive() -> Result<()> {
             println!("Using cached PostgreSQL archive: {cached_file:?}");
             (exact_version, fs::read(&cached_file)?)
         } else {
-            let result = get_archive(&releases_url, &version_req).await?;
+            let (asset_version, archive) = get_archive(&releases_url, &version_req).await?;
             if let Some(parent) = cached_file.parent() {
                 fs::create_dir_all(parent)?;
             }
-            fs::write(&cached_file, &result.1)?;
+            fs::write(&cached_file, &archive)?;
             println!("Cached PostgreSQL archive to: {cached_file:?}");
-            result
+            (asset_version, archive)
         }
     } else {
         get_archive(&releases_url, &version_req).await?
