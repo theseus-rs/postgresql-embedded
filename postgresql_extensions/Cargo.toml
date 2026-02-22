@@ -67,3 +67,6 @@ rustls = [
     "postgresql_archive/rustls",
     "reqwest/rustls",
 ]
+
+[package.metadata.cargo-machete]
+ignored = ["reqwest"]

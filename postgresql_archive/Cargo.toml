@@ -17,7 +17,6 @@ futures-util = { workspace = true }
 hex = { workspace = true }
 liblzma = { workspace = true, optional = true }
 md-5 = { workspace = true, optional = true }
-num-format = { workspace = true }
 quick-xml = { workspace = true, features = ["serialize"], optional = true }
 regex-lite = { workspace = true }
 reqwest = { workspace = true, default-features = false, features = ["http2", "json", "query", "stream"] }
@@ -98,3 +97,9 @@ targets = ["x86_64-unknown-linux-gnu"]
 [[bench]]
 harness = false
 name = "archive"
+
+[package.metadata.cargo-machete]
+ignored = [
+    "md-5",
+    "serde_json",
+]

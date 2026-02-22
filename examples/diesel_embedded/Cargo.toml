@@ -9,5 +9,4 @@ version.workspace = true
 diesel = { workspace = true, features = ["postgres", "r2d2"] }
 diesel_migrations = { workspace = true, features = ["postgres"] }
 postgresql_embedded = { path = "../../postgresql_embedded" }
-r2d2_postgres = { workspace = true }
 tokio = { workspace = true, features = ["full"] }
