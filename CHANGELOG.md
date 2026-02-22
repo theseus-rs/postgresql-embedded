@@ -7,6 +7,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## `postgresql_extensions` - [0.20.2](https://github.com/theseus-rs/postgresql-embedded/compare/postgresql_extensions-v0.20.1...postgresql_extensions-v0.20.2) - 2026-02-22
+
+### Other
+- remove num-format dependency
+
+## `postgresql_embedded` - [0.20.2](https://github.com/theseus-rs/postgresql-embedded/compare/v0.20.1...v0.20.2) - 2026-02-22
+
+### Added
+- add unix socket support
+
+### Other
+- remove num-format dependency
+
+## `postgresql_commands` - [0.20.2](https://github.com/theseus-rs/postgresql-embedded/compare/postgresql_commands-v0.20.1...postgresql_commands-v0.20.2) - 2026-02-22
+
+### Added
+- add unix socket support
+
+## `postgresql_archive` - [0.20.2](https://github.com/theseus-rs/postgresql-embedded/compare/postgresql_archive-v0.20.1...postgresql_archive-v0.20.2) - 2026-02-22
+
+### Added
+- add unix socket support
+
+### Other
+- remove num-format dependency
+
 ## `postgresql_extensions` - [0.20.1](https://github.com/theseus-rs/postgresql-embedded/compare/postgresql_extensions-v0.20.0...postgresql_extensions-v0.20.1) - 2026-02-08
 
 ### Other
