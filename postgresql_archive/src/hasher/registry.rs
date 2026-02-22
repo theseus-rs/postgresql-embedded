@@ -8,7 +8,7 @@ use crate::hasher::md5;
 use crate::hasher::sha1;
 #[cfg(feature = "sha2")]
 use crate::hasher::sha2_256;
-#[cfg(feature = "sha2")]
+#[cfg(all(feature = "sha2", feature = "maven"))]
 use crate::hasher::sha2_512;
 #[cfg(feature = "maven")]
 use crate::repository::maven;

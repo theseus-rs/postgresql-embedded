@@ -67,12 +67,16 @@ impl PgDumpAllBuilder {
 
     /// Create a new [`PgDumpAllBuilder`] from [Settings]
     pub fn from(settings: &dyn Settings) -> Self {
-        Self::new()
+        let mut builder = Self::new()
             .program_dir(settings.get_binary_dir())
             .host(settings.get_host())
             .port(settings.get_port())
             .username(settings.get_username())
-            .pg_password(settings.get_password())
+            .pg_password(settings.get_password());
+        if let Some(socket_dir) = settings.get_socket_dir() {
+            builder = builder.host(socket_dir.to_string_lossy().to_string());
+        }
+        builder
     }
 
     /// Location of the program binary
@@ -651,6 +655,7 @@ impl CommandBuilder for PgDumpAllBuilder {
 mod tests {
     use super::*;
     use crate::TestSettings;
+    use crate::TestSocketSettings;
     use crate::traits::CommandToString;
     use test_log::test;
 
@@ -674,6 +679,22 @@ mod tests {
         assert_eq!(
             format!(
                 r#"{command_prefix}"--host" "localhost" "--port" "5432" "--username" "postgres""#
+            ),
+            command.to_command_string()
+        );
+    }
+
+    #[test]
+    fn test_builder_from_socket() {
+        let command = PgDumpAllBuilder::from(&TestSocketSettings).build();
+        #[cfg(not(target_os = "windows"))]
+        let command_prefix = r#"PGPASSWORD="password" "./pg_dumpall" "#;
+        #[cfg(target_os = "windows")]
+        let command_prefix = r#"".\\pg_dumpall" "#;
+
+        assert_eq!(
+            format!(
+                r#"{command_prefix}"--host" "/tmp/pg_socket" "--port" "5432" "--username" "postgres""#
             ),
             command.to_command_string()
         );

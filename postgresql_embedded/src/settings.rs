@@ -61,6 +61,9 @@ pub struct Settings {
     pub configuration: HashMap<String, String>,
     /// Skip installation and inferrence of the installation dir. Trust what the user provided.
     pub trust_installation_dir: bool,
+    /// Unix socket directory. When set, the server will listen on a Unix socket in this directory
+    /// in addition to (or instead of) TCP/IP. Unix-only; ignored on Windows.
+    pub socket_dir: Option<PathBuf>,
 }
 
 /// Settings implementation
@@ -113,6 +116,7 @@ impl Settings {
             timeout: Some(Duration::from_secs(5)),
             configuration: HashMap::new(),
             trust_installation_dir: false,
+            socket_dir: None,
         }
     }
 
@@ -123,15 +127,37 @@ impl Settings {
     }
 
     /// Return the `PostgreSQL` URL for the given database name.
+    ///
+    /// When `socket_dir` is set, the URL will use the Unix socket path
+    /// (e.g. `postgresql://user:pass@localhost:5432/db?host=%2Fpath%2Fto%2Fsocket`).
+    /// When `socket_dir` is `None`, a standard TCP URL is returned.
     pub fn url<S: AsRef<str>>(&self, database_name: S) -> String {
-        format!(
-            "postgresql://{}:{}@{}:{}/{}",
-            self.username,
-            self.password,
-            self.host,
-            self.port,
-            database_name.as_ref()
-        )
+        match &self.socket_dir {
+            Some(socket_dir) => {
+                let socket_str = socket_dir.to_string_lossy();
+                let encoded: String =
+                    url::form_urlencoded::byte_serialize(socket_str.as_bytes()).collect();
+                format!(
+                    "postgresql://{}:{}@{}:{}/{}?host={}",
+                    self.username,
+                    self.password,
+                    self.host,
+                    self.port,
+                    database_name.as_ref(),
+                    encoded
+                )
+            }
+            None => {
+                format!(
+                    "postgresql://{}:{}@{}:{}/{}",
+                    self.username,
+                    self.password,
+                    self.host,
+                    self.port,
+                    database_name.as_ref()
+                )
+            }
+        }
     }
 
     /// Create a new instance of [`Settings`] from the given URL.
@@ -197,6 +223,9 @@ impl Settings {
         if let Some(trust_installation_dir) = query_parameters.get("trust_installation_dir") {
             settings.trust_installation_dir = trust_installation_dir == "true";
         }
+        if let Some(socket_dir) = query_parameters.get("socket_dir") {
+            settings.socket_dir = Some(PathBuf::from(socket_dir));
+        }
         let configuration_prefix = "configuration.";
         for (key, value) in &query_parameters {
             if key.starts_with(configuration_prefix)
@@ -233,10 +262,173 @@ impl postgresql_commands::Settings for Settings {
     fn get_password(&self) -> OsString {
         self.password.parse().expect("password")
     }
+
+    fn get_socket_dir(&self) -> Option<PathBuf> {
+        self.socket_dir.clone()
+    }
 }
 
 /// Default implementation for [`Settings`]
 impl Default for Settings {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+/// Builder for constructing [`Settings`] with a fluent API.
+///
+/// # Examples
+///
+/// ```no_run
+/// use postgresql_embedded::SettingsBuilder;
+///
+/// let settings = SettingsBuilder::new()
+///     .host("127.0.0.1")
+///     .port(5433)
+///     .username("admin")
+///     .password("secret")
+///     .temporary(false)
+///     .build();
+/// ```
+///
+/// To configure a Unix socket:
+///
+/// ```no_run
+/// use postgresql_embedded::SettingsBuilder;
+/// use std::path::PathBuf;
+///
+/// let settings = SettingsBuilder::new()
+///     .socket_dir(PathBuf::from("/tmp/pg_socket"))
+///     .build();
+/// ```
+#[derive(Clone, Debug)]
+pub struct SettingsBuilder {
+    settings: Settings,
+}
+
+impl SettingsBuilder {
+    /// Create a new [`SettingsBuilder`] starting from the default [`Settings`].
+    #[must_use]
+    pub fn new() -> Self {
+        Self {
+            settings: Settings::new(),
+        }
+    }
+
+    /// Set the releases URL for downloading PostgreSQL archives.
+    #[must_use]
+    pub fn releases_url<S: Into<String>>(mut self, releases_url: S) -> Self {
+        self.settings.releases_url = releases_url.into();
+        self
+    }
+
+    /// Set the PostgreSQL version requirement.
+    #[must_use]
+    pub fn version(mut self, version: VersionReq) -> Self {
+        self.settings.version = version;
+        self
+    }
+
+    /// Set the installation directory.
+    #[must_use]
+    pub fn installation_dir<P: Into<PathBuf>>(mut self, dir: P) -> Self {
+        self.settings.installation_dir = dir.into();
+        self
+    }
+
+    /// Set the password file path.
+    #[must_use]
+    pub fn password_file<P: Into<PathBuf>>(mut self, path: P) -> Self {
+        self.settings.password_file = path.into();
+        self
+    }
+
+    /// Set the data directory.
+    #[must_use]
+    pub fn data_dir<P: Into<PathBuf>>(mut self, dir: P) -> Self {
+        self.settings.data_dir = dir.into();
+        self
+    }
+
+    /// Set the host name or IP address.
+    #[must_use]
+    pub fn host<S: Into<String>>(mut self, host: S) -> Self {
+        self.settings.host = host.into();
+        self
+    }
+
+    /// Set the TCP port number.
+    #[must_use]
+    pub fn port(mut self, port: u16) -> Self {
+        self.settings.port = port;
+        self
+    }
+
+    /// Set the database username.
+    #[must_use]
+    pub fn username<S: Into<String>>(mut self, username: S) -> Self {
+        self.settings.username = username.into();
+        self
+    }
+
+    /// Set the database password.
+    #[must_use]
+    pub fn password<S: Into<String>>(mut self, password: S) -> Self {
+        self.settings.password = password.into();
+        self
+    }
+
+    /// Set whether the database is temporary (cleaned up on drop).
+    #[must_use]
+    pub fn temporary(mut self, temporary: bool) -> Self {
+        self.settings.temporary = temporary;
+        self
+    }
+
+    /// Set the command execution timeout.
+    #[must_use]
+    pub fn timeout(mut self, timeout: Option<Duration>) -> Self {
+        self.settings.timeout = timeout;
+        self
+    }
+
+    /// Set server configuration options.
+    #[must_use]
+    pub fn configuration(mut self, configuration: HashMap<String, String>) -> Self {
+        self.settings.configuration = configuration;
+        self
+    }
+
+    /// Add a single server configuration option.
+    #[must_use]
+    pub fn config<K: Into<String>, V: Into<String>>(mut self, key: K, value: V) -> Self {
+        self.settings.configuration.insert(key.into(), value.into());
+        self
+    }
+
+    /// Set whether to trust the installation directory as-is.
+    #[must_use]
+    pub fn trust_installation_dir(mut self, trust: bool) -> Self {
+        self.settings.trust_installation_dir = trust;
+        self
+    }
+
+    /// Set the Unix socket directory. When set, the server will listen on a Unix socket in this directory. This is only
+    /// supported on Unix platforms.
+    #[must_use]
+    pub fn socket_dir<P: Into<PathBuf>>(mut self, dir: P) -> Self {
+        self.settings.socket_dir = Some(dir.into());
+        self
+    }
+
+    /// Consume the builder and return the configured [`Settings`].
+    #[must_use]
+    pub fn build(self) -> Settings {
+        self.settings
+    }
+}
+
+impl Default for SettingsBuilder {
     fn default() -> Self {
         Self::new()
     }
@@ -292,6 +484,22 @@ mod tests {
         );
         assert_eq!(Some(Duration::from_secs(5)), settings.timeout);
         assert!(settings.configuration.is_empty());
+        assert!(settings.socket_dir.is_none());
+    }
+
+    #[test]
+    fn test_settings_url_with_socket_dir() {
+        let mut settings = Settings::new();
+        settings.username = "user".to_string();
+        settings.password = "pass".to_string();
+        settings.host = "localhost".to_string();
+        settings.port = 5432;
+        settings.socket_dir = Some(PathBuf::from("/tmp/pg_socket"));
+
+        assert_eq!(
+            "postgresql://user:pass@localhost:5432/test?host=%2Ftmp%2Fpg_socket",
+            settings.url("test")
+        );
     }
 
     #[test]
@@ -326,7 +534,25 @@ mod tests {
         assert_eq!(Some(Duration::from_secs(10)), settings.timeout);
         let configuration = HashMap::from([("max_connections".to_string(), "42".to_string())]);
         assert_eq!(configuration, settings.configuration);
+        assert!(settings.socket_dir.is_none());
         assert_eq!(base_url, settings.url("test"));
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_settings_from_url_with_socket_dir() -> Result<()> {
+        let url =
+            "postgresql://postgres:password@localhost:5432/test?socket_dir=%2Ftmp%2Fpg_socket";
+        let settings = Settings::from_url(url)?;
+
+        assert_eq!(Some(PathBuf::from("/tmp/pg_socket")), settings.socket_dir);
+        assert_eq!("localhost", settings.host);
+        assert_eq!(5432, settings.port);
+        assert_eq!(
+            "postgresql://postgres:password@localhost:5432/test?host=%2Ftmp%2Fpg_socket",
+            settings.url("test")
+        );
 
         Ok(())
     }
@@ -344,5 +570,85 @@ mod tests {
     #[test]
     fn test_settings_from_url_invalid_timeout() {
         assert!(Settings::from_url("postgresql://?timeout=foo").is_err());
+    }
+
+    #[test]
+    fn test_settings_builder_defaults() {
+        let settings = SettingsBuilder::new().build();
+        assert_eq!("localhost", settings.host);
+        assert_eq!(0, settings.port);
+        assert_eq!(BOOTSTRAP_SUPERUSER, settings.username);
+        assert!(settings.temporary);
+        assert!(settings.socket_dir.is_none());
+        assert_eq!(Some(Duration::from_secs(5)), settings.timeout);
+    }
+
+    #[test]
+    fn test_settings_builder_all_fields() {
+        let configuration = HashMap::from([("max_connections".to_string(), "100".to_string())]);
+        let settings = SettingsBuilder::new()
+            .releases_url("https://example.com")
+            .version(VersionReq::STAR)
+            .installation_dir("/tmp/install")
+            .password_file("/tmp/.pgpass")
+            .data_dir("/tmp/data")
+            .host("127.0.0.1")
+            .port(5433)
+            .username("admin")
+            .password("secret")
+            .temporary(false)
+            .timeout(Some(Duration::from_secs(30)))
+            .configuration(configuration.clone())
+            .trust_installation_dir(true)
+            .socket_dir(PathBuf::from("/tmp/pg_socket"))
+            .build();
+
+        assert_eq!("https://example.com", settings.releases_url);
+        assert_eq!(PathBuf::from("/tmp/install"), settings.installation_dir);
+        assert_eq!(PathBuf::from("/tmp/.pgpass"), settings.password_file);
+        assert_eq!(PathBuf::from("/tmp/data"), settings.data_dir);
+        assert_eq!("127.0.0.1", settings.host);
+        assert_eq!(5433, settings.port);
+        assert_eq!("admin", settings.username);
+        assert_eq!("secret", settings.password);
+        assert!(!settings.temporary);
+        assert_eq!(Some(Duration::from_secs(30)), settings.timeout);
+        assert_eq!(configuration, settings.configuration);
+        assert!(settings.trust_installation_dir);
+        assert_eq!(Some(PathBuf::from("/tmp/pg_socket")), settings.socket_dir);
+    }
+
+    #[test]
+    fn test_settings_builder_config_method() {
+        let settings = SettingsBuilder::new()
+            .config("max_connections", "42")
+            .config("shared_buffers", "128MB")
+            .build();
+
+        assert_eq!(
+            Some(&"42".to_string()),
+            settings.configuration.get("max_connections")
+        );
+        assert_eq!(
+            Some(&"128MB".to_string()),
+            settings.configuration.get("shared_buffers")
+        );
+    }
+
+    #[test]
+    fn test_settings_builder_socket_dir() {
+        let settings = SettingsBuilder::new()
+            .socket_dir(PathBuf::from("/tmp/pg_socket"))
+            .build();
+
+        assert_eq!(Some(PathBuf::from("/tmp/pg_socket")), settings.socket_dir);
+    }
+
+    #[test]
+    fn test_settings_builder_default() {
+        let builder = SettingsBuilder::default();
+        let settings = builder.build();
+        assert_eq!("localhost", settings.host);
+        assert_eq!(0, settings.port);
     }
 }
