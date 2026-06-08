@@ -21,16 +21,16 @@ edition = "2024"
 keywords = ["postgresql", "postgres", "embedded", "database", "server"]
 license = "(Apache-2.0 OR MIT) AND PostgreSQL"
 repository = "https://github.com/theseus-rs/postgresql-embedded"
-rust-version = "1.92.0"
+rust-version = "1.94.0"
 version = "0.20.2"
 
 [workspace.dependencies]
 anyhow = "1.0.102"
 async-trait = "0.1.89"
-axum = "0.8.8"
+axum = "0.8.9"
 criterion = "0.8.2"
-diesel = "2.3.6"
-diesel_migrations = "2.3.1"
+diesel = "2.3.10"
+diesel_migrations = "2.3.2"
 flate2 = "1.1.9"
 futures-util = "0.3.32"
 hex = "0.4.3"
@@ -38,11 +38,11 @@ indicatif = "0.18.4"
 indoc = "2.0.7"
 liblzma = "0.4.6"
 md-5 = "0.10.6"
-pgvector = "0.4.1"
+pgvector = "0.4.2"
 postgres = "0.19.12"
 quick-xml = "0.39.2"
 r2d2_postgres = "0.18.2"
-rand = "0.10.0"
+rand = "0.10.1"
 regex-lite = "0.1.9"
 reqwest = { version = "0.13.2", default-features = false }
 reqwest-middleware = "0.5.1"
@@ -53,8 +53,8 @@ serde = "1.0.228"
 serde_json = "1.0.149"
 sha1 = "0.10.6"
 sha2 = "0.10.9"
-sqlx = { version = "0.8.6", default-features = false, features = ["postgres"] }
-tar = "0.4.44"
+sqlx = { version = "0.9.0", default-features = false, features = ["postgres"] }
+tar = "0.4.46"
 target-triple = "1.0.0"
 tempfile = "3.25.0"
 test-log = "0.2.19"
@@ -70,12 +70,16 @@ zip = { version = "8.1.0", default-features = false, features = ["deflate"] }
 dead_code = "allow"
 missing_debug_implementations = "deny"
 unsafe_code = "deny"
+unused_qualifications = "deny"
 warnings = "deny"
 
 [workspace.lints.clippy]
 pedantic = { level = "deny", priority = -1 }
 allow_attributes = "deny"
+expect_used = "deny"
 fallible_impl_from = "deny"
+panic_in_result_fn = "deny"
+unwrap_in_result = "deny"
 unwrap_used = "deny"
 
 [workspace.metadata.release]

@@ -60,7 +60,9 @@ impl RepositoryRegistry {
 impl Default for RepositoryRegistry {
     /// Creates a new repository registry with the default repositories registered.
     fn default() -> Self {
-        let mut registry = Self::new();
+        let registry = Self::new();
+        #[cfg(any(feature = "theseus", feature = "zonky"))]
+        let mut registry = registry;
         #[cfg(feature = "theseus")]
         registry.register(|url| Ok(url.starts_with(theseus::URL)), theseus::extract);
         #[cfg(feature = "zonky")]

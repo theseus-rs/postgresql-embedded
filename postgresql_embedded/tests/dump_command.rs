@@ -1,14 +1,19 @@
 use postgresql_commands::pg_dump::PgDumpBuilder;
 use postgresql_commands::psql::PsqlBuilder;
 use postgresql_commands::{CommandBuilder, CommandExecutor};
-use postgresql_embedded::PostgreSQL;
+use postgresql_embedded::{PostgreSQL, Settings};
 use std::fs;
+use std::time::Duration;
 use tempfile::NamedTempFile;
 use test_log::test;
 
 #[test(tokio::test)]
 async fn dump_command() -> anyhow::Result<()> {
-    let mut postgresql = PostgreSQL::default();
+    let settings = Settings {
+        timeout: Some(Duration::from_secs(30)),
+        ..Default::default()
+    };
+    let mut postgresql = PostgreSQL::new(settings);
 
     postgresql.setup().await?;
     postgresql.start().await?;

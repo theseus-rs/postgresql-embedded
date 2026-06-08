@@ -2,10 +2,20 @@ use postgresql_commands::CommandBuilder;
 use postgresql_commands::psql::PsqlBuilder;
 use postgresql_embedded::{PostgreSQL, Result, Settings, Status};
 use std::fs::{remove_dir_all, remove_file};
+use std::time::Duration;
 use test_log::test;
 
+const TEST_COMMAND_TIMEOUT: Duration = Duration::from_secs(30);
+
+fn settings_with_timeout() -> Settings {
+    Settings {
+        timeout: Some(TEST_COMMAND_TIMEOUT),
+        ..Default::default()
+    }
+}
+
 async fn lifecycle() -> Result<()> {
-    let mut postgresql = PostgreSQL::default();
+    let mut postgresql = PostgreSQL::new(settings_with_timeout());
     let settings = postgresql.settings();
 
     // Verify that an ephemeral instance is created by default
@@ -40,7 +50,7 @@ async fn test_embedded_async_lifecycle() -> Result<()> {
 
 #[test(tokio::test)]
 async fn test_temporary_database() -> Result<()> {
-    let settings = Settings::default();
+    let settings = settings_with_timeout();
     let data_dir = settings.data_dir.clone();
     let password_file = settings.password_file.clone();
 
@@ -62,7 +72,7 @@ async fn test_temporary_database() -> Result<()> {
 
 #[test(tokio::test)]
 async fn test_persistent_database() -> Result<()> {
-    let mut settings = Settings::default();
+    let mut settings = settings_with_timeout();
     let data_dir = settings.data_dir.clone();
     let password_file = settings.password_file.clone();
 
@@ -89,7 +99,7 @@ async fn test_persistent_database() -> Result<()> {
 #[test(tokio::test)]
 async fn test_persistent_database_reuse() -> Result<()> {
     let database_name = "test";
-    let mut settings = Settings::default();
+    let mut settings = settings_with_timeout();
     let data_dir = settings.data_dir.clone();
     let password = settings.password.clone();
     let password_file = settings.password_file.clone();
@@ -114,6 +124,7 @@ async fn test_persistent_database_reuse() -> Result<()> {
         password: password.clone(),
         password_file: password_file.clone(),
         temporary: false,
+        timeout: Some(TEST_COMMAND_TIMEOUT),
         ..Default::default()
     };
 
@@ -147,7 +158,7 @@ async fn postgres_concurrency() -> Result<()> {
 
 #[test(tokio::test)]
 async fn test_authentication_success() -> Result<()> {
-    let mut postgresql = PostgreSQL::default();
+    let mut postgresql = PostgreSQL::new(settings_with_timeout());
     postgresql.setup().await?;
     postgresql.start().await?;
 
@@ -164,7 +175,7 @@ async fn test_authentication_success() -> Result<()> {
 
 #[test(tokio::test)]
 async fn test_authentication_invalid_username() -> Result<()> {
-    let mut postgresql = PostgreSQL::default();
+    let mut postgresql = PostgreSQL::new(settings_with_timeout());
     postgresql.setup().await?;
     postgresql.start().await?;
 
@@ -182,7 +193,7 @@ async fn test_authentication_invalid_username() -> Result<()> {
 
 #[test(tokio::test)]
 async fn test_authentication_invalid_password() -> Result<()> {
-    let mut postgresql = PostgreSQL::default();
+    let mut postgresql = PostgreSQL::new(settings_with_timeout());
     postgresql.setup().await?;
     postgresql.start().await?;
 
@@ -202,6 +213,7 @@ async fn test_authentication_invalid_password() -> Result<()> {
 async fn test_username_setting() -> Result<()> {
     let settings = Settings {
         username: "admin".to_string(),
+        timeout: Some(TEST_COMMAND_TIMEOUT),
         ..Default::default()
     };
     let mut postgresql = PostgreSQL::new(settings);

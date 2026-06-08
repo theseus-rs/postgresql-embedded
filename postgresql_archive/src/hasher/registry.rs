@@ -68,7 +68,9 @@ impl HasherRegistry {
 impl Default for HasherRegistry {
     /// Creates a new hasher registry with the default hashers registered.
     fn default() -> Self {
-        let mut registry = Self::new();
+        let registry = Self::new();
+        #[cfg(any(feature = "theseus", feature = "maven"))]
+        let mut registry = registry;
         #[cfg(feature = "theseus")]
         registry.register(
             |url, extension| Ok(url.starts_with(theseus::URL) && extension == "sha256"),

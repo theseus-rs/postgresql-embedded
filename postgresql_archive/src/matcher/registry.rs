@@ -60,7 +60,9 @@ impl MatchersRegistry {
 impl Default for MatchersRegistry {
     /// Creates a new matcher registry with the default matchers registered.
     fn default() -> Self {
-        let mut registry = Self::new();
+        let registry = Self::new();
+        #[cfg(any(feature = "theseus", feature = "zonky"))]
+        let mut registry = registry;
         #[cfg(feature = "theseus")]
         registry.register(|url| Ok(url == theseus::URL), theseus::matcher);
         #[cfg(feature = "zonky")]

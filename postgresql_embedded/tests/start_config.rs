@@ -1,6 +1,7 @@
 use postgresql_embedded::{BOOTSTRAP_DATABASE, PostgreSQL, Settings};
 use sqlx::{PgPool, Row};
 use std::collections::HashMap;
+use std::time::Duration;
 use test_log::test;
 
 #[test(tokio::test)]
@@ -8,6 +9,7 @@ async fn start_config() -> anyhow::Result<()> {
     let configuration = HashMap::from([("max_connections".to_string(), "42".to_string())]);
     let settings = Settings {
         configuration,
+        timeout: Some(Duration::from_secs(30)),
         ..Default::default()
     };
     let mut postgresql = PostgreSQL::new(settings);

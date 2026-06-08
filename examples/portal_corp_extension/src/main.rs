@@ -112,7 +112,7 @@ async fn create_data(pool: &PgPool) -> Result<()> {
     Ok(())
 }
 
-async fn execute_query(pool: &PgPool, query: &str) -> Result<()> {
+async fn execute_query(pool: &PgPool, query: &'static str) -> Result<()> {
     info!("Query: {query}");
     let rows = sqlx::query(query).fetch_all(pool).await?;
     for row in rows {
