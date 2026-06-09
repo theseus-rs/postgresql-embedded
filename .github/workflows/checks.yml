@@ -12,7 +12,7 @@ permissions:
 
 jobs:
   audit:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -26,7 +26,7 @@ jobs:
         run: cargo audit
 
   check:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -38,11 +38,15 @@ jobs:
         run: |
           cargo check --workspace --all-targets --features blocking
           cargo check --workspace --all-targets --features bundled
+          cargo check --workspace --all-targets --features indicatif
+          cargo check --workspace --all-targets --features rustls
+          cargo check --workspace --all-targets --features theseus
           cargo check --workspace --all-targets --features tokio
+          cargo check --workspace --all-targets --features zonky
           cargo check --workspace --all-targets --all-features
 
   clippy:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -58,7 +62,7 @@ jobs:
           cargo clippy --all-targets --all-features --examples --tests
 
   deny:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -72,7 +76,7 @@ jobs:
         run: cargo deny check --allow duplicate
 
   doc:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -86,7 +90,7 @@ jobs:
         run: cargo doc --workspace --no-deps --document-private-items --all-features
 
   fmt:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4

@@ -136,7 +136,7 @@ async fn create_data(pool: &PgPool) -> Result<()> {
     Ok(())
 }
 
-async fn execute_query(pool: &PgPool, query: &str) -> Result<()> {
+async fn execute_query(pool: &PgPool, query: &'static str) -> Result<()> {
     let row = sqlx::query(query).fetch_one(pool).await?;
     let value: f32 = row.try_get("value")?;
     info!("{}: {}", query, value);

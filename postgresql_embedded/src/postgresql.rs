@@ -27,6 +27,20 @@ use crate::Error::{CreateDatabaseError, DatabaseExistsError, DropDatabaseError};
 
 const PGDATABASE: &str = "PGDATABASE";
 
+fn quote_identifier(identifier: &str) -> String {
+    let mut quoted_identifier = String::with_capacity(identifier.len() + 2);
+    quoted_identifier.push('"');
+    for character in identifier.chars() {
+        if character == '"' {
+            quoted_identifier.push_str("\"\"");
+        } else {
+            quoted_identifier.push(character);
+        }
+    }
+    quoted_identifier.push('"');
+    quoted_identifier
+}
+
 /// `PostgreSQL` status
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Status {
@@ -396,10 +410,13 @@ impl PostgreSQL {
             port = self.settings.port
         );
         let pool = self.get_pool().await?;
-        sqlx::query(format!("CREATE DATABASE \"{database_name}\"").as_str())
-            .execute(&pool)
-            .await
-            .map_err(|error| CreateDatabaseError(error.to_string()))?;
+        let database_identifier = quote_identifier(database_name);
+        sqlx::query(sqlx::AssertSqlSafe(format!(
+            "CREATE DATABASE {database_identifier}"
+        )))
+        .execute(&pool)
+        .await
+        .map_err(|error| CreateDatabaseError(error.to_string()))?;
         pool.close().await;
         debug!(
             "Created database {database_name} for {host}:{port}",
@@ -454,10 +471,13 @@ impl PostgreSQL {
             port = self.settings.port
         );
         let pool = self.get_pool().await?;
-        sqlx::query(format!("DROP DATABASE IF EXISTS \"{database_name}\"").as_str())
-            .execute(&pool)
-            .await
-            .map_err(|error| DropDatabaseError(error.to_string()))?;
+        let database_identifier = quote_identifier(database_name);
+        sqlx::query(sqlx::AssertSqlSafe(format!(
+            "DROP DATABASE IF EXISTS {database_identifier}"
+        )))
+        .execute(&pool)
+        .await
+        .map_err(|error| DropDatabaseError(error.to_string()))?;
         pool.close().await;
         debug!(
             "Dropped database {database_name} for {host}:{port}",

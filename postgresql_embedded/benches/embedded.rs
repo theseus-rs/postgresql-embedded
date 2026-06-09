@@ -1,6 +1,6 @@
 use criterion::{Criterion, criterion_group, criterion_main};
-use postgresql_embedded::Result;
 use postgresql_embedded::blocking::PostgreSQL;
+use postgresql_embedded::{Result, Settings};
 use std::time::Duration;
 
 fn benchmarks(criterion: &mut Criterion) {
@@ -18,7 +18,11 @@ fn bench_lifecycle(criterion: &mut Criterion) -> Result<()> {
 }
 
 fn lifecycle() -> Result<()> {
-    let mut postgresql = PostgreSQL::default();
+    let settings = Settings {
+        timeout: Some(Duration::from_secs(30)),
+        ..Default::default()
+    };
+    let mut postgresql = PostgreSQL::new(settings);
     postgresql.setup()?;
     postgresql.start()?;
     postgresql.stop()

@@ -1,5 +1,6 @@
-use postgresql_embedded::{PostgreSQL, Status};
+use postgresql_embedded::{PostgreSQL, Settings, Status};
 use std::env;
+use std::time::Duration;
 use test_log::test;
 
 #[test(tokio::test)]
@@ -10,8 +11,11 @@ async fn lifecycle() -> anyhow::Result<()> {
         env::set_var("PGDATABASE", "foodb");
     }
 
-    let mut postgresql = PostgreSQL::default();
-
+    let settings = Settings {
+        timeout: Some(Duration::from_secs(30)),
+        ..Default::default()
+    };
+    let mut postgresql = PostgreSQL::new(settings);
     postgresql.setup().await?;
     postgresql.start().await?;
 
