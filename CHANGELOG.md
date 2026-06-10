@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## `postgresql_extensions` - [0.20.4](https://github.com/theseus-rs/postgresql-embedded/compare/postgresql_extensions-v0.20.3...postgresql_extensions-v0.20.4) - 2026-06-10
+
+### Other
+- postgresql-embedded-v0.20.3
+
+## `postgresql_embedded` - [0.20.4](https://github.com/theseus-rs/postgresql-embedded/compare/v0.20.3...v0.20.4) - 2026-06-10
+
+### Fixed
+- reduce bundled binary size
+
+### Other
+- postgresql-embedded-v0.20.3
+
 ## `postgresql_embedded` - [0.20.4](https://github.com/theseus-rs/postgresql-embedded/compare/v0.20.3...v0.20.4) - 2026-06-10
 
 ### Fixed
