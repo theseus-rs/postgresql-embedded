@@ -25,7 +25,7 @@ pub(crate) static ARCHIVE_VERSION: LazyLock<VersionReq> = LazyLock::new(|| {
 });
 
 #[cfg(feature = "bundled")]
-pub(crate) const ARCHIVE: &[u8] = include_bytes!(concat!(env!("OUT_DIR"), "/postgresql.tar.gz"));
+pub(crate) static ARCHIVE: &[u8] = include_bytes!(concat!(env!("OUT_DIR"), "/postgresql.tar.gz"));
 
 /// `PostgreSQL` superuser
 pub const BOOTSTRAP_SUPERUSER: &str = "postgres";
