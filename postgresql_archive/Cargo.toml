@@ -31,7 +31,6 @@ sha2 = { workspace = true, optional = true }
 tar = { workspace = true, optional = true }
 target-triple = { workspace = true }
 tempfile = { workspace = true }
-thiserror = { workspace = true }
 tokio = { workspace = true, features = ["full"], optional = true }
 tracing = { workspace = true, features = ["log"] }
 tracing-indicatif = { workspace = true, optional = true }

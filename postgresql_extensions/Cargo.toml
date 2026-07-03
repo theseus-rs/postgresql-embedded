@@ -21,7 +21,6 @@ serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true, optional = true }
 target-triple = { workspace = true, optional = true }
 tempfile = { workspace = true }
-thiserror = { workspace = true }
 tokio = { workspace = true, features = ["full"], optional = true }
 tracing = { workspace = true, features = ["log"] }
 url = { workspace = true }

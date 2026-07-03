@@ -1,54 +1,78 @@
-use std::sync::PoisonError;
+use std::{error, fmt, sync::PoisonError};
 
 /// PostgreSQL archive result type
 pub type Result<T, E = Error> = core::result::Result<T, E>;
 
 /// PostgreSQL archive errors
-#[derive(Debug, thiserror::Error)]
+#[derive(Debug)]
 pub enum Error {
     /// Asset not found
-    #[error("asset not found")]
     AssetNotFound,
     /// Asset hash not found
-    #[error("asset hash not found for asset '{0}'")]
     AssetHashNotFound(String),
     /// Error when the hash of the archive does not match the expected hash
-    #[error("Archive hash [{archive_hash}] does not match expected hash [{hash}]")]
     ArchiveHashMismatch { archive_hash: String, hash: String },
     /// Invalid version
-    #[error("version '{0}' is invalid")]
     InvalidVersion(String),
     /// IO error
-    #[error("{0}")]
     IoError(String),
     /// Parse error
-    #[error("{0}")]
     ParseError(String),
     /// Poisoned lock
-    #[error("poisoned lock '{0}'")]
     PoisonedLock(String),
     /// Repository failure
-    #[error("{0}")]
     RepositoryFailure(String),
     /// Unexpected error
-    #[error("{0}")]
     Unexpected(String),
     /// Unsupported extractor
-    #[error("unsupported extractor for '{0}'")]
     UnsupportedExtractor(String),
     /// Unsupported hasher
-    #[error("unsupported hasher for '{0}'")]
     UnsupportedHasher(String),
     /// Unsupported hasher
-    #[error("unsupported matcher for '{0}'")]
     UnsupportedMatcher(String),
     /// Unsupported repository
-    #[error("unsupported repository for '{0}'")]
     UnsupportedRepository(String),
     /// Version not found
-    #[error("version not found for '{0}'")]
     VersionNotFound(String),
 }
+
+impl fmt::Display for Error {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::AssetNotFound => formatter.write_str("asset not found"),
+            Self::AssetHashNotFound(asset) => {
+                write!(formatter, "asset hash not found for asset '{asset}'")
+            }
+            Self::ArchiveHashMismatch { archive_hash, hash } => write!(
+                formatter,
+                "Archive hash [{archive_hash}] does not match expected hash [{hash}]"
+            ),
+            Self::InvalidVersion(version) => write!(formatter, "version '{version}' is invalid"),
+            Self::IoError(error) => formatter.write_str(error),
+            Self::ParseError(error) => formatter.write_str(error),
+            Self::RepositoryFailure(error) => formatter.write_str(error),
+            Self::Unexpected(error) => formatter.write_str(error),
+            Self::PoisonedLock(lock) => write!(formatter, "poisoned lock '{lock}'"),
+            Self::UnsupportedExtractor(extractor) => {
+                write!(formatter, "unsupported extractor for '{extractor}'")
+            }
+            Self::UnsupportedHasher(hasher) => {
+                write!(formatter, "unsupported hasher for '{hasher}'")
+            }
+            Self::UnsupportedMatcher(matcher) => {
+                write!(formatter, "unsupported matcher for '{matcher}'")
+            }
+            Self::UnsupportedRepository(repository) => {
+                write!(formatter, "unsupported repository for '{repository}'")
+            }
+            Self::VersionNotFound(version) => {
+                write!(formatter, "version not found for '{version}'")
+            }
+        }
+    }
+}
+
+impl error::Error for Error {}
 
 /// Converts a [`regex_lite::Error`] into an [`ParseError`](Error::ParseError)
 impl From<regex_lite::Error> for Error {
@@ -148,6 +172,65 @@ mod test {
     use std::str::FromStr;
     use std::time::{Duration, SystemTime};
 
+    fn assert_display(error: Error, expected: &str) {
+        assert_eq!(error.to_string(), expected);
+        assert!(std::error::Error::source(&error).is_none());
+    }
+
+    #[test]
+    fn test_display_messages() {
+        assert_display(Error::AssetNotFound, "asset not found");
+        assert_display(
+            Error::AssetHashNotFound("postgres.tar.gz".to_string()),
+            "asset hash not found for asset 'postgres.tar.gz'",
+        );
+        assert_display(
+            Error::ArchiveHashMismatch {
+                archive_hash: "actual".to_string(),
+                hash: "expected".to_string(),
+            },
+            "Archive hash [actual] does not match expected hash [expected]",
+        );
+        assert_display(
+            Error::InvalidVersion("latest".to_string()),
+            "version 'latest' is invalid",
+        );
+        assert_display(Error::IoError("io failure".to_string()), "io failure");
+        assert_display(
+            Error::ParseError("parse failure".to_string()),
+            "parse failure",
+        );
+        assert_display(
+            Error::PoisonedLock("settings".to_string()),
+            "poisoned lock 'settings'",
+        );
+        assert_display(
+            Error::RepositoryFailure("repository failure".to_string()),
+            "repository failure",
+        );
+        assert_display(Error::Unexpected("unexpected".to_string()), "unexpected");
+        assert_display(
+            Error::UnsupportedExtractor("rar".to_string()),
+            "unsupported extractor for 'rar'",
+        );
+        assert_display(
+            Error::UnsupportedHasher("crc32".to_string()),
+            "unsupported hasher for 'crc32'",
+        );
+        assert_display(
+            Error::UnsupportedMatcher("custom".to_string()),
+            "unsupported matcher for 'custom'",
+        );
+        assert_display(
+            Error::UnsupportedRepository("mirror".to_string()),
+            "unsupported repository for 'mirror'",
+        );
+        assert_display(
+            Error::VersionNotFound("17.0".to_string()),
+            "version not found for '17.0'",
+        );
+    }
+
     #[test]
     fn test_from_regex_error() {
         let regex_error = regex_lite::Regex::new("(?=a)").expect_err("regex error");
@@ -155,14 +238,14 @@ mod test {
         assert_eq!(error.to_string(), "look-around is not supported");
     }
 
-    #[tokio::test]
-    async fn test_from_reqwest_error() {
-        let result = reqwest::get("https://a.com").await;
-        assert!(result.is_err());
-        if let Err(error) = result {
-            let error = Error::from(error);
-            assert!(error.to_string().contains("error sending request"));
-        }
+    #[test]
+    fn test_from_reqwest_error() {
+        let reqwest_error = reqwest::Client::new()
+            .get("http://")
+            .build()
+            .expect_err("reqwest error");
+        let error = Error::from(reqwest_error);
+        assert!(error.to_string().contains("builder error"));
     }
 
     #[tokio::test]
@@ -230,27 +313,25 @@ mod test {
     fn test_from_quick_xml_error() {
         let xml = "<invalid>";
         let quick_xml_error = quick_xml::de::from_str::<String>(xml).expect_err("quick_xml error");
+        let message = quick_xml_error.to_string();
         let error = Error::from(quick_xml_error);
-        assert!(matches!(error, Error::ParseError(_)));
+        assert_eq!(error.to_string(), message);
     }
 
     #[cfg(feature = "zip")]
     #[test]
     fn test_from_zip_error() {
         let zip_error = zip::result::ZipError::FileNotFound;
+        let message = zip_error.to_string();
         let error = Error::from(zip_error);
-        assert!(matches!(error, Error::Unexpected(_)));
-        assert!(
-            error
-                .to_string()
-                .contains("specified file not found in archive")
-        );
+        assert_eq!(error.to_string(), message);
     }
 
     #[test]
     fn test_from_poisoned_lock() {
-        let error = Error::from(std::sync::PoisonError::new(()));
-        assert!(matches!(error, Error::PoisonedLock(_)));
-        assert!(error.to_string().contains("poisoned lock"));
+        let poison_error = std::sync::PoisonError::new(());
+        let message = format!("poisoned lock '{poison_error}'");
+        let error = Error::from(poison_error);
+        assert_eq!(error.to_string(), message);
     }
 }
