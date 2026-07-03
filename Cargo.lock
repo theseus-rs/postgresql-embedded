@@ -2056,7 +2056,6 @@ dependencies = [
  "target-triple",
  "tempfile",
  "test-log",
- "thiserror 2.0.18",
  "tokio",
  "tracing",
  "tracing-indicatif",
@@ -2069,7 +2068,6 @@ name = "postgresql_commands"
 version = "0.20.4"
 dependencies = [
  "test-log",
- "thiserror 2.0.18",
  "tokio",
  "tracing",
 ]
@@ -2088,7 +2086,6 @@ dependencies = [
  "target-triple",
  "tempfile",
  "test-log",
- "thiserror 2.0.18",
  "tokio",
  "tracing",
  "url",
@@ -2111,7 +2108,6 @@ dependencies = [
  "target-triple",
  "tempfile",
  "test-log",
- "thiserror 2.0.18",
  "tokio",
  "tracing",
  "url",
