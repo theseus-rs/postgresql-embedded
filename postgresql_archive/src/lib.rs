@@ -21,6 +21,8 @@
 //! ### Asynchronous API
 //!
 //! ```no_run
+//! # #[cfg(feature = "theseus")]
+//! # {
 //! use postgresql_archive::{extract, get_archive, Result, VersionReq };
 //! use postgresql_archive::configuration::theseus;
 //!
@@ -32,11 +34,12 @@
 //!     let files = extract(url, &archive, &out_dir).await?;
 //!     Ok(())
 //! }
+//! # }
 //! ```
 //!
 //! ### Synchronous API
 //! ```no_run
-//! #[cfg(feature = "blocking")] {
+//! #[cfg(all(feature = "blocking", feature = "theseus"))] {
 //! use postgresql_archive::configuration::theseus;
 //! use postgresql_archive::VersionReq;
 //! use postgresql_archive::blocking::{extract, get_archive};

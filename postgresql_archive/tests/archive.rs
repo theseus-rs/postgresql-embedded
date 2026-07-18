@@ -1,3 +1,5 @@
+#![cfg(feature = "theseus")]
+
 use postgresql_archive::configuration::theseus;
 use postgresql_archive::extract;
 use postgresql_archive::{get_archive, get_version};

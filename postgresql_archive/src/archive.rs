@@ -48,7 +48,7 @@ pub async fn extract(url: &str, bytes: &Vec<u8>, out_dir: &Path) -> Result<Vec<P
     extractor_fn(bytes, &extract_directories)
 }
 
-#[cfg(test)]
+#[cfg(all(test, feature = "theseus"))]
 mod tests {
     use super::*;
     use crate::configuration::theseus::URL;
