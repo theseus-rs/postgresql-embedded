@@ -31,7 +31,17 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
       - name: Install Rust
-        run: rustup toolchain install --no-self-update
+        run: |
+          rustup toolchain install --no-self-update
+          rustup target add x86_64-unknown-linux-musl
+      - name: Check cross-target archive selection
+        run: |
+          target="x86_64-unknown-linux-musl"
+          mkdir -p "$HOME/.theseus/postgresql"
+          touch "$HOME/.theseus/postgresql/postgresql-0.0.0-${target}.tar.gz"
+          POSTGRESQL_VERSION="=0.0.0" \
+          POSTGRESQL_RELEASES_URL="not-a-url" \
+          cargo check --package postgresql_embedded --no-default-features --features bundled --target "$target"
       - name: Prepare offline bundled archive fixture
         run: |
           target="$(rustc -vV | sed -n 's/^host: //p')"
@@ -43,6 +53,7 @@ jobs:
           cargo check --package postgresql_archive --no-default-features --all-targets
           cargo check --package postgresql_extensions --no-default-features
           cargo check --package postgresql_embedded --no-default-features --features bundled
+          TARGET="not-a-real-target" cargo test --package postgresql_embedded --no-default-features --features bundled --lib tests::test_runtime_archive_target -- --exact
       - name: Check the project
         run: |
           cargo check --workspace --all-targets --features blocking

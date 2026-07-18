@@ -6,7 +6,7 @@ use semver::Version;
 /// # Errors
 /// * If the asset matcher fails.
 pub fn matcher(_url: &str, name: &str, version: &Version) -> crate::Result<bool> {
-    let target = target_triple::TARGET;
+    let target = crate::matcher::target();
     // TODO: consider relaxing the version format to allow for more flexibility in where the version
     //       and target appear in the filename.
     let expected_name = format!("postgresql-{version}-{target}.tar.gz");
@@ -28,9 +28,10 @@ mod tests {
         }
         matcher::registry::register(supports_fn, matcher)?;
 
+        let target = matcher::target();
         let matcher = matcher::registry::get(TEST_URL)?;
         let version = Version::new(16, 3, 0);
-        let expected_name = format!("postgresql-{}-{}.tar.gz", version, target_triple::TARGET);
+        let expected_name = format!("postgresql-{version}-{target}.tar.gz");
         assert!(matcher("", &expected_name, &version)?);
         Ok(())
     }
