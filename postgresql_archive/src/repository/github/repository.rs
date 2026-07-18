@@ -380,7 +380,7 @@ mod tests {
         let version_req = VersionReq::parse("=16.4.0")?;
         let archive = github.get_archive(&version_req).await?;
         assert_eq!(
-            format!("postgresql-16.4.0-{}.tar.gz", target_triple::TARGET),
+            format!("postgresql-16.4.0-{}.tar.gz", matcher::target()),
             archive.name()
         );
         assert_eq!(&Version::new(16, 4, 0), archive.version());

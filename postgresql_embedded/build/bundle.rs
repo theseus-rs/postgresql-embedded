@@ -1,7 +1,6 @@
 #![allow(dead_code)]
 
 use anyhow::Result;
-use postgresql_archive::configuration::{custom, theseus};
 use postgresql_archive::repository::github::repository::GitHub;
 use postgresql_archive::{ExactVersion, Version, VersionReq, matcher};
 use postgresql_archive::{get_archive, repository};
@@ -9,8 +8,12 @@ use std::fs::File;
 use std::io::Write;
 use std::path::PathBuf;
 use std::str::FromStr;
+use std::sync::LazyLock;
 use std::{env, fs};
 use url::Url;
+
+static BUNDLE_TARGET: LazyLock<String> =
+    LazyLock::new(|| env::var("TARGET").unwrap_or_else(|_| target_triple::TARGET.to_string()));
 
 /// Stage the PostgreSQL archive when the `bundled` feature is enabled so that
 /// it can be included in the final binary. This is useful for creating a
@@ -38,7 +41,8 @@ pub(crate) async fn stage_postgresql_archive() -> Result<()> {
     let postgres_version_req = env::var("POSTGRESQL_VERSION").unwrap_or("*".to_string());
     let version_req = VersionReq::from_str(postgres_version_req.as_str())?;
     println!("PostgreSQL version: {postgres_version_req}");
-    println!("Target: {}", target_triple::TARGET);
+    let target = BUNDLE_TARGET.as_str();
+    println!("Target: {target}");
 
     let out_dir = PathBuf::from(env::var("OUT_DIR")?);
     println!("OUT_DIR: {out_dir:?}");
@@ -54,7 +58,7 @@ pub(crate) async fn stage_postgresql_archive() -> Result<()> {
     }
 
     let (asset_version, archive) = if let Some(exact_version) = version_req.exact_version() {
-        let cached_file = cached_archive_path(&exact_version);
+        let cached_file = cached_archive_path(&exact_version, target);
         println!(
             "Cached file: {cached_file:?}; exists: {}",
             cached_file.exists()
@@ -85,9 +89,8 @@ pub(crate) async fn stage_postgresql_archive() -> Result<()> {
 }
 
 /// Returns the path for a cached archive.
-fn cached_archive_path(version: &Version) -> PathBuf {
+fn cached_archive_path(version: &Version, target: &str) -> PathBuf {
     let home = std::env::home_dir().unwrap_or_else(|| env::current_dir().unwrap_or_default());
-    let target = target_triple::TARGET;
     home.join(".theseus")
         .join("postgresql")
         .join(format!("postgresql-{version}-{target}.tar.gz"))
@@ -99,14 +102,20 @@ fn supports_github_url(url: &str) -> postgresql_archive::Result<bool> {
     Ok(host.ends_with("github.com"))
 }
 
+fn bundle_matcher(_url: &str, name: &str, version: &Version) -> postgresql_archive::Result<bool> {
+    let target = BUNDLE_TARGET.as_str();
+    let expected_name = format!("postgresql-{version}-{target}.tar.gz");
+    Ok(name == expected_name)
+}
+
 fn register_custom_repository() -> Result<()> {
     repository::registry::register(supports_github_url, Box::new(GitHub::new))?;
-    matcher::registry::register(supports_github_url, custom::matcher)?;
+    matcher::registry::register(supports_github_url, bundle_matcher)?;
     Ok(())
 }
 
 fn register_theseus_repository() -> Result<()> {
     repository::registry::register(supports_github_url, Box::new(GitHub::new))?;
-    matcher::registry::register(supports_github_url, theseus::matcher)?;
+    matcher::registry::register(supports_github_url, bundle_matcher)?;
     Ok(())
 }

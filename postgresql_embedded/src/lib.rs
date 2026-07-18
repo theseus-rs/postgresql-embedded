@@ -214,6 +214,12 @@ mod tests {
         assert_eq!(LATEST.to_string(), "*");
     }
 
+    #[cfg(feature = "bundled")]
+    #[test]
+    fn test_runtime_archive_target() {
+        assert_eq!(target_triple::TARGET, postgresql_archive::matcher::target());
+    }
+
     #[test]
     fn test_version_18() {
         assert_eq!(V18.to_string(), "=18");
