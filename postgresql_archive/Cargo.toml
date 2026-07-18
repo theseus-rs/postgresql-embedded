@@ -42,7 +42,7 @@ anyhow = { workspace = true }
 criterion = { workspace = true }
 hex = { workspace = true }
 test-log = { workspace = true }
-tokio = { workspace = true }
+tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
 
 [features]
 default = [
@@ -96,6 +96,7 @@ targets = ["x86_64-unknown-linux-gnu"]
 [[bench]]
 harness = false
 name = "archive"
+required-features = ["blocking", "theseus"]
 
 [package.metadata.cargo-machete]
 ignored = [

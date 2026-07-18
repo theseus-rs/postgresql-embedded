@@ -47,9 +47,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Install Rust
-        uses: dtolnay/rust-toolchain@master
-        with:
-          toolchain: stable
+        run: rustup toolchain install --no-self-update
 
       - name: Install cargo-llvm-cov
         uses: taiki-e/install-action@main

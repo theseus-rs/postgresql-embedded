@@ -1,15 +1,11 @@
-#[cfg(feature = "blocking")]
+#![cfg(all(feature = "blocking", feature = "theseus"))]
+
 use postgresql_archive::VersionReq;
-#[cfg(feature = "blocking")]
 use postgresql_archive::blocking::{extract, get_archive, get_version};
-#[cfg(feature = "blocking")]
 use postgresql_archive::configuration::theseus;
-#[cfg(feature = "blocking")]
 use std::fs::remove_dir_all;
-#[cfg(feature = "blocking")]
 use test_log::test;
 
-#[cfg(feature = "blocking")]
 #[test]
 fn test_get_version() -> anyhow::Result<()> {
     let version_req = VersionReq::STAR;
@@ -19,7 +15,6 @@ fn test_get_version() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[cfg(feature = "blocking")]
 #[test]
 fn test_get_archive_and_extract() -> anyhow::Result<()> {
     let url = theseus::URL;

@@ -41,7 +41,6 @@ md-5 = "0.10.6"
 pgvector = "0.4.2"
 postgres = "0.19.14"
 quick-xml = "0.41.0"
-r2d2_postgres = "0.18.2"
 rand = "0.10.1"
 regex-lite = "0.1.9"
 reqwest = { version = "0.13.4", default-features = false }

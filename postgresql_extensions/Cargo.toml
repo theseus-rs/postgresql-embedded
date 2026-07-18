@@ -18,8 +18,8 @@ regex-lite = { workspace = true }
 reqwest = { workspace = true, default-features = false, features = ["json"] }
 semver = { workspace = true, features = ["serde"] }
 serde = { workspace = true, features = ["derive"] }
-serde_json = { workspace = true, optional = true }
-target-triple = { workspace = true, optional = true }
+serde_json = { workspace = true }
+target-triple = { workspace = true }
 tempfile = { workspace = true }
 tokio = { workspace = true, features = ["full"], optional = true }
 tracing = { workspace = true, features = ["log"] }
@@ -40,17 +40,14 @@ default = [
 ]
 blocking = ["tokio"]
 portal-corp = [
-    "dep:target-triple",
     "postgresql_archive/github",
     "postgresql_archive/zip",
 ]
 steampipe = [
-    "dep:serde_json",
     "postgresql_archive/github",
     "postgresql_archive/tar-gz",
 ]
 tensor-chord = [
-    "dep:target-triple",
     "postgresql_archive/github",
     "postgresql_archive/zip",
 ]

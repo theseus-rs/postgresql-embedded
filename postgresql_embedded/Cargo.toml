@@ -41,7 +41,7 @@ default = [
     "theseus",
 ]
 blocking = ["tokio"]
-bundled = ["postgresql_archive/github"]
+bundled = ["theseus"]
 indicatif = [
     "postgresql_archive/indicatif",
 ]

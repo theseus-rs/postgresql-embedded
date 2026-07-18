@@ -52,7 +52,13 @@ impl RepositoryRegistry {
 impl Default for RepositoryRegistry {
     /// Creates a new repository registry with the default repositories registered.
     fn default() -> Self {
-        let mut registry = Self::new();
+        let registry = Self::new();
+        #[cfg(any(
+            feature = "portal-corp",
+            feature = "steampipe",
+            feature = "tensor-chord"
+        ))]
+        let mut registry = registry;
         #[cfg(feature = "portal-corp")]
         {
             registry.register("portal-corp", Box::new(PortalCorp::new));

@@ -26,6 +26,17 @@ static USER_AGENT: LazyLock<String> = LazyLock::new(|| {
     )
 });
 
+const CHECKSUM_EXTENSIONS: [&str; 4] = ["sha512", "sha256", "sha1", "md5"];
+
+/// Returns the strongest registered checksum algorithm for a Maven repository.
+fn preferred_hasher(url: &str) -> Option<(&'static str, hasher::registry::HasherFn)> {
+    CHECKSUM_EXTENSIONS.into_iter().find_map(|extension| {
+        hasher::registry::get(url, extension)
+            .ok()
+            .map(|hasher_fn| (extension, hasher_fn))
+    })
+}
+
 /// Maven repository.
 ///
 /// This repository is used to interact with Maven repositories
@@ -113,15 +124,7 @@ impl Repository for Maven {
         let archive_name = format!("{artifact}-{version}.jar");
         let archive_url = format!("{url}/{version}/{artifact}-{version}.jar", url = self.url,);
 
-        let mut hasher_result = None;
-        // Try to find a hasher for the archive; the extensions are ordered by preference.
-        for extension in &["sha512", "sha256", "sha1", "md5"] {
-            if let Ok(hasher_fn) = hasher::registry::get(&self.url, &(*extension).to_string()) {
-                hasher_result = Some((extension, hasher_fn));
-            }
-        }
-
-        let Some((extension, hasher_fn)) = hasher_result else {
+        let Some((extension, hasher_fn)) = preferred_hasher(&self.url) else {
             return Err(RepositoryFailure(format!(
                 "no hashers found for {}",
                 &self.url
@@ -183,6 +186,12 @@ mod tests {
     fn test_name() {
         let maven = Maven::new(URL).unwrap();
         assert_eq!("Maven", maven.name());
+    }
+
+    #[test]
+    fn test_prefers_strongest_hasher() {
+        let (extension, _) = preferred_hasher(URL).expect("Maven hasher");
+        assert_eq!("sha512", extension);
     }
 
     //
