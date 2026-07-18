@@ -58,11 +58,12 @@
 //!
 //! The following features are available:
 //!
-//! | Name         | Description                | Default? |
-//! |--------------|----------------------------|----------|
-//! | `blocking`   | Enables the blocking API   | No       |
-//! | `native-tls` | Enables native-tls support | Yes      |
-//! | `rustls`     | Enables rustls support     | No       |
+//! | Name                       | Description                                      | Default? |
+//! |----------------------------|--------------------------------------------------|----------|
+//! | `blocking`                 | Enables the blocking API                         | No       |
+//! | `tls-native-tls`           | Enables Native TLS support                       | Yes      |
+//! | `tls-rustls-aws-lc-rs`     | Enables Rustls with the AWS-LC crypto provider   | No       |
+//! | `tls-rustls-ring`          | Enables Rustls with the Ring crypto provider     | No       |
 //!
 //! ### Configurations
 //!
@@ -135,3 +136,24 @@ pub use archive::{extract, get_archive, get_version};
 pub use error::{Error, Result};
 pub use semver::{Version, VersionReq};
 pub use version::{ExactVersion, ExactVersionReq};
+
+/// Installs Ring as the process-level Rustls crypto provider when requested.
+#[cfg(all(
+    feature = "tls-rustls-ring",
+    any(feature = "github", feature = "maven", test)
+))]
+pub(crate) fn install_crypto_provider() {
+    use std::sync::Once;
+
+    static INIT: Once = Once::new();
+    INIT.call_once(|| {
+        drop(rustls::crypto::ring::default_provider().install_default());
+    });
+}
+
+/// No-op when Ring is not the selected Rustls crypto provider.
+#[cfg(all(
+    not(feature = "tls-rustls-ring"),
+    any(feature = "github", feature = "maven", test)
+))]
+pub(crate) fn install_crypto_provider() {}

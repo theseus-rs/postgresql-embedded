@@ -240,6 +240,7 @@ mod test {
 
     #[test]
     fn test_from_reqwest_error() {
+        crate::install_crypto_provider();
         let reqwest_error = reqwest::Client::new()
             .get("http://")
             .build()

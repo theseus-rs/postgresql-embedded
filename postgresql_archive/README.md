@@ -49,12 +49,16 @@ uses.
 
 The following features are available:
 
-| Name         | Description                      | Default? |
-|--------------|----------------------------------|----------|
-| `blocking`   | Enables the blocking API         | No       |
-| `indicatif`  | Enables tracing-indcatif support | No       |
-| `native-tls` | Enables native-tls support       | Yes      |
-| `rustls`     | Enables rustls support           | No       |
+| Name                       | Description                                      | Default? |
+|----------------------------|--------------------------------------------------|----------|
+| `blocking`                 | Enables the blocking API                         | No       |
+| `indicatif`                | Enables tracing-indcatif support                 | No       |
+| `tls-native-tls`           | Enables Native TLS support                       | Yes      |
+| `tls-rustls-aws-lc-rs`     | Enables Rustls with the AWS-LC crypto provider   | No       |
+| `tls-rustls-ring`          | Enables Rustls with the Ring crypto provider     | No       |
+
+To use Ring without compiling AWS-LC, disable default features and enable `tls-rustls-ring` together with the
+required configuration and extractor features.
 
 ### Configurations
 

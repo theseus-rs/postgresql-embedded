@@ -33,7 +33,7 @@ tokio = { workspace = true, features = ["full"] }
 
 [features]
 default = [
-    "native-tls",
+    "tls-native-tls",
     "portal-corp",
     "steampipe",
     "tensor-chord",
@@ -55,13 +55,17 @@ tokio = [
     "postgresql_commands/tokio",
     "dep:tokio"
 ]
-native-tls = [
-    "postgresql_archive/native-tls",
+tls-native-tls = [
+    "postgresql_archive/tls-native-tls",
     "reqwest/native-tls",
 ]
-rustls = [
-    "postgresql_archive/rustls",
+tls-rustls-aws-lc-rs = [
+    "postgresql_archive/tls-rustls-aws-lc-rs",
     "reqwest/rustls",
+]
+tls-rustls-ring = [
+    "postgresql_archive/tls-rustls-ring",
+    "reqwest/rustls-no-provider",
 ]
 
 [package.metadata.cargo-machete]
