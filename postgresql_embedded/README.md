@@ -28,7 +28,7 @@ In either case, PostgreSQL will run in a separate process space.
 - ability to configure PostgreSQL startup options
 - settings builder for fluent configuration
 - URL based configuration
-- choice of native-tls or rustls
+- choice of native-tls or rustls with AWS-LC or Ring
 
 ## Examples
 
@@ -150,16 +150,20 @@ uses.
 
 The following features are available:
 
-| Name         | Description                                              | Default? |
-|--------------|----------------------------------------------------------|----------|
-| `bundled`    | Bundles the PostgreSQL archive into the resulting binary | No       |
-| `blocking`   | Enables the blocking API; requires `tokio`               | No       |
-| `indicatif`  | Enables tracing-indcatif support                         | No       |
-| `native-tls` | Enables native-tls support                               | Yes      |
-| `rustls`     | Enables rustls support                                   | No       |
-| `theseus`    | Enables theseus PostgreSQL binaries                      | Yes      |
-| `tokio`      | Enables using tokio for async                            | No       |
-| `zonky`      | Enables zonky PostgreSQL binaries                        | No       |
+| Name                       | Description                                              | Default? |
+|----------------------------|----------------------------------------------------------|----------|
+| `bundled`                  | Bundles the PostgreSQL archive into the resulting binary | No       |
+| `blocking`                 | Enables the blocking API; requires `tokio`               | No       |
+| `indicatif`                | Enables tracing-indcatif support                         | No       |
+| `tls-native-tls`           | Enables Native TLS support                               | Yes      |
+| `tls-rustls-aws-lc-rs`     | Enables Rustls with the AWS-LC crypto provider           | No       |
+| `tls-rustls-ring`          | Enables Rustls with the Ring crypto provider             | No       |
+| `theseus`                  | Enables theseus PostgreSQL binaries                      | Yes      |
+| `tokio`                    | Enables using tokio for async                            | No       |
+| `zonky`                    | Enables zonky PostgreSQL binaries                        | No       |
+
+To use Ring without compiling AWS-LC, disable default features and enable `tls-rustls-ring` together with the
+required PostgreSQL binary source features.
 
 ## Bundling PostgreSQL
 

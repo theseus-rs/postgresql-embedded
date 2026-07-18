@@ -23,6 +23,7 @@ reqwest = { workspace = true, default-features = false, features = ["http2", "js
 reqwest-middleware = { workspace = true, features = ["query"] }
 reqwest-retry = { workspace = true }
 reqwest-tracing = { workspace = true }
+rustls = { workspace = true, features = ["ring"], optional = true }
 semver = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true, optional = true }
@@ -46,8 +47,8 @@ tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
 
 [features]
 default = [
-    "native-tls",
-    "theseus"
+    "tls-native-tls",
+    "theseus",
 ]
 blocking = ["dep:tokio"]
 github = [
@@ -63,8 +64,12 @@ maven = [
     "sha2",
 ]
 md5 = ["dep:md-5"]
-native-tls = ["reqwest/native-tls"]
-rustls = ["reqwest/rustls"]
+tls-native-tls = ["reqwest/native-tls"]
+tls-rustls-aws-lc-rs = ["reqwest/rustls"]
+tls-rustls-ring = [
+    "dep:rustls",
+    "reqwest/rustls-no-provider",
+]
 sha1 = ["dep:sha1"]
 sha2 = ["dep:sha2"]
 tar-gz = [

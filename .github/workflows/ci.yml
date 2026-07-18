@@ -81,9 +81,12 @@ jobs:
           RUST_LOG: "info,postgresql_archive=debug,postgresql_commands=debug,postgresql_embedded=debug"
           RUST_LOG_SPAN_EVENTS: full
         run: |
+          cargo test -p postgresql_archive --no-default-features --features "tls-rustls-ring,theseus" --lib error::test::test_from_reqwest_error -- --exact
           cargo test -p postgresql_embedded --no-default-features
-          cargo test -p postgresql_embedded --no-default-features --features "rustls,theseus"
-          cargo test -p postgresql_embedded --no-default-features --features "rustls,theseus,tokio"
+          cargo test -p postgresql_embedded --no-default-features --features "tls-rustls-aws-lc-rs,theseus"
+          cargo test -p postgresql_embedded --no-default-features --features "tls-rustls-aws-lc-rs,theseus,tokio"
+          cargo test -p postgresql_embedded --no-default-features --features "tls-rustls-ring,theseus"
+          cargo test -p postgresql_embedded --no-default-features --features "tls-rustls-ring,theseus,tokio"
 
       - name: Upload to codecov.io
         if: ${{ matrix.platform == 'linux-x64' }}

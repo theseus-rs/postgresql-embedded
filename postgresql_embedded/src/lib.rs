@@ -136,15 +136,16 @@
 //! The following features are available:
 //!
 //!
-//! | Name         | Description                                              | Default? |
-//! |--------------|----------------------------------------------------------|----------|
-//! | `bundled`    | Bundles the PostgreSQL archive into the resulting binary | No       |
-//! | `blocking`   | Enables the blocking API; requires `tokio`               | No       |
-//! | `native-tls` | Enables native-tls support                               | Yes      |
-//! | `rustls`     | Enables rustls support                                   | No       |
-//! | `theseus`    | Enables theseus PostgreSQL binaries                      | Yes      |
-//! | `tokio`      | Enables using tokio for async                            | No       |
-//! | `zonky`      | Enables zonky PostgreSQL binaries                        | No       |
+//! | Name                       | Description                                              | Default? |
+//! |----------------------------|----------------------------------------------------------|----------|
+//! | `bundled`                  | Bundles the PostgreSQL archive into the resulting binary | No       |
+//! | `blocking`                 | Enables the blocking API; requires `tokio`               | No       |
+//! | `tls-native-tls`           | Enables Native TLS support                               | Yes      |
+//! | `tls-rustls-aws-lc-rs`     | Enables Rustls with the AWS-LC crypto provider           | No       |
+//! | `tls-rustls-ring`          | Enables Rustls with the Ring crypto provider             | No       |
+//! | `theseus`                  | Enables theseus PostgreSQL binaries                      | Yes      |
+//! | `tokio`                    | Enables using tokio for async                            | No       |
+//! | `zonky`                    | Enables zonky PostgreSQL binaries                        | No       |
 //!
 //! ## Safety
 //!

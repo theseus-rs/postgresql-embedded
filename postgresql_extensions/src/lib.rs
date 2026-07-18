@@ -42,11 +42,12 @@
 //!
 //! The following features are available:
 //!
-//! | Name         | Description                | Default? |
-//! |--------------|----------------------------|----------|
-//! | `blocking`   | Enables the blocking API   | No       |
-//! | `native-tls` | Enables native-tls support | Yes      |
-//! | `rustls-tls` | Enables rustls-tls support | No       |
+//! | Name                       | Description                                      | Default? |
+//! |----------------------------|--------------------------------------------------|----------|
+//! | `blocking`                 | Enables the blocking API                         | No       |
+//! | `tls-native-tls`           | Enables Native TLS support                       | Yes      |
+//! | `tls-rustls-aws-lc-rs`     | Enables Rustls with the AWS-LC crypto provider   | No       |
+//! | `tls-rustls-ring`          | Enables Rustls with the Ring crypto provider     | No       |
 //!
 //! ### Repositories
 //!

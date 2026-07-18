@@ -51,15 +51,26 @@ jobs:
         run: |
           cargo check --package postgresql_archive --all-targets
           cargo check --package postgresql_archive --no-default-features --all-targets
+          cargo check --package postgresql_archive --no-default-features --features "tls-rustls-ring,theseus" --all-targets
           cargo check --package postgresql_extensions --no-default-features
+          cargo check --package postgresql_extensions --no-default-features --features tls-rustls-ring
           cargo check --package postgresql_embedded --no-default-features --features bundled
+          cargo check --package postgresql_embedded --no-default-features --features "tls-rustls-aws-lc-rs,theseus"
+          cargo check --package postgresql_embedded --no-default-features --features "tls-rustls-ring,theseus"
+          cargo check --package postgresql_embedded --no-default-features --features tls-native-tls
           TARGET="not-a-real-target" cargo test --package postgresql_embedded --no-default-features --features bundled --lib tests::test_runtime_archive_target -- --exact
+          if cargo tree --package postgresql_embedded --no-default-features --features "tls-rustls-ring,theseus" --edges normal,build | grep -Eq 'aws-lc-(rs|sys)'; then
+            echo "Ring-only builds must not include AWS-LC"
+            exit 1
+          fi
       - name: Check the project
         run: |
           cargo check --workspace --all-targets --features blocking
           cargo check --workspace --all-targets --features bundled
           cargo check --workspace --all-targets --features indicatif
-          cargo check --workspace --all-targets --features rustls
+          cargo check --workspace --all-targets --features tls-native-tls
+          cargo check --workspace --all-targets --features tls-rustls-aws-lc-rs
+          cargo check --workspace --all-targets --features tls-rustls-ring
           cargo check --workspace --all-targets --features theseus
           cargo check --workspace --all-targets --features tokio
           cargo check --workspace --all-targets --features zonky

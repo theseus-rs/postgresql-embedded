@@ -301,6 +301,7 @@ impl Repository for GitHub {
 
 /// Creates a new reqwest client with middleware for tracing, and retrying transient errors.
 fn reqwest_client() -> ClientWithMiddleware {
+    crate::install_crypto_provider();
     let retry_policy = ExponentialBackoff::builder().build_with_max_retries(3);
     ClientBuilder::new(reqwest::Client::new())
         .with(TracingMiddleware::default())
