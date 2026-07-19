@@ -15,7 +15,7 @@ jobs:
       pull-requests: write
     steps:
       - name: Checkout source code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Install Rust
         run: rustup toolchain install --no-self-update --component llvm-tools-preview
