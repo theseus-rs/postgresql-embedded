@@ -7,6 +7,49 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## `postgresql_extensions` - [0.21.0](https://github.com/theseus-rs/postgresql-embedded/compare/postgresql_extensions-v0.20.4...postgresql_extensions-v0.21.0) - 2026-07-19
+
+### Added
+- add tls-rustls-ring feature
+
+### Fixed
+- correct crate feature wiring and CI coverage
+
+### Other
+- change mod.rs to named modules
+- remove dependency thiserror
+
+## `postgresql_embedded` - [0.21.0](https://github.com/theseus-rs/postgresql-embedded/compare/v0.20.4...v0.21.0) - 2026-07-19
+
+### Added
+- add tls-rustls-ring feature
+- allow TARGET to be configured for bundled version
+
+### Fixed
+- correct crate feature wiring and CI coverage
+
+### Other
+- change mod.rs to named modules
+- remove dependency thiserror
+
+## `postgresql_commands` - [0.21.0](https://github.com/theseus-rs/postgresql-embedded/compare/postgresql_commands-v0.20.4...postgresql_commands-v0.21.0) - 2026-07-19
+
+### Other
+- remove dependency thiserror
+
+## `postgresql_archive` - [0.21.0](https://github.com/theseus-rs/postgresql-embedded/compare/postgresql_archive-v0.20.4...postgresql_archive-v0.21.0) - 2026-07-19
+
+### Added
+- add tls-rustls-ring feature
+- allow TARGET to be configured for bundled version
+
+### Fixed
+- correct crate feature wiring and CI coverage
+
+### Other
+- change mod.rs to named modules
+- remove dependency thiserror
+
 ## `postgresql_embedded` - [0.20.4](https://github.com/theseus-rs/postgresql-embedded/compare/v0.20.3...v0.20.4) - 2026-06-10
 
 ### Fixed
