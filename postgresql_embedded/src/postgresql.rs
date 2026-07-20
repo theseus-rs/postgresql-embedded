@@ -15,12 +15,12 @@ use postgresql_commands::initdb::InitDbBuilder;
 use postgresql_commands::pg_ctl::Mode::{Start, Stop};
 use postgresql_commands::pg_ctl::PgCtlBuilder;
 use postgresql_commands::pg_ctl::ShutdownMode::Fast;
+use rand::RngExt;
 use semver::Version;
 use sqlx::{PgPool, Row};
 use std::fs::{read_dir, remove_dir_all, remove_file};
 use std::io::prelude::*;
-use std::net::TcpListener;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use tracing::{debug, instrument};
 
 use crate::Error::{CreateDatabaseError, DatabaseExistsError, DropDatabaseError};
@@ -290,11 +290,6 @@ impl PostgreSQL {
     /// If the database fails to start, an error will be returned.
     #[instrument(skip(self))]
     pub async fn start(&mut self) -> Result<()> {
-        if self.settings.port == 0 {
-            let listener = TcpListener::bind(("0.0.0.0", 0))?;
-            self.settings.port = listener.local_addr()?.port();
-        }
-
         // Create the socket directory if configured and it doesn't exist
         #[cfg(unix)]
         if let Some(ref socket_dir) = self.settings.socket_dir
@@ -303,55 +298,78 @@ impl PostgreSQL {
             std::fs::create_dir_all(socket_dir)?;
         }
 
-        debug!(
-            "Starting database {} on port {}{}",
-            self.settings.data_dir.to_string_lossy(),
-            self.settings.port,
-            self.settings
-                .socket_dir
-                .as_ref()
-                .map_or(String::new(), |d| format!(
-                    " with socket dir {}",
-                    d.to_string_lossy()
-                ))
-        );
-        let start_log = self.settings.data_dir.join("start.log");
-        let mut options = Vec::new();
-        options.push(format!("-F -p {}", self.settings.port));
+        let auto_port = self.settings.port == 0;
+        let mut retries_left = 3u32;
 
-        #[cfg(unix)]
-        if let Some(ref socket_dir) = self.settings.socket_dir {
-            options.push(format!("-k {}", socket_dir.to_string_lossy()));
-        }
-
-        for (key, value) in &self.settings.configuration {
-            options.push(format!("-c {key}={value}"));
-        }
-        let pg_ctl = PgCtlBuilder::from(&self.settings)
-            .env(PGDATABASE, "")
-            .mode(Start)
-            .pgdata(&self.settings.data_dir)
-            .log(start_log)
-            .options(options.as_slice())
-            .wait();
-
-        match self.execute_command(pg_ctl).await {
-            Ok((_stdout, _stderr)) => {
-                debug!(
-                    "Started database {} on port {}{}",
-                    self.settings.data_dir.to_string_lossy(),
-                    self.settings.port,
-                    self.settings
-                        .socket_dir
-                        .as_ref()
-                        .map_or(String::new(), |d| format!(
-                            " with socket dir {}",
-                            d.to_string_lossy()
-                        ))
-                );
-                Ok(())
+        loop {
+            if auto_port {
+                // assign a random ephemeral port
+                self.settings.port = rand::rng().random_range(49152u16..=65535);
             }
-            Err(error) => Err(DatabaseStartError(error.to_string())),
+
+            debug!(
+                "Starting database {} on port {}{}",
+                self.settings.data_dir.to_string_lossy(),
+                self.settings.port,
+                self.settings
+                    .socket_dir
+                    .as_ref()
+                    .map_or(String::new(), |d| format!(
+                        " with socket dir {}",
+                        d.to_string_lossy()
+                    ))
+            );
+            let start_log = self.settings.data_dir.join("start.log");
+            let mut options = Vec::new();
+            options.push(format!("-F -p {}", self.settings.port));
+
+            #[cfg(unix)]
+            if let Some(ref socket_dir) = self.settings.socket_dir {
+                options.push(format!("-k {}", socket_dir.to_string_lossy()));
+            }
+
+            for (key, value) in &self.settings.configuration {
+                options.push(format!("-c {key}={value}"));
+            }
+            let pg_ctl = PgCtlBuilder::from(&self.settings)
+                .env(PGDATABASE, "")
+                .mode(Start)
+                .pgdata(&self.settings.data_dir)
+                .log(&start_log)
+                .options(options.as_slice())
+                .wait();
+
+            match self.execute_command(pg_ctl).await {
+                Ok((_stdout, _stderr)) => {
+                    debug!(
+                        "Started database {} on port {}{}",
+                        self.settings.data_dir.to_string_lossy(),
+                        self.settings.port,
+                        self.settings
+                            .socket_dir
+                            .as_ref()
+                            .map_or(String::new(), |d| format!(
+                                " with socket dir {}",
+                                d.to_string_lossy()
+                            ))
+                    );
+                    return Ok(());
+                }
+                Err(error) => {
+                    retries_left -= 1;
+                    if auto_port
+                        && retries_left > 0
+                        && is_port_conflict(&error.to_string(), &start_log)
+                    {
+                        debug!(
+                            "Port {} already in use, retrying with a new port ({retries_left} retries left)",
+                            self.settings.port
+                        );
+                        continue;
+                    }
+                    return Err(DatabaseStartError(error.to_string()));
+                }
+            }
         }
     }
 
@@ -539,4 +557,12 @@ impl Drop for PostgreSQL {
             }
         }
     }
+}
+
+fn is_port_conflict(error: &str, start_log: &Path) -> bool {
+    let conflict = |s: &str| s.contains("could not bind") || s.contains("already in use");
+    conflict(error)
+        || std::fs::read_to_string(start_log)
+            .map(|log| conflict(&log))
+            .unwrap_or(false)
 }
