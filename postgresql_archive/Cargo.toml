@@ -46,10 +46,7 @@ test-log = { workspace = true }
 tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
 
 [features]
-default = [
-    "tls-native-tls",
-    "theseus",
-]
+default = ["tls-native-tls"]
 blocking = ["dep:tokio"]
 github = [
     "dep:serde_json",
