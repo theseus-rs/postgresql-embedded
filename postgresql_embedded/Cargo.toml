@@ -37,10 +37,7 @@ test-log = { workspace = true }
 tokio = { workspace = true, features = ["full"] }
 
 [features]
-default = [
-    "tls-native-tls",
-    "theseus",
-]
+default = ["tls-native-tls"]
 blocking = ["tokio"]
 bundled = ["theseus"]
 indicatif = [
