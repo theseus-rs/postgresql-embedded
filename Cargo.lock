@@ -96,7 +96,7 @@ checksum = "330a5ed07fa54e4702c9d6c4174f74427fc0ef6e214bbd677ae50a5099946470"
 
 [[package]]
 name = "archive_async"
-version = "0.21.0"
+version = "0.21.1"
 dependencies = [
  "postgresql_archive",
  "tempfile",
@@ -105,7 +105,7 @@ dependencies = [
 
 [[package]]
 name = "archive_sync"
-version = "0.21.0"
+version = "0.21.1"
 dependencies = [
  "postgresql_archive",
  "tempfile",
@@ -226,7 +226,7 @@ dependencies = [
 
 [[package]]
 name = "axum_embedded"
-version = "0.21.0"
+version = "0.21.1"
 dependencies = [
  "anyhow",
  "axum",
@@ -660,7 +660,7 @@ dependencies = [
 
 [[package]]
 name = "diesel_embedded"
-version = "0.21.0"
+version = "0.21.1"
 dependencies = [
  "diesel",
  "diesel_migrations",
@@ -735,7 +735,7 @@ checksum = "117240f60069e65410b3ae1bb213295bd828f707b5bec6596a1afc8793ce0cbc"
 
 [[package]]
 name = "download_progress_bar"
-version = "0.21.0"
+version = "0.21.1"
 dependencies = [
  "anyhow",
  "indicatif",
@@ -776,7 +776,7 @@ dependencies = [
 
 [[package]]
 name = "embedded_async"
-version = "0.21.0"
+version = "0.21.1"
 dependencies = [
  "postgresql_embedded",
  "tokio",
@@ -784,7 +784,7 @@ dependencies = [
 
 [[package]]
 name = "embedded_sync"
-version = "0.21.0"
+version = "0.21.1"
 dependencies = [
  "postgresql_embedded",
 ]
@@ -1921,7 +1921,7 @@ checksum = "05c8b63e8d9609db387f0324918f81d68fe27748f084ef092fb35954d0539a85"
 
 [[package]]
 name = "portal_corp_extension"
-version = "0.21.0"
+version = "0.21.1"
 dependencies = [
  "anyhow",
  "indoc",
@@ -1979,7 +1979,7 @@ dependencies = [
 
 [[package]]
 name = "postgres_embedded"
-version = "0.21.0"
+version = "0.21.1"
 dependencies = [
  "anyhow",
  "postgres",
@@ -1988,7 +1988,7 @@ dependencies = [
 
 [[package]]
 name = "postgresql_archive"
-version = "0.21.0"
+version = "0.21.1"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -2023,7 +2023,7 @@ dependencies = [
 
 [[package]]
 name = "postgresql_commands"
-version = "0.21.0"
+version = "0.21.1"
 dependencies = [
  "test-log",
  "tokio",
@@ -2032,7 +2032,7 @@ dependencies = [
 
 [[package]]
 name = "postgresql_embedded"
-version = "0.21.0"
+version = "0.21.1"
 dependencies = [
  "anyhow",
  "criterion",
@@ -2051,7 +2051,7 @@ dependencies = [
 
 [[package]]
 name = "postgresql_extensions"
-version = "0.21.0"
+version = "0.21.1"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -2892,7 +2892,7 @@ dependencies = [
 
 [[package]]
 name = "sqlx_embedded"
-version = "0.21.0"
+version = "0.21.1"
 dependencies = [
  "anyhow",
  "postgresql_embedded",
@@ -3003,7 +3003,7 @@ dependencies = [
 
 [[package]]
 name = "tensor_chord_extension"
-version = "0.21.0"
+version = "0.21.1"
 dependencies = [
  "anyhow",
  "indoc",
@@ -3411,7 +3411,7 @@ checksum = "81e544489bf3d8ef66c953931f56617f423cd4b5494be343d9b9d3dda037b9a3"
 
 [[package]]
 name = "unix_socket"
-version = "0.21.0"
+version = "0.21.1"
 dependencies = [
  "postgresql_embedded",
  "tempfile",
@@ -3957,7 +3957,7 @@ checksum = "29666d0abbfad1e3dc4dcf6144730dd3a3ab225bbbdac83319345b1b44ccfc1b"
 
 [[package]]
 name = "zonky"
-version = "0.21.0"
+version = "0.21.1"
 dependencies = [
  "postgresql_archive",
  "postgresql_embedded",
