@@ -56,7 +56,7 @@ pub fn matcher(url: &str, name: &str, _version: &Version) -> Result<bool> {
         return Ok(false);
     }
 
-    let target_re = regex(target_triple::TARGET)?;
+    let target_re = regex(target_tuple::TARGET)?;
     if target_re.is_match(name) {
         return Ok(true);
     }
@@ -139,7 +139,7 @@ mod tests {
         let postgresql_major_version = 16;
         let url = format!("https://foo?postgresql_version={postgresql_major_version}.3");
         let version = Version::parse("1.2.3")?;
-        let target = target_triple::TARGET;
+        let target = target_tuple::TARGET;
 
         let valid_name = format!("postgresql-pg{postgresql_major_version}-{target}.tar.gz");
         let invalid_name = format!("postgresql-pg{postgresql_major_version}-{target}.zip");
@@ -161,7 +161,7 @@ mod tests {
         let postgresql_major_version = 16;
         let url = format!("https://foo?postgresql_version={postgresql_major_version}.3");
         let version = Version::parse("1.2.3")?;
-        let target = target_triple::TARGET;
+        let target = target_tuple::TARGET;
 
         let valid_name = format!("postgresql-pg{postgresql_major_version}-{target}.zip");
         let invalid_name = format!("postgresql-pg{postgresql_major_version}-{target}.tar.gz");
@@ -183,7 +183,7 @@ mod tests {
         let postgresql_major_version = 16;
         let url = format!("https://foo?postgresql_version={postgresql_major_version}.3");
         let version = Version::parse("1.2.3")?;
-        let target = target_triple::TARGET;
+        let target = target_tuple::TARGET;
         let os = consts::OS;
         let arch = consts::ARCH;
         let names = vec![
@@ -208,7 +208,7 @@ mod tests {
         let postgresql_major_version = 16;
         let url = format!("https://foo?postgresql_version={postgresql_major_version}.3");
         let version = Version::parse("1.2.3")?;
-        let target = target_triple::TARGET;
+        let target = target_tuple::TARGET;
         let os = consts::OS;
         let arch = consts::ARCH;
         let names = vec![

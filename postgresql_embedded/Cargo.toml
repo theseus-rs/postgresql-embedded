@@ -14,7 +14,7 @@ version.workspace = true
 [build-dependencies]
 anyhow = { workspace = true }
 postgresql_archive = { path = "../postgresql_archive", version = "0.21.0", default-features = false }
-target-triple = { workspace = true }
+target-tuple = { workspace = true }
 tokio = { workspace = true, features = ["full"] }
 url = { workspace = true }
 
@@ -32,7 +32,7 @@ url = { workspace = true }
 [dev-dependencies]
 anyhow = { workspace = true }
 criterion = { workspace = true }
-target-triple = { workspace = true }
+target-tuple = { workspace = true }
 test-log = { workspace = true }
 tokio = { workspace = true, features = ["full"] }
 

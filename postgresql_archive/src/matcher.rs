@@ -3,7 +3,7 @@ pub mod registry;
 /// Returns the target triple for selecting a PostgreSQL archive.
 #[must_use]
 pub const fn target() -> &'static str {
-    target_triple::TARGET
+    target_tuple::TARGET
 }
 
 #[cfg(test)]
@@ -12,6 +12,6 @@ mod tests {
 
     #[test]
     fn test_target() {
-        assert_eq!(target_triple::TARGET, target());
+        assert_eq!(target_tuple::TARGET, target());
     }
 }

@@ -217,7 +217,7 @@ mod tests {
     #[cfg(feature = "bundled")]
     #[test]
     fn test_runtime_archive_target() {
-        assert_eq!(target_triple::TARGET, postgresql_archive::matcher::target());
+        assert_eq!(target_tuple::TARGET, postgresql_archive::matcher::target());
     }
 
     #[test]
