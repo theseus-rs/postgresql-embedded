@@ -19,7 +19,7 @@ reqwest = { workspace = true, default-features = false, features = ["json"] }
 semver = { workspace = true, features = ["serde"] }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
-target-triple = { workspace = true }
+target-tuple = { workspace = true }
 tempfile = { workspace = true }
 tokio = { workspace = true, features = ["full"], optional = true }
 tracing = { workspace = true, features = ["log"] }

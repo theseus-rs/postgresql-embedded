@@ -30,7 +30,7 @@ serde_json = { workspace = true, optional = true }
 sha1 = { workspace = true, optional = true }
 sha2 = { workspace = true, optional = true }
 tar = { workspace = true, optional = true }
-target-triple = { workspace = true }
+target-tuple = { workspace = true }
 tempfile = { workspace = true }
 tokio = { workspace = true, features = ["full"], optional = true }
 tracing = { workspace = true, features = ["log"] }

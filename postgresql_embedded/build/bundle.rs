@@ -13,7 +13,7 @@ use std::{env, fs};
 use url::Url;
 
 static BUNDLE_TARGET: LazyLock<String> =
-    LazyLock::new(|| env::var("TARGET").unwrap_or_else(|_| target_triple::TARGET.to_string()));
+    LazyLock::new(|| env::var("TARGET").unwrap_or_else(|_| target_tuple::TARGET.to_string()));
 
 /// Stage the PostgreSQL archive when the `bundled` feature is enabled so that
 /// it can be included in the final binary. This is useful for creating a
