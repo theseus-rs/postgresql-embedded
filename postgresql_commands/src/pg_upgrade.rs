@@ -9,6 +9,11 @@ use std::path::PathBuf;
 pub struct PgUpgradeBuilder {
     program_dir: Option<PathBuf>,
     envs: Vec<(OsString, OsString)>,
+    copy_file_range: bool,
+    sync_method: Option<OsString>,
+    no_statistics: bool,
+    set_char_signedness: Option<OsString>,
+    swap: bool,
     old_bindir: Option<OsString>,
     new_bindir: Option<OsString>,
     check: bool,
@@ -17,8 +22,8 @@ pub struct PgUpgradeBuilder {
     jobs: Option<OsString>,
     link: bool,
     no_sync: bool,
-    old_options: Option<OsString>,
-    new_options: Option<OsString>,
+    old_options: Vec<OsString>,
+    new_options: Vec<OsString>,
     old_port: Option<u16>,
     new_port: Option<u16>,
     retain: bool,
@@ -107,16 +112,18 @@ impl PgUpgradeBuilder {
     }
 
     /// old cluster options to pass to the server
+    /// May be called multiple times; each value is retained.
     #[must_use]
     pub fn old_options<S: AsRef<OsStr>>(mut self, old_options: S) -> Self {
-        self.old_options = Some(old_options.as_ref().to_os_string());
+        self.old_options.push(old_options.as_ref().to_os_string());
         self
     }
 
     /// new cluster options to pass to the server
+    /// May be called multiple times; each value is retained.
     #[must_use]
     pub fn new_options<S: AsRef<OsStr>>(mut self, new_options: S) -> Self {
-        self.new_options = Some(new_options.as_ref().to_os_string());
+        self.new_options.push(new_options.as_ref().to_os_string());
         self
     }
 
@@ -189,6 +196,41 @@ impl PgUpgradeBuilder {
         self.help = true;
         self
     }
+
+    /// Copy files using the `copy_file_range` system call.
+    #[must_use]
+    pub fn copy_file_range(mut self) -> Self {
+        self.copy_file_range = true;
+        self
+    }
+
+    /// Select the file synchronization method.
+    #[must_use]
+    pub fn sync_method<S: AsRef<OsStr>>(mut self, sync_method: S) -> Self {
+        self.sync_method = Some(sync_method.as_ref().to_os_string());
+        self
+    }
+
+    /// Skip transfer of optimizer statistics.
+    #[must_use]
+    pub fn no_statistics(mut self) -> Self {
+        self.no_statistics = true;
+        self
+    }
+
+    /// Set the new cluster char signedness: signed or unsigned.
+    #[must_use]
+    pub fn set_char_signedness<S: AsRef<OsStr>>(mut self, set_char_signedness: S) -> Self {
+        self.set_char_signedness = Some(set_char_signedness.as_ref().to_os_string());
+        self
+    }
+
+    /// Move relation files to the new cluster.
+    #[must_use]
+    pub fn swap(mut self) -> Self {
+        self.swap = true;
+        self
+    }
 }
 
 impl CommandBuilder for PgUpgradeBuilder {
@@ -205,6 +247,14 @@ impl CommandBuilder for PgUpgradeBuilder {
     /// Get the arguments for the command
     fn get_args(&self) -> Vec<OsString> {
         let mut args: Vec<OsString> = Vec::new();
+
+        if self.version {
+            args.push("--version".into());
+        }
+
+        if self.help {
+            args.push("--help".into());
+        }
 
         if let Some(old_bindir) = &self.old_bindir {
             args.push("--old-bindir".into());
@@ -243,12 +293,12 @@ impl CommandBuilder for PgUpgradeBuilder {
             args.push("--no-sync".into());
         }
 
-        if let Some(old_options) = &self.old_options {
+        for old_options in &self.old_options {
             args.push("--old-options".into());
             args.push(old_options.into());
         }
 
-        if let Some(new_options) = &self.new_options {
+        for new_options in &self.new_options {
             args.push("--new-options".into());
             args.push(new_options.into());
         }
@@ -281,10 +331,6 @@ impl CommandBuilder for PgUpgradeBuilder {
             args.push("--verbose".into());
         }
 
-        if self.version {
-            args.push("--version".into());
-        }
-
         if self.clone {
             args.push("--clone".into());
         }
@@ -293,8 +339,26 @@ impl CommandBuilder for PgUpgradeBuilder {
             args.push("--copy".into());
         }
 
-        if self.help {
-            args.push("--help".into());
+        if self.copy_file_range {
+            args.push("--copy-file-range".into());
+        }
+
+        if let Some(sync_method) = &self.sync_method {
+            args.push("--sync-method".into());
+            args.push(sync_method.into());
+        }
+
+        if self.no_statistics {
+            args.push("--no-statistics".into());
+        }
+
+        if let Some(set_char_signedness) = &self.set_char_signedness {
+            args.push("--set-char-signedness".into());
+            args.push(set_char_signedness.into());
+        }
+
+        if self.swap {
+            args.push("--swap".into());
         }
 
         args
@@ -316,7 +380,9 @@ impl CommandBuilder for PgUpgradeBuilder {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::CommandExecutor;
     use crate::TestSettings;
+    use crate::test_utils::{TestResult, assert_args, binary_dir};
     use crate::traits::CommandToString;
     use test_log::test;
 
@@ -364,6 +430,11 @@ mod tests {
             .clone()
             .copy()
             .help()
+            .copy_file_range()
+            .sync_method("fsync")
+            .no_statistics()
+            .set_char_signedness("unsigned")
+            .swap()
             .build();
         #[cfg(not(target_os = "windows"))]
         let command_prefix = r#"PGDATABASE="database" "#;
@@ -372,9 +443,72 @@ mod tests {
 
         assert_eq!(
             format!(
-                r#"{command_prefix}"pg_upgrade" "--old-bindir" "old" "--new-bindir" "new" "--check" "--old-datadir" "old_data" "--new-datadir" "new_data" "--jobs" "10" "--link" "--no-sync" "--old-options" "old" "--new-options" "new" "--old-port" "5432" "--new-port" "5433" "--retain" "--socketdir" "socket" "--username" "user" "--verbose" "--version" "--clone" "--copy" "--help""#
+                r#"{command_prefix}"pg_upgrade" "--version" "--help" "--old-bindir" "old" "--new-bindir" "new" "--check" "--old-datadir" "old_data" "--new-datadir" "new_data" "--jobs" "10" "--link" "--no-sync" "--old-options" "old" "--new-options" "new" "--old-port" "5432" "--new-port" "5433" "--retain" "--socketdir" "socket" "--username" "user" "--verbose" "--clone" "--copy" "--copy-file-range" "--sync-method" "fsync" "--no-statistics" "--set-char-signedness" "unsigned" "--swap""#
             ),
             command.to_command_string()
         );
+    }
+
+    #[test]
+    fn test_options() {
+        assert_args(
+            PgUpgradeBuilder::new().copy_file_range(),
+            &["--copy-file-range"],
+        );
+        assert_args(
+            PgUpgradeBuilder::new().sync_method("fsync"),
+            &["--sync-method", "fsync"],
+        );
+        assert_args(
+            PgUpgradeBuilder::new().no_statistics(),
+            &["--no-statistics"],
+        );
+        assert_args(
+            PgUpgradeBuilder::new().set_char_signedness("unsigned"),
+            &["--set-char-signedness", "unsigned"],
+        );
+        assert_args(PgUpgradeBuilder::new().swap(), &["--swap"]);
+    }
+
+    #[test]
+    fn test_repeated_options() {
+        assert_args(
+            PgUpgradeBuilder::new()
+                .old_options("first")
+                .old_options("second"),
+            &["--old-options", "first", "--old-options", "second"],
+        );
+        assert_args(
+            PgUpgradeBuilder::new()
+                .new_options("first")
+                .new_options("second"),
+            &["--new-options", "first", "--new-options", "second"],
+        );
+    }
+
+    #[test]
+    fn test_informational_options_come_first_on_configured_builders() {
+        let version = PgUpgradeBuilder::from(&TestSettings).version().get_args();
+        assert_eq!(version.first(), Some(&OsString::from("--version")));
+        let help = PgUpgradeBuilder::from(&TestSettings).help().get_args();
+        assert_eq!(help.first(), Some(&OsString::from("--help")));
+    }
+
+    #[test]
+    fn test_cli_help_and_version() -> TestResult {
+        let Some(bin) = binary_dir() else {
+            return Ok(());
+        };
+        PgUpgradeBuilder::new()
+            .program_dir(&bin)
+            .version()
+            .build()
+            .execute()?;
+        PgUpgradeBuilder::new()
+            .program_dir(&bin)
+            .help()
+            .build()
+            .execute()?;
+        Ok(())
     }
 }

@@ -238,6 +238,14 @@ impl CommandBuilder for PgConfigBuilder {
     fn get_args(&self) -> Vec<OsString> {
         let mut args: Vec<OsString> = Vec::new();
 
+        if self.version {
+            args.push("--version".into());
+        }
+
+        if self.help {
+            args.push("--help".into());
+        }
+
         if self.bindir {
             args.push("--bindir".into());
         }
@@ -326,14 +334,6 @@ impl CommandBuilder for PgConfigBuilder {
             args.push("--libs".into());
         }
 
-        if self.version {
-            args.push("--version".into());
-        }
-
-        if self.help {
-            args.push("--help".into());
-        }
-
         args
     }
 
@@ -353,7 +353,9 @@ impl CommandBuilder for PgConfigBuilder {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::CommandExecutor;
     use crate::TestSettings;
+    use crate::test_utils::{TestResult, binary_dir};
     use crate::traits::CommandToString;
     use test_log::test;
 
@@ -413,9 +415,35 @@ mod tests {
 
         assert_eq!(
             format!(
-                r#"{command_prefix}"pg_config" "--bindir" "--docdir" "--htmldir" "--includedir" "--pkgincludedir" "--includedir-server" "--libdir" "--pkglibdir" "--localedir" "--mandir" "--sharedir" "--sysconfdir" "--pgxs" "--configure" "--cc" "--cppflags" "--cflags" "--cflags_sl" "--ldflags" "--ldflags_ex" "--ldflags_sl" "--libs" "--version" "--help""#
+                r#"{command_prefix}"pg_config" "--version" "--help" "--bindir" "--docdir" "--htmldir" "--includedir" "--pkgincludedir" "--includedir-server" "--libdir" "--pkglibdir" "--localedir" "--mandir" "--sharedir" "--sysconfdir" "--pgxs" "--configure" "--cc" "--cppflags" "--cflags" "--cflags_sl" "--ldflags" "--ldflags_ex" "--ldflags_sl" "--libs""#
             ),
             command.to_command_string()
         );
+    }
+
+    #[test]
+    fn test_informational_options_come_first_on_configured_builders() {
+        let version = PgConfigBuilder::from(&TestSettings).version().get_args();
+        assert_eq!(version.first(), Some(&OsString::from("--version")));
+        let help = PgConfigBuilder::from(&TestSettings).help().get_args();
+        assert_eq!(help.first(), Some(&OsString::from("--help")));
+    }
+
+    #[test]
+    fn test_cli_help_and_version() -> TestResult {
+        let Some(bin) = binary_dir() else {
+            return Ok(());
+        };
+        PgConfigBuilder::new()
+            .program_dir(&bin)
+            .version()
+            .build()
+            .execute()?;
+        PgConfigBuilder::new()
+            .program_dir(&bin)
+            .help()
+            .build()
+            .execute()?;
+        Ok(())
     }
 }

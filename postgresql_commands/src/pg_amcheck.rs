@@ -9,17 +9,19 @@ use std::path::PathBuf;
 pub struct PgAmCheckBuilder {
     program_dir: Option<PathBuf>,
     envs: Vec<(OsString, OsString)>,
+    check_unique: bool,
+    dbname: Option<OsString>,
     all: bool,
-    database: Option<OsString>,
-    exclude_database: Option<OsString>,
-    index: Option<OsString>,
-    exclude_index: Option<OsString>,
-    relation: Option<OsString>,
-    exclude_relation: Option<OsString>,
-    schema: Option<OsString>,
-    exclude_schema: Option<OsString>,
-    table: Option<OsString>,
-    exclude_table: Option<OsString>,
+    database: Vec<OsString>,
+    exclude_database: Vec<OsString>,
+    index: Vec<OsString>,
+    exclude_index: Vec<OsString>,
+    relation: Vec<OsString>,
+    exclude_relation: Vec<OsString>,
+    schema: Vec<OsString>,
+    exclude_schema: Vec<OsString>,
+    table: Vec<OsString>,
+    exclude_table: Vec<OsString>,
     no_dependent_indexes: bool,
     no_dependent_toast: bool,
     no_strict_names: bool,
@@ -41,9 +43,10 @@ pub struct PgAmCheckBuilder {
     echo: bool,
     jobs: Option<OsString>,
     progress: bool,
-    verbose: bool,
+    verbose: usize,
     version: bool,
     install_missing: bool,
+    install_missing_schema: Option<OsString>,
     help: bool,
 }
 
@@ -83,72 +86,87 @@ impl PgAmCheckBuilder {
     }
 
     /// check matching database(s)
+    /// May be called multiple times; each value is retained.
     #[must_use]
     pub fn database<S: AsRef<OsStr>>(mut self, database: S) -> Self {
-        self.database = Some(database.as_ref().to_os_string());
+        self.database.push(database.as_ref().to_os_string());
         self
     }
 
     /// do NOT check matching database(s)
+    /// May be called multiple times; each value is retained.
     #[must_use]
     pub fn exclude_database<S: AsRef<OsStr>>(mut self, exclude_database: S) -> Self {
-        self.exclude_database = Some(exclude_database.as_ref().to_os_string());
+        self.exclude_database
+            .push(exclude_database.as_ref().to_os_string());
         self
     }
 
     /// check matching index(es)
+    /// May be called multiple times; each value is retained.
     #[must_use]
     pub fn index<S: AsRef<OsStr>>(mut self, index: S) -> Self {
-        self.index = Some(index.as_ref().to_os_string());
+        self.index.push(index.as_ref().to_os_string());
         self
     }
 
     /// do NOT check matching index(es)
+    /// May be called multiple times; each value is retained.
     #[must_use]
     pub fn exclude_index<S: AsRef<OsStr>>(mut self, exclude_index: S) -> Self {
-        self.exclude_index = Some(exclude_index.as_ref().to_os_string());
+        self.exclude_index
+            .push(exclude_index.as_ref().to_os_string());
         self
     }
 
     /// check matching relation(s)
+    /// May be called multiple times; each value is retained.
     #[must_use]
     pub fn relation<S: AsRef<OsStr>>(mut self, relation: S) -> Self {
-        self.relation = Some(relation.as_ref().to_os_string());
+        self.relation.push(relation.as_ref().to_os_string());
         self
     }
 
     /// do NOT check matching relation(s)
+    /// May be called multiple times; each value is retained.
     #[must_use]
     pub fn exclude_relation<S: AsRef<OsStr>>(mut self, exclude_relation: S) -> Self {
-        self.exclude_relation = Some(exclude_relation.as_ref().to_os_string());
+        self.exclude_relation
+            .push(exclude_relation.as_ref().to_os_string());
         self
     }
 
     /// check matching schema(s)
+    /// May be called multiple times; each value is retained.
     #[must_use]
     pub fn schema<S: AsRef<OsStr>>(mut self, schema: S) -> Self {
-        self.schema = Some(schema.as_ref().to_os_string());
+        self.schema.push(schema.as_ref().to_os_string());
         self
     }
 
     /// do NOT check matching schema(s)
+    /// May be called multiple times; each value is retained.
     #[must_use]
     pub fn exclude_schema<S: AsRef<OsStr>>(mut self, exclude_schema: S) -> Self {
-        self.exclude_schema = Some(exclude_schema.as_ref().to_os_string());
+        self.exclude_schema
+            .push(exclude_schema.as_ref().to_os_string());
         self
     }
 
     /// check matching table(s)
+    /// May be called multiple times; each value is retained.
     #[must_use]
     pub fn table<S: AsRef<OsStr>>(mut self, table: S) -> Self {
-        self.table = Some(table.as_ref().to_os_string());
+        self.table.push(table.as_ref().to_os_string());
         self
     }
 
     /// do NOT check matching table(s)
+    /// May be called multiple times; each value is retained.
     #[must_use]
     pub fn exclude_table<S: AsRef<OsStr>>(mut self, exclude_table: S) -> Self {
-        self.exclude_table = Some(exclude_table.as_ref().to_os_string());
+        self.exclude_table
+            .push(exclude_table.as_ref().to_os_string());
         self
     }
 
@@ -300,9 +318,10 @@ impl PgAmCheckBuilder {
     }
 
     /// write a lot of output
+    /// May be called multiple times to increase verbosity.
     #[must_use]
     pub fn verbose(mut self) -> Self {
-        self.verbose = true;
+        self.verbose = self.verbose.saturating_add(1);
         self
     }
 
@@ -326,6 +345,28 @@ impl PgAmCheckBuilder {
         self.help = true;
         self
     }
+
+    /// Check uniqueness constraints in unique indexes.
+    #[must_use]
+    pub fn check_unique(mut self) -> Self {
+        self.check_unique = true;
+        self
+    }
+
+    /// Database name or connection string to check.
+    #[must_use]
+    pub fn dbname<S: AsRef<OsStr>>(mut self, dbname: S) -> Self {
+        self.dbname = Some(dbname.as_ref().to_os_string());
+        self
+    }
+
+    /// Install missing extensions in the specified schema.
+    #[must_use]
+    pub fn install_missing_schema<S: AsRef<OsStr>>(mut self, schema: S) -> Self {
+        self.install_missing = true;
+        self.install_missing_schema = Some(schema.as_ref().to_os_string());
+        self
+    }
 }
 
 impl CommandBuilder for PgAmCheckBuilder {
@@ -344,56 +385,64 @@ impl CommandBuilder for PgAmCheckBuilder {
     fn get_args(&self) -> Vec<OsString> {
         let mut args: Vec<OsString> = Vec::new();
 
+        if self.version {
+            args.push("--version".into());
+        }
+
+        if self.help {
+            args.push("--help".into());
+        }
+
         if self.all {
             args.push("--all".into());
         }
 
-        if let Some(database) = &self.database {
+        for database in &self.database {
             args.push("--database".into());
             args.push(database.into());
         }
 
-        if let Some(exclude_database) = &self.exclude_database {
+        for exclude_database in &self.exclude_database {
             args.push("--exclude-database".into());
             args.push(exclude_database.into());
         }
 
-        if let Some(index) = &self.index {
+        for index in &self.index {
             args.push("--index".into());
             args.push(index.into());
         }
 
-        if let Some(exclude_index) = &self.exclude_index {
+        for exclude_index in &self.exclude_index {
             args.push("--exclude-index".into());
             args.push(exclude_index.into());
         }
 
-        if let Some(relation) = &self.relation {
+        for relation in &self.relation {
             args.push("--relation".into());
             args.push(relation.into());
         }
 
-        if let Some(exclude_relation) = &self.exclude_relation {
+        for exclude_relation in &self.exclude_relation {
             args.push("--exclude-relation".into());
             args.push(exclude_relation.into());
         }
 
-        if let Some(schema) = &self.schema {
+        for schema in &self.schema {
             args.push("--schema".into());
             args.push(schema.into());
         }
 
-        if let Some(exclude_schema) = &self.exclude_schema {
+        for exclude_schema in &self.exclude_schema {
             args.push("--exclude-schema".into());
             args.push(exclude_schema.into());
         }
 
-        if let Some(table) = &self.table {
+        for table in &self.table {
             args.push("--table".into());
             args.push(table.into());
         }
 
-        if let Some(exclude_table) = &self.exclude_table {
+        for exclude_table in &self.exclude_table {
             args.push("--exclude-table".into());
             args.push(exclude_table.into());
         }
@@ -486,20 +535,25 @@ impl CommandBuilder for PgAmCheckBuilder {
             args.push("--progress".into());
         }
 
-        if self.verbose {
+        for _ in 0..self.verbose {
             args.push("--verbose".into());
         }
 
-        if self.version {
-            args.push("--version".into());
-        }
-
         if self.install_missing {
-            args.push("--install-missing".into());
+            let mut option = OsString::from("--install-missing");
+            if let Some(schema) = &self.install_missing_schema {
+                option.push("=");
+                option.push(schema);
+            }
+            args.push(option);
         }
 
-        if self.help {
-            args.push("--help".into());
+        if self.check_unique {
+            args.push("--checkunique".into());
+        }
+
+        if let Some(dbname) = &self.dbname {
+            args.push(dbname.into());
         }
 
         args
@@ -527,8 +581,10 @@ impl CommandBuilder for PgAmCheckBuilder {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::CommandExecutor;
     use crate::TestSettings;
     use crate::TestSocketSettings;
+    use crate::test_utils::{TestResult, assert_args, binary_dir};
     use crate::traits::CommandToString;
     use test_log::test;
 
@@ -612,7 +668,10 @@ mod tests {
             .verbose()
             .version()
             .install_missing()
+            .install_missing_schema("extensions")
             .help()
+            .check_unique()
+            .dbname("testdb")
             .build();
         #[cfg(not(target_os = "windows"))]
         let command_prefix = r#"PGDATABASE="database" PGPASSWORD="password" "#;
@@ -621,9 +680,133 @@ mod tests {
 
         assert_eq!(
             format!(
-                r#"{command_prefix}"pg_amcheck" "--all" "--database" "database" "--exclude-database" "exclude_database" "--index" "index" "--exclude-index" "exclude_index" "--relation" "relation" "--exclude-relation" "exclude_relation" "--schema" "schema" "--exclude-schema" "exclude_schema" "--table" "table" "--exclude-table" "exclude_table" "--no-dependent-indexes" "--no-dependent-toast" "--no-strict-names" "--exclude-toast-pointers" "--on-error-stop" "--skip" "skip" "--startblock" "start_block" "--endblock" "end_block" "--heapallindexed" "--parent-check" "--rootdescend" "--host" "localhost" "--port" "5432" "--username" "username" "--no-password" "--password" "--maintenance-db" "maintenance_db" "--echo" "--jobs" "jobs" "--progress" "--verbose" "--version" "--install-missing" "--help""#
+                r#"{command_prefix}"pg_amcheck" "--version" "--help" "--all" "--database" "database" "--exclude-database" "exclude_database" "--index" "index" "--exclude-index" "exclude_index" "--relation" "relation" "--exclude-relation" "exclude_relation" "--schema" "schema" "--exclude-schema" "exclude_schema" "--table" "table" "--exclude-table" "exclude_table" "--no-dependent-indexes" "--no-dependent-toast" "--no-strict-names" "--exclude-toast-pointers" "--on-error-stop" "--skip" "skip" "--startblock" "start_block" "--endblock" "end_block" "--heapallindexed" "--parent-check" "--rootdescend" "--host" "localhost" "--port" "5432" "--username" "username" "--no-password" "--password" "--maintenance-db" "maintenance_db" "--echo" "--jobs" "jobs" "--progress" "--verbose" "--install-missing=extensions" "--checkunique" "testdb""#
             ),
             command.to_command_string()
         );
+    }
+
+    #[test]
+    fn test_optional_arguments_are_attached_to_the_option() {
+        assert_args(
+            PgAmCheckBuilder::new().install_missing(),
+            &["--install-missing"],
+        );
+        assert_args(
+            PgAmCheckBuilder::new().install_missing_schema("extensions"),
+            &["--install-missing=extensions"],
+        );
+    }
+
+    #[test]
+    fn test_positional_arguments_follow_options() {
+        assert_args(
+            PgAmCheckBuilder::new().dbname("dbname=test").check_unique(),
+            &["--checkunique", "dbname=test"],
+        );
+    }
+
+    #[test]
+    fn test_options() {
+        assert_args(PgAmCheckBuilder::new().check_unique(), &["--checkunique"]);
+        assert_args(PgAmCheckBuilder::new().dbname("test db"), &["test db"]);
+    }
+
+    #[test]
+    fn test_repeated_options() {
+        assert_args(
+            PgAmCheckBuilder::new().database("first").database("second"),
+            &["--database", "first", "--database", "second"],
+        );
+        assert_args(
+            PgAmCheckBuilder::new()
+                .exclude_database("first")
+                .exclude_database("second"),
+            &[
+                "--exclude-database",
+                "first",
+                "--exclude-database",
+                "second",
+            ],
+        );
+        assert_args(
+            PgAmCheckBuilder::new().index("first").index("second"),
+            &["--index", "first", "--index", "second"],
+        );
+        assert_args(
+            PgAmCheckBuilder::new()
+                .exclude_index("first")
+                .exclude_index("second"),
+            &["--exclude-index", "first", "--exclude-index", "second"],
+        );
+        assert_args(
+            PgAmCheckBuilder::new().relation("first").relation("second"),
+            &["--relation", "first", "--relation", "second"],
+        );
+        assert_args(
+            PgAmCheckBuilder::new()
+                .exclude_relation("first")
+                .exclude_relation("second"),
+            &[
+                "--exclude-relation",
+                "first",
+                "--exclude-relation",
+                "second",
+            ],
+        );
+        assert_args(
+            PgAmCheckBuilder::new().schema("first").schema("second"),
+            &["--schema", "first", "--schema", "second"],
+        );
+        assert_args(
+            PgAmCheckBuilder::new()
+                .exclude_schema("first")
+                .exclude_schema("second"),
+            &["--exclude-schema", "first", "--exclude-schema", "second"],
+        );
+        assert_args(
+            PgAmCheckBuilder::new().table("first").table("second"),
+            &["--table", "first", "--table", "second"],
+        );
+        assert_args(
+            PgAmCheckBuilder::new()
+                .exclude_table("first")
+                .exclude_table("second"),
+            &["--exclude-table", "first", "--exclude-table", "second"],
+        );
+    }
+
+    #[test]
+    fn test_informational_options_come_first_on_configured_builders() {
+        let version = PgAmCheckBuilder::from(&TestSettings).version().get_args();
+        assert_eq!(version.first(), Some(&OsString::from("--version")));
+        let help = PgAmCheckBuilder::from(&TestSettings).help().get_args();
+        assert_eq!(help.first(), Some(&OsString::from("--help")));
+    }
+
+    #[test]
+    fn test_repeated_verbose_flags_increase_logging_detail() {
+        assert_args(
+            PgAmCheckBuilder::new().verbose().verbose(),
+            &["--verbose", "--verbose"],
+        );
+    }
+
+    #[test]
+    fn test_cli_help_and_version() -> TestResult {
+        let Some(bin) = binary_dir() else {
+            return Ok(());
+        };
+        PgAmCheckBuilder::new()
+            .program_dir(&bin)
+            .version()
+            .build()
+            .execute()?;
+        PgAmCheckBuilder::new()
+            .program_dir(&bin)
+            .help()
+            .build()
+            .execute()?;
+        Ok(())
     }
 }

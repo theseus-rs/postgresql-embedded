@@ -9,12 +9,14 @@ use std::path::PathBuf;
 pub struct PgBaseBackupBuilder {
     program_dir: Option<PathBuf>,
     envs: Vec<(OsString, OsString)>,
+    incremental: Option<OsString>,
+    sync_method: Option<OsString>,
     pgdata: Option<PathBuf>,
     format: Option<OsString>,
     max_rate: Option<OsString>,
     write_recovery_conf: bool,
     target: Option<OsString>,
-    tablespace_mapping: Option<OsString>,
+    tablespace_mapping: Vec<OsString>,
     waldir: Option<OsString>,
     wal_method: Option<OsString>,
     gzip: bool,
@@ -26,7 +28,7 @@ pub struct PgBaseBackupBuilder {
     no_sync: bool,
     progress: bool,
     slot: Option<OsString>,
-    verbose: bool,
+    verbose: usize,
     version: bool,
     manifest_checksums: Option<OsString>,
     manifest_force_encode: bool,
@@ -109,9 +111,11 @@ impl PgBaseBackupBuilder {
     }
 
     /// relocate tablespace in OLDDIR to NEWDIR
+    /// May be called multiple times; each value is retained.
     #[must_use]
     pub fn tablespace_mapping<S: AsRef<OsStr>>(mut self, tablespace_mapping: S) -> Self {
-        self.tablespace_mapping = Some(tablespace_mapping.as_ref().to_os_string());
+        self.tablespace_mapping
+            .push(tablespace_mapping.as_ref().to_os_string());
         self
     }
 
@@ -193,9 +197,10 @@ impl PgBaseBackupBuilder {
     }
 
     /// output verbose messages
+    /// May be called multiple times to increase verbosity.
     #[must_use]
     pub fn verbose(mut self) -> Self {
-        self.verbose = true;
+        self.verbose = self.verbose.saturating_add(1);
         self
     }
 
@@ -310,6 +315,20 @@ impl PgBaseBackupBuilder {
         self.pg_password = Some(pg_password.as_ref().to_os_string());
         self
     }
+
+    /// Use an earlier backup manifest to take an incremental backup.
+    #[must_use]
+    pub fn incremental<S: AsRef<OsStr>>(mut self, incremental: S) -> Self {
+        self.incremental = Some(incremental.as_ref().to_os_string());
+        self
+    }
+
+    /// Select the file synchronization method.
+    #[must_use]
+    pub fn sync_method<S: AsRef<OsStr>>(mut self, sync_method: S) -> Self {
+        self.sync_method = Some(sync_method.as_ref().to_os_string());
+        self
+    }
 }
 
 impl CommandBuilder for PgBaseBackupBuilder {
@@ -327,6 +346,14 @@ impl CommandBuilder for PgBaseBackupBuilder {
     #[expect(clippy::too_many_lines)]
     fn get_args(&self) -> Vec<OsString> {
         let mut args: Vec<OsString> = Vec::new();
+
+        if self.version {
+            args.push("--version".into());
+        }
+
+        if self.help {
+            args.push("--help".into());
+        }
 
         if let Some(pgdata) = &self.pgdata {
             args.push("--pgdata".into());
@@ -352,7 +379,7 @@ impl CommandBuilder for PgBaseBackupBuilder {
             args.push(target.into());
         }
 
-        if let Some(tablespace_mapping) = &self.tablespace_mapping {
+        for tablespace_mapping in &self.tablespace_mapping {
             args.push("--tablespace-mapping".into());
             args.push(tablespace_mapping.into());
         }
@@ -407,12 +434,8 @@ impl CommandBuilder for PgBaseBackupBuilder {
             args.push(slot.into());
         }
 
-        if self.verbose {
+        for _ in 0..self.verbose {
             args.push("--verbose".into());
-        }
-
-        if self.version {
-            args.push("--version".into());
         }
 
         if let Some(manifest_checksums) = &self.manifest_checksums {
@@ -438,10 +461,6 @@ impl CommandBuilder for PgBaseBackupBuilder {
 
         if self.no_verify_checksums {
             args.push("--no-verify-checksums".into());
-        }
-
-        if self.help {
-            args.push("--help".into());
         }
 
         if let Some(dbname) = &self.dbname {
@@ -477,6 +496,16 @@ impl CommandBuilder for PgBaseBackupBuilder {
             args.push("--password".into());
         }
 
+        if let Some(incremental) = &self.incremental {
+            args.push("--incremental".into());
+            args.push(incremental.into());
+        }
+
+        if let Some(sync_method) = &self.sync_method {
+            args.push("--sync-method".into());
+            args.push(sync_method.into());
+        }
+
         args
     }
 
@@ -502,8 +531,10 @@ impl CommandBuilder for PgBaseBackupBuilder {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::CommandExecutor;
     use crate::TestSettings;
     use crate::TestSocketSettings;
+    use crate::test_utils::{TestResult, assert_args, binary_dir};
     use crate::traits::CommandToString;
     use test_log::test;
 
@@ -586,6 +617,8 @@ mod tests {
             .no_password()
             .password()
             .pg_password("password")
+            .incremental("backup/backup_manifest")
+            .sync_method("fsync")
             .build();
         #[cfg(not(target_os = "windows"))]
         let command_prefix = r#"PGDATABASE="database" PGPASSWORD="password" "#;
@@ -594,9 +627,72 @@ mod tests {
 
         assert_eq!(
             format!(
-                r#"{command_prefix}"pg_basebackup" "--pgdata" "pgdata" "--format" "plain" "--max-rate" "100M" "--write-recovery-conf" "--target" "localhost" "--tablespace-mapping" "tablespace_mapping" "--waldir" "waldir" "--wal-method" "stream" "--gzip" "--compress" "client" "--checkpoint" "fast" "--create-slot" "--label" "my_backup" "--no-clean" "--no-sync" "--progress" "--slot" "my_slot" "--verbose" "--version" "--manifest-checksums" "sha256" "--manifest-force-encode" "--no-estimate-size" "--no-manifest" "--no-slot" "--no-verify-checksums" "--help" "--dbname" "postgres" "--host" "localhost" "--port" "5432" "--status-interval" "10" "--username" "postgres" "--no-password" "--password""#
+                r#"{command_prefix}"pg_basebackup" "--version" "--help" "--pgdata" "pgdata" "--format" "plain" "--max-rate" "100M" "--write-recovery-conf" "--target" "localhost" "--tablespace-mapping" "tablespace_mapping" "--waldir" "waldir" "--wal-method" "stream" "--gzip" "--compress" "client" "--checkpoint" "fast" "--create-slot" "--label" "my_backup" "--no-clean" "--no-sync" "--progress" "--slot" "my_slot" "--verbose" "--manifest-checksums" "sha256" "--manifest-force-encode" "--no-estimate-size" "--no-manifest" "--no-slot" "--no-verify-checksums" "--dbname" "postgres" "--host" "localhost" "--port" "5432" "--status-interval" "10" "--username" "postgres" "--no-password" "--password" "--incremental" "backup/backup_manifest" "--sync-method" "fsync""#
             ),
             command.to_command_string()
         );
+    }
+
+    #[test]
+    fn test_options() {
+        assert_args(
+            PgBaseBackupBuilder::new().incremental("backup/backup_manifest"),
+            &["--incremental", "backup/backup_manifest"],
+        );
+        assert_args(
+            PgBaseBackupBuilder::new().sync_method("fsync"),
+            &["--sync-method", "fsync"],
+        );
+    }
+
+    #[test]
+    fn test_repeated_options() {
+        assert_args(
+            PgBaseBackupBuilder::new()
+                .tablespace_mapping("first")
+                .tablespace_mapping("second"),
+            &[
+                "--tablespace-mapping",
+                "first",
+                "--tablespace-mapping",
+                "second",
+            ],
+        );
+    }
+
+    #[test]
+    fn test_informational_options_come_first_on_configured_builders() {
+        let version = PgBaseBackupBuilder::from(&TestSettings)
+            .version()
+            .get_args();
+        assert_eq!(version.first(), Some(&OsString::from("--version")));
+        let help = PgBaseBackupBuilder::from(&TestSettings).help().get_args();
+        assert_eq!(help.first(), Some(&OsString::from("--help")));
+    }
+
+    #[test]
+    fn test_repeated_verbose_flags_increase_logging_detail() {
+        assert_args(
+            PgBaseBackupBuilder::new().verbose().verbose(),
+            &["--verbose", "--verbose"],
+        );
+    }
+
+    #[test]
+    fn test_cli_help_and_version() -> TestResult {
+        let Some(bin) = binary_dir() else {
+            return Ok(());
+        };
+        PgBaseBackupBuilder::new()
+            .program_dir(&bin)
+            .version()
+            .build()
+            .execute()?;
+        PgBaseBackupBuilder::new()
+            .program_dir(&bin)
+            .help()
+            .build()
+            .execute()?;
+        Ok(())
     }
 }

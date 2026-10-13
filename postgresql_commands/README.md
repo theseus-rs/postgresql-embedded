@@ -12,7 +12,7 @@ A library for executing PostgreSQL command line utilities.
 ## Examples
 
 ```rust
-use postgresql_commands::Result;
+use postgresql_commands::{CommandBuilder, CommandExecutor, Result};
 use postgresql_commands::psql::PsqlBuilder;
 
 fn main() -> Result<()> {

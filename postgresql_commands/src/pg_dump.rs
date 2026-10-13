@@ -9,25 +9,39 @@ use std::path::PathBuf;
 pub struct PgDumpBuilder {
     program_dir: Option<PathBuf>,
     envs: Vec<(OsString, OsString)>,
+    sequence_data: bool,
+    restrict_key: Option<OsString>,
+    filter: Vec<OsString>,
+    no_policies: bool,
+    no_statistics: bool,
+    no_schema: bool,
+    no_data: bool,
+    statistics_only: bool,
+    statistics: bool,
+    exclude_table_data: Vec<OsString>,
+    exclude_table_and_children: Vec<OsString>,
+    exclude_extension: Vec<OsString>,
+    no_sync: bool,
+    sync_method: Option<OsString>,
     data_only: bool,
     large_objects: bool,
     no_large_objects: bool,
     clean: bool,
     create: bool,
-    extension: Option<OsString>,
+    extension: Vec<OsString>,
     encoding: Option<OsString>,
     file: Option<OsString>,
     format: Option<OsString>,
     jobs: Option<OsString>,
-    schema: Option<OsString>,
-    exclude_schema: Option<OsString>,
+    schema: Vec<OsString>,
+    exclude_schema: Vec<OsString>,
     no_owner: bool,
     no_reconnect: bool,
     schema_only: bool,
     superuser: Option<OsString>,
-    table: Option<OsString>,
-    exclude_table: Option<OsString>,
-    verbose: bool,
+    table: Vec<OsString>,
+    exclude_table: Vec<OsString>,
+    verbose: usize,
     version: bool,
     no_privileges: bool,
     compress: Option<OsString>,
@@ -37,13 +51,13 @@ pub struct PgDumpBuilder {
     disable_dollar_quoting: bool,
     disable_triggers: bool,
     enable_row_security: bool,
-    exclude_table_data_and_children: Option<OsString>,
+    exclude_table_data_and_children: Vec<OsString>,
     extra_float_digits: Option<OsString>,
     if_exists: bool,
-    include_foreign_data: Option<OsString>,
+    include_foreign_data: Vec<OsString>,
     inserts: bool,
     load_via_partition_root: bool,
-    lock_wait_timeout: Option<u16>,
+    lock_wait_timeout: Option<OsString>,
     no_comments: bool,
     no_publications: bool,
     no_security_labels: bool,
@@ -55,11 +69,11 @@ pub struct PgDumpBuilder {
     on_conflict_do_nothing: bool,
     quote_all_identifiers: bool,
     rows_per_insert: Option<u64>,
-    section: Option<OsString>,
+    section: Vec<OsString>,
     serializable_deferrable: bool,
     snapshot: Option<OsString>,
     strict_names: bool,
-    table_and_children: Option<OsString>,
+    table_and_children: Vec<OsString>,
     use_set_session_authorization: bool,
     help: bool,
     dbname: Option<OsString>,
@@ -136,9 +150,10 @@ impl PgDumpBuilder {
     }
 
     /// Dump data for the named extension
+    /// May be called multiple times; each value is retained.
     #[must_use]
     pub fn extension<S: AsRef<OsStr>>(mut self, extension: S) -> Self {
-        self.extension = Some(extension.as_ref().to_os_string());
+        self.extension.push(extension.as_ref().to_os_string());
         self
     }
 
@@ -171,16 +186,19 @@ impl PgDumpBuilder {
     }
 
     /// Dump data for the named schema(s) only
+    /// May be called multiple times; each value is retained.
     #[must_use]
     pub fn schema<S: AsRef<OsStr>>(mut self, schema: S) -> Self {
-        self.schema = Some(schema.as_ref().to_os_string());
+        self.schema.push(schema.as_ref().to_os_string());
         self
     }
 
     /// Do not output commands to set ownership of objects to match the original database
+    /// May be called multiple times; each value is retained.
     #[must_use]
     pub fn exclude_schema<S: AsRef<OsStr>>(mut self, exclude_schema: S) -> Self {
-        self.exclude_schema = Some(exclude_schema.as_ref().to_os_string());
+        self.exclude_schema
+            .push(exclude_schema.as_ref().to_os_string());
         self
     }
 
@@ -213,23 +231,27 @@ impl PgDumpBuilder {
     }
 
     /// Dump data for the named table(s) only
+    /// May be called multiple times; each value is retained.
     #[must_use]
     pub fn table<S: AsRef<OsStr>>(mut self, table: S) -> Self {
-        self.table = Some(table.as_ref().to_os_string());
+        self.table.push(table.as_ref().to_os_string());
         self
     }
 
     /// Do not output commands to create the table(s) containing the data
+    /// May be called multiple times; each value is retained.
     #[must_use]
     pub fn exclude_table<S: AsRef<OsStr>>(mut self, exclude_table: S) -> Self {
-        self.exclude_table = Some(exclude_table.as_ref().to_os_string());
+        self.exclude_table
+            .push(exclude_table.as_ref().to_os_string());
         self
     }
 
     /// Enable verbose mode
+    /// May be called multiple times to increase verbosity.
     #[must_use]
     pub fn verbose(mut self) -> Self {
-        self.verbose = true;
+        self.verbose = self.verbose.saturating_add(1);
         self
     }
 
@@ -297,13 +319,14 @@ impl PgDumpBuilder {
     }
 
     /// Dump data for the named table(s) but exclude data for their child tables
+    /// May be called multiple times; each value is retained.
     #[must_use]
     pub fn exclude_table_data_and_children<S: AsRef<OsStr>>(
         mut self,
         exclude_table_data_and_children: S,
     ) -> Self {
-        self.exclude_table_data_and_children =
-            Some(exclude_table_data_and_children.as_ref().to_os_string());
+        self.exclude_table_data_and_children
+            .push(exclude_table_data_and_children.as_ref().to_os_string());
         self
     }
 
@@ -322,9 +345,11 @@ impl PgDumpBuilder {
     }
 
     /// Include foreign-data wrappers in the dump
+    /// May be called multiple times; each value is retained.
     #[must_use]
     pub fn include_foreign_data<S: AsRef<OsStr>>(mut self, include_foreign_data: S) -> Self {
-        self.include_foreign_data = Some(include_foreign_data.as_ref().to_os_string());
+        self.include_foreign_data
+            .push(include_foreign_data.as_ref().to_os_string());
         self
     }
 
@@ -344,8 +369,8 @@ impl PgDumpBuilder {
 
     /// Fail after waiting TIMEOUT for a table lock
     #[must_use]
-    pub fn lock_wait_timeout(mut self, lock_wait_timeout: u16) -> Self {
-        self.lock_wait_timeout = Some(lock_wait_timeout);
+    pub fn lock_wait_timeout<N: std::fmt::Display>(mut self, lock_wait_timeout: N) -> Self {
+        self.lock_wait_timeout = Some(lock_wait_timeout.to_string().into());
         self
     }
 
@@ -427,9 +452,10 @@ impl PgDumpBuilder {
     }
 
     /// Dump data for the named section(s) only
+    /// May be called multiple times; each value is retained.
     #[must_use]
     pub fn section<S: AsRef<OsStr>>(mut self, section: S) -> Self {
-        self.section = Some(section.as_ref().to_os_string());
+        self.section.push(section.as_ref().to_os_string());
         self
     }
 
@@ -455,9 +481,11 @@ impl PgDumpBuilder {
     }
 
     /// Dump data for the named table(s) and their children
+    /// May be called multiple times; each value is retained.
     #[must_use]
     pub fn table_and_children<S: AsRef<OsStr>>(mut self, table_and_children: S) -> Self {
-        self.table_and_children = Some(table_and_children.as_ref().to_os_string());
+        self.table_and_children
+            .push(table_and_children.as_ref().to_os_string());
         self
     }
 
@@ -530,6 +558,110 @@ impl PgDumpBuilder {
         self.role = Some(rolename.as_ref().to_os_string());
         self
     }
+
+    /// Include sequence values even when excluding table data.
+    #[must_use]
+    pub fn sequence_data(mut self) -> Self {
+        self.sequence_data = true;
+        self
+    }
+
+    /// Set the psql restrict key used in generated scripts.
+    #[must_use]
+    pub fn restrict_key<S: AsRef<OsStr>>(mut self, restrict_key: S) -> Self {
+        self.restrict_key = Some(restrict_key.as_ref().to_os_string());
+        self
+    }
+
+    /// Read object selection rules from a file. May be called multiple times.
+    #[must_use]
+    pub fn filter<S: AsRef<OsStr>>(mut self, filter: S) -> Self {
+        self.filter.push(filter.as_ref().to_os_string());
+        self
+    }
+
+    /// Exclude row security policies.
+    #[must_use]
+    pub fn no_policies(mut self) -> Self {
+        self.no_policies = true;
+        self
+    }
+
+    /// Exclude optimizer statistics.
+    #[must_use]
+    pub fn no_statistics(mut self) -> Self {
+        self.no_statistics = true;
+        self
+    }
+
+    /// Exclude schema definitions.
+    #[must_use]
+    pub fn no_schema(mut self) -> Self {
+        self.no_schema = true;
+        self
+    }
+
+    /// Exclude table data.
+    #[must_use]
+    pub fn no_data(mut self) -> Self {
+        self.no_data = true;
+        self
+    }
+
+    /// Process only optimizer statistics.
+    #[must_use]
+    pub fn statistics_only(mut self) -> Self {
+        self.statistics_only = true;
+        self
+    }
+
+    /// Include optimizer statistics.
+    #[must_use]
+    pub fn statistics(mut self) -> Self {
+        self.statistics = true;
+        self
+    }
+
+    /// Exclude data from matching tables. May be called multiple times.
+    #[must_use]
+    pub fn exclude_table_data<S: AsRef<OsStr>>(mut self, exclude_table_data: S) -> Self {
+        self.exclude_table_data
+            .push(exclude_table_data.as_ref().to_os_string());
+        self
+    }
+
+    /// Exclude matching tables and their children. May be called multiple times.
+    #[must_use]
+    pub fn exclude_table_and_children<S: AsRef<OsStr>>(
+        mut self,
+        exclude_table_and_children: S,
+    ) -> Self {
+        self.exclude_table_and_children
+            .push(exclude_table_and_children.as_ref().to_os_string());
+        self
+    }
+
+    /// Exclude matching extensions. May be called multiple times.
+    #[must_use]
+    pub fn exclude_extension<S: AsRef<OsStr>>(mut self, exclude_extension: S) -> Self {
+        self.exclude_extension
+            .push(exclude_extension.as_ref().to_os_string());
+        self
+    }
+
+    /// Do not wait for the dump to be synchronized to disk.
+    #[must_use]
+    pub fn no_sync(mut self) -> Self {
+        self.no_sync = true;
+        self
+    }
+
+    /// Select the file synchronization method.
+    #[must_use]
+    pub fn sync_method<S: AsRef<OsStr>>(mut self, sync_method: S) -> Self {
+        self.sync_method = Some(sync_method.as_ref().to_os_string());
+        self
+    }
 }
 
 impl CommandBuilder for PgDumpBuilder {
@@ -547,6 +679,14 @@ impl CommandBuilder for PgDumpBuilder {
     #[expect(clippy::too_many_lines)]
     fn get_args(&self) -> Vec<OsString> {
         let mut args: Vec<OsString> = Vec::new();
+
+        if self.version {
+            args.push("--version".into());
+        }
+
+        if self.help {
+            args.push("--help".into());
+        }
 
         if self.data_only {
             args.push("--data-only".into());
@@ -568,7 +708,7 @@ impl CommandBuilder for PgDumpBuilder {
             args.push("--create".into());
         }
 
-        if let Some(extension) = &self.extension {
+        for extension in &self.extension {
             args.push("--extension".into());
             args.push(extension.into());
         }
@@ -593,12 +733,12 @@ impl CommandBuilder for PgDumpBuilder {
             args.push(jobs.into());
         }
 
-        if let Some(schema) = &self.schema {
+        for schema in &self.schema {
             args.push("--schema".into());
             args.push(schema.into());
         }
 
-        if let Some(exclude_schema) = &self.exclude_schema {
+        for exclude_schema in &self.exclude_schema {
             args.push("--exclude-schema".into());
             args.push(exclude_schema.into());
         }
@@ -620,22 +760,18 @@ impl CommandBuilder for PgDumpBuilder {
             args.push(superuser.into());
         }
 
-        if let Some(table) = &self.table {
+        for table in &self.table {
             args.push("--table".into());
             args.push(table.into());
         }
 
-        if let Some(exclude_table) = &self.exclude_table {
+        for exclude_table in &self.exclude_table {
             args.push("--exclude-table".into());
             args.push(exclude_table.into());
         }
 
-        if self.verbose {
+        for _ in 0..self.verbose {
             args.push("--verbose".into());
-        }
-
-        if self.version {
-            args.push("--version".into());
         }
 
         if self.no_privileges {
@@ -671,7 +807,7 @@ impl CommandBuilder for PgDumpBuilder {
             args.push("--enable-row-security".into());
         }
 
-        if let Some(exclude_table_data_and_children) = &self.exclude_table_data_and_children {
+        for exclude_table_data_and_children in &self.exclude_table_data_and_children {
             args.push("--exclude-table-data-and-children".into());
             args.push(exclude_table_data_and_children.into());
         }
@@ -685,7 +821,7 @@ impl CommandBuilder for PgDumpBuilder {
             args.push("--if-exists".into());
         }
 
-        if let Some(include_foreign_data) = &self.include_foreign_data {
+        for include_foreign_data in &self.include_foreign_data {
             args.push("--include-foreign-data".into());
             args.push(include_foreign_data.into());
         }
@@ -700,7 +836,7 @@ impl CommandBuilder for PgDumpBuilder {
 
         if let Some(lock_wait_timeout) = &self.lock_wait_timeout {
             args.push("--lock-wait-timeout".into());
-            args.push(lock_wait_timeout.to_string().into());
+            args.push(lock_wait_timeout.into());
         }
 
         if self.no_comments {
@@ -748,7 +884,7 @@ impl CommandBuilder for PgDumpBuilder {
             args.push(rows_per_insert.to_string().into());
         }
 
-        if let Some(section) = &self.section {
+        for section in &self.section {
             args.push("--section".into());
             args.push(section.into());
         }
@@ -766,17 +902,13 @@ impl CommandBuilder for PgDumpBuilder {
             args.push("--strict-names".into());
         }
 
-        if let Some(table_and_children) = &self.table_and_children {
+        for table_and_children in &self.table_and_children {
             args.push("--table-and-children".into());
             args.push(table_and_children.into());
         }
 
         if self.use_set_session_authorization {
             args.push("--use-set-session-authorization".into());
-        }
-
-        if self.help {
-            args.push("--help".into());
         }
 
         if let Some(dbname) = &self.dbname {
@@ -812,6 +944,68 @@ impl CommandBuilder for PgDumpBuilder {
             args.push(role.into());
         }
 
+        if self.sequence_data {
+            args.push("--sequence-data".into());
+        }
+
+        if let Some(restrict_key) = &self.restrict_key {
+            args.push("--restrict-key".into());
+            args.push(restrict_key.into());
+        }
+
+        for filter in &self.filter {
+            args.push("--filter".into());
+            args.push(filter.into());
+        }
+
+        if self.no_policies {
+            args.push("--no-policies".into());
+        }
+
+        if self.no_statistics {
+            args.push("--no-statistics".into());
+        }
+
+        if self.no_schema {
+            args.push("--no-schema".into());
+        }
+
+        if self.no_data {
+            args.push("--no-data".into());
+        }
+
+        if self.statistics_only {
+            args.push("--statistics-only".into());
+        }
+
+        if self.statistics {
+            args.push("--statistics".into());
+        }
+
+        for exclude_table_data in &self.exclude_table_data {
+            args.push("--exclude-table-data".into());
+            args.push(exclude_table_data.into());
+        }
+
+        for exclude_table_and_children in &self.exclude_table_and_children {
+            args.push("--exclude-table-and-children".into());
+            args.push(exclude_table_and_children.into());
+        }
+
+        for exclude_extension in &self.exclude_extension {
+            args.push("--exclude-extension".into());
+            args.push(exclude_extension.into());
+        }
+
+        if self.no_sync {
+            args.push("--no-sync".into());
+        }
+
+        if let Some(sync_method) = &self.sync_method {
+            args.push("--sync-method".into());
+            args.push(sync_method.into());
+        }
+
         args
     }
 
@@ -837,8 +1031,10 @@ impl CommandBuilder for PgDumpBuilder {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::CommandExecutor;
     use crate::TestSettings;
     use crate::TestSocketSettings;
+    use crate::test_utils::{TestResult, assert_args, binary_dir};
     use crate::traits::CommandToString;
     use test_log::test;
 
@@ -948,6 +1144,20 @@ mod tests {
             .password()
             .pg_password("password")
             .role("role")
+            .sequence_data()
+            .restrict_key("abc123")
+            .filter("filter.txt")
+            .no_policies()
+            .no_statistics()
+            .no_schema()
+            .no_data()
+            .statistics_only()
+            .statistics()
+            .exclude_table_data("excluded_table_data")
+            .exclude_table_and_children("excluded_table_and_children")
+            .exclude_extension("excluded_extension")
+            .no_sync()
+            .sync_method("fsync")
             .build();
         #[cfg(not(target_os = "windows"))]
         let command_prefix = r#"PGDATABASE="database" PGPASSWORD="password" "#;
@@ -956,9 +1166,192 @@ mod tests {
 
         assert_eq!(
             format!(
-                r#"{command_prefix}"pg_dump" "--data-only" "--large-objects" "--no-large-objects" "--clean" "--create" "--extension" "extension" "--encoding" "UTF8" "--file" "file" "--format" "format" "--jobs" "jobs" "--schema" "schema" "--exclude-schema" "exclude_schema" "--no-owner" "--no-reconnect" "--schema-only" "--superuser" "superuser" "--table" "table" "--exclude-table" "exclude_table" "--verbose" "--version" "--no-privileges" "--compress" "compress" "--binary-upgrade" "--column-inserts" "--attribute-inserts" "--disable-dollar-quoting" "--disable-triggers" "--enable-row-security" "--exclude-table-data-and-children" "exclude_table_data_and_children" "--extra-float-digits" "extra_float_digits" "--if-exists" "--include-foreign-data" "include_foreign_data" "--inserts" "--load-via-partition-root" "--lock-wait-timeout" "10" "--no-comments" "--no-publications" "--no-security-labels" "--no-subscriptions" "--no-table-access-method" "--no-tablespaces" "--no-toast-compression" "--no-unlogged-table-data" "--on-conflict-do-nothing" "--quote-all-identifiers" "--rows-per-insert" "100" "--section" "section" "--serializable-deferrable" "--snapshot" "snapshot" "--strict-names" "--table-and-children" "table_and_children" "--use-set-session-authorization" "--help" "--dbname" "dbname" "--host" "localhost" "--port" "5432" "--username" "postgres" "--no-password" "--password" "--role" "role""#
+                r#"{command_prefix}"pg_dump" "--version" "--help" "--data-only" "--large-objects" "--no-large-objects" "--clean" "--create" "--extension" "extension" "--encoding" "UTF8" "--file" "file" "--format" "format" "--jobs" "jobs" "--schema" "schema" "--exclude-schema" "exclude_schema" "--no-owner" "--no-reconnect" "--schema-only" "--superuser" "superuser" "--table" "table" "--exclude-table" "exclude_table" "--verbose" "--no-privileges" "--compress" "compress" "--binary-upgrade" "--column-inserts" "--attribute-inserts" "--disable-dollar-quoting" "--disable-triggers" "--enable-row-security" "--exclude-table-data-and-children" "exclude_table_data_and_children" "--extra-float-digits" "extra_float_digits" "--if-exists" "--include-foreign-data" "include_foreign_data" "--inserts" "--load-via-partition-root" "--lock-wait-timeout" "10" "--no-comments" "--no-publications" "--no-security-labels" "--no-subscriptions" "--no-table-access-method" "--no-tablespaces" "--no-toast-compression" "--no-unlogged-table-data" "--on-conflict-do-nothing" "--quote-all-identifiers" "--rows-per-insert" "100" "--section" "section" "--serializable-deferrable" "--snapshot" "snapshot" "--strict-names" "--table-and-children" "table_and_children" "--use-set-session-authorization" "--dbname" "dbname" "--host" "localhost" "--port" "5432" "--username" "postgres" "--no-password" "--password" "--role" "role" "--sequence-data" "--restrict-key" "abc123" "--filter" "filter.txt" "--no-policies" "--no-statistics" "--no-schema" "--no-data" "--statistics-only" "--statistics" "--exclude-table-data" "excluded_table_data" "--exclude-table-and-children" "excluded_table_and_children" "--exclude-extension" "excluded_extension" "--no-sync" "--sync-method" "fsync""#
             ),
             command.to_command_string()
         );
+    }
+
+    #[test]
+    fn test_numeric_arguments_accept_the_cli_value_range() {
+        assert_args(
+            PgDumpBuilder::new().lock_wait_timeout("120s"),
+            &["--lock-wait-timeout", "120s"],
+        );
+    }
+
+    #[test]
+    fn test_options() {
+        assert_args(PgDumpBuilder::new().sequence_data(), &["--sequence-data"]);
+        assert_args(
+            PgDumpBuilder::new().restrict_key("abc123"),
+            &["--restrict-key", "abc123"],
+        );
+        assert_args(
+            PgDumpBuilder::new().filter("rules.txt"),
+            &["--filter", "rules.txt"],
+        );
+        assert_args(PgDumpBuilder::new().no_policies(), &["--no-policies"]);
+        assert_args(PgDumpBuilder::new().no_statistics(), &["--no-statistics"]);
+        assert_args(PgDumpBuilder::new().no_schema(), &["--no-schema"]);
+        assert_args(PgDumpBuilder::new().no_data(), &["--no-data"]);
+        assert_args(
+            PgDumpBuilder::new().statistics_only(),
+            &["--statistics-only"],
+        );
+        assert_args(PgDumpBuilder::new().statistics(), &["--statistics"]);
+        assert_args(
+            PgDumpBuilder::new().exclude_table_data("value with spaces"),
+            &["--exclude-table-data", "value with spaces"],
+        );
+        assert_args(
+            PgDumpBuilder::new().exclude_table_and_children("value with spaces"),
+            &["--exclude-table-and-children", "value with spaces"],
+        );
+        assert_args(
+            PgDumpBuilder::new().exclude_extension("value with spaces"),
+            &["--exclude-extension", "value with spaces"],
+        );
+        assert_args(PgDumpBuilder::new().no_sync(), &["--no-sync"]);
+        assert_args(
+            PgDumpBuilder::new().sync_method("fsync"),
+            &["--sync-method", "fsync"],
+        );
+    }
+
+    #[test]
+    fn test_repeated_options() {
+        assert_args(
+            PgDumpBuilder::new().extension("first").extension("second"),
+            &["--extension", "first", "--extension", "second"],
+        );
+        assert_args(
+            PgDumpBuilder::new().schema("first").schema("second"),
+            &["--schema", "first", "--schema", "second"],
+        );
+        assert_args(
+            PgDumpBuilder::new()
+                .exclude_schema("first")
+                .exclude_schema("second"),
+            &["--exclude-schema", "first", "--exclude-schema", "second"],
+        );
+        assert_args(
+            PgDumpBuilder::new().table("first").table("second"),
+            &["--table", "first", "--table", "second"],
+        );
+        assert_args(
+            PgDumpBuilder::new()
+                .exclude_table("first")
+                .exclude_table("second"),
+            &["--exclude-table", "first", "--exclude-table", "second"],
+        );
+        assert_args(
+            PgDumpBuilder::new()
+                .exclude_table_data_and_children("first")
+                .exclude_table_data_and_children("second"),
+            &[
+                "--exclude-table-data-and-children",
+                "first",
+                "--exclude-table-data-and-children",
+                "second",
+            ],
+        );
+        assert_args(
+            PgDumpBuilder::new()
+                .include_foreign_data("first")
+                .include_foreign_data("second"),
+            &[
+                "--include-foreign-data",
+                "first",
+                "--include-foreign-data",
+                "second",
+            ],
+        );
+        assert_args(
+            PgDumpBuilder::new().section("first").section("second"),
+            &["--section", "first", "--section", "second"],
+        );
+        assert_args(
+            PgDumpBuilder::new()
+                .table_and_children("first")
+                .table_and_children("second"),
+            &[
+                "--table-and-children",
+                "first",
+                "--table-and-children",
+                "second",
+            ],
+        );
+        assert_args(
+            PgDumpBuilder::new().filter("first").filter("second"),
+            &["--filter", "first", "--filter", "second"],
+        );
+        assert_args(
+            PgDumpBuilder::new()
+                .exclude_table_data("first")
+                .exclude_table_data("second"),
+            &[
+                "--exclude-table-data",
+                "first",
+                "--exclude-table-data",
+                "second",
+            ],
+        );
+        assert_args(
+            PgDumpBuilder::new()
+                .exclude_table_and_children("first")
+                .exclude_table_and_children("second"),
+            &[
+                "--exclude-table-and-children",
+                "first",
+                "--exclude-table-and-children",
+                "second",
+            ],
+        );
+        assert_args(
+            PgDumpBuilder::new()
+                .exclude_extension("first")
+                .exclude_extension("second"),
+            &[
+                "--exclude-extension",
+                "first",
+                "--exclude-extension",
+                "second",
+            ],
+        );
+    }
+
+    #[test]
+    fn test_informational_options_come_first_on_configured_builders() {
+        let version = PgDumpBuilder::from(&TestSettings).version().get_args();
+        assert_eq!(version.first(), Some(&OsString::from("--version")));
+        let help = PgDumpBuilder::from(&TestSettings).help().get_args();
+        assert_eq!(help.first(), Some(&OsString::from("--help")));
+    }
+
+    #[test]
+    fn test_repeated_verbose_flags_increase_logging_detail() {
+        assert_args(
+            PgDumpBuilder::new().verbose().verbose(),
+            &["--verbose", "--verbose"],
+        );
+    }
+
+    #[test]
+    fn test_cli_help_and_version() -> TestResult {
+        let Some(bin) = binary_dir() else {
+            return Ok(());
+        };
+        PgDumpBuilder::new()
+            .program_dir(&bin)
+            .version()
+            .build()
+            .execute()?;
+        PgDumpBuilder::new()
+            .program_dir(&bin)
+            .help()
+            .build()
+            .execute()?;
+        Ok(())
     }
 }

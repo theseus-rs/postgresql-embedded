@@ -8,11 +8,10 @@ use std::path::PathBuf;
 pub struct PsqlBuilder {
     program_dir: Option<PathBuf>,
     envs: Vec<(OsString, OsString)>,
-    command: Option<OsString>,
+    actions: Vec<(OsString, OsString)>,
     dbname: Option<OsString>,
-    file: Option<PathBuf>,
     list: bool,
-    variable: Option<(OsString, OsString)>,
+    variable: Vec<OsString>,
     version: bool,
     no_psqlrc: bool,
     single_transaction: bool,
@@ -31,7 +30,7 @@ pub struct PsqlBuilder {
     csv: bool,
     field_separator: Option<OsString>,
     html: bool,
-    pset: Option<(OsString, OsString)>,
+    pset: Vec<OsString>,
     record_separator: Option<OsString>,
     tuples_only: bool,
     table_attr: Option<OsString>,
@@ -74,10 +73,12 @@ impl PsqlBuilder {
         self
     }
 
-    /// run only single command (SQL or internal) and exit
+    /// Add a SQL or internal command to execute, then exit.
+    /// Commands and files execute in the order their methods are called.
     #[must_use]
     pub fn command<S: AsRef<OsStr>>(mut self, command: S) -> Self {
-        self.command = Some(command.as_ref().to_os_string());
+        self.actions
+            .push(("--command".into(), command.as_ref().to_os_string()));
         self
     }
 
@@ -88,10 +89,12 @@ impl PsqlBuilder {
         self
     }
 
-    /// execute commands from file, then exit
+    /// Add a file of commands to execute, then exit.
+    /// Commands and files execute in the order their methods are called.
     #[must_use]
     pub fn file<P: Into<PathBuf>>(mut self, file: P) -> Self {
-        self.file = Some(file.into());
+        self.actions
+            .push(("--file".into(), file.into().into_os_string()));
         self
     }
 
@@ -103,10 +106,14 @@ impl PsqlBuilder {
     }
 
     /// set psql variable NAME to VALUE (e.g., `-v ON_ERROR_STOP=1`)
+    /// May be called multiple times; each value is retained.
     #[must_use]
     pub fn variable<S: AsRef<OsStr>>(mut self, variable: (S, S)) -> Self {
         let (name, value) = variable;
-        self.variable = Some((name.as_ref().into(), value.as_ref().into()));
+        let mut assignment = name.as_ref().to_os_string();
+        assignment.push("=");
+        assignment.push(value);
+        self.variable.push(assignment);
         self
     }
 
@@ -132,7 +139,7 @@ impl PsqlBuilder {
     }
 
     /// show help, then exit
-    /// Possible values: [options, commands, variables]
+    /// Pass an empty string for general help, or options, commands, or variables.
     #[must_use]
     pub fn help<S: AsRef<OsStr>>(mut self, help: S) -> Self {
         self.help = Some(help.as_ref().to_os_string());
@@ -238,10 +245,14 @@ impl PsqlBuilder {
     }
 
     /// set printing option VAR to ARG (see \pset command)
+    /// May be called multiple times; each value is retained.
     #[must_use]
     pub fn pset<S: AsRef<OsStr>>(mut self, pset: (S, S)) -> Self {
         let (var, arg) = pset;
-        self.pset = Some((var.as_ref().into(), arg.as_ref().into()));
+        let mut assignment = var.as_ref().to_os_string();
+        assignment.push("=");
+        assignment.push(arg);
+        self.pset.push(assignment);
         self
     }
 
@@ -328,6 +339,20 @@ impl PsqlBuilder {
         self.pg_password = Some(pg_password.as_ref().to_os_string());
         self
     }
+
+    /// Unset a psql variable. Unlike assigning an empty value, this omits the equals sign.
+    #[must_use]
+    pub fn unset_variable<S: AsRef<OsStr>>(mut self, name: S) -> Self {
+        self.variable.push(name.as_ref().to_os_string());
+        self
+    }
+
+    /// Apply a printing option without a value, for example to toggle expanded output.
+    #[must_use]
+    pub fn pset_option<S: AsRef<OsStr>>(mut self, name: S) -> Self {
+        self.pset.push(name.as_ref().to_os_string());
+        self
+    }
 }
 
 impl CommandBuilder for PsqlBuilder {
@@ -346,9 +371,22 @@ impl CommandBuilder for PsqlBuilder {
     fn get_args(&self) -> Vec<OsString> {
         let mut args: Vec<OsString> = Vec::new();
 
-        if let Some(psql_command) = &self.command {
-            args.push("--command".into());
-            args.push(psql_command.into());
+        if self.version {
+            args.push("--version".into());
+        }
+
+        if let Some(help) = &self.help {
+            let mut option = OsString::from("--help");
+            if !help.is_empty() {
+                option.push("=");
+                option.push(help);
+            }
+            args.push(option);
+        }
+
+        for (option, value) in &self.actions {
+            args.push(option.into());
+            args.push(value.into());
         }
 
         if let Some(dbname) = &self.dbname {
@@ -356,22 +394,13 @@ impl CommandBuilder for PsqlBuilder {
             args.push(dbname.into());
         }
 
-        if let Some(file) = &self.file {
-            args.push("--file".into());
-            args.push(file.into());
-        }
-
         if self.list {
             args.push("--list".into());
         }
 
-        if let Some((name, value)) = &self.variable {
+        for assignment in &self.variable {
             args.push("--variable".into());
-            args.push(format!("{}={}", name.to_string_lossy(), value.to_string_lossy()).into());
-        }
-
-        if self.version {
-            args.push("--version".into());
+            args.push(assignment.into());
         }
 
         if self.no_psqlrc {
@@ -380,11 +409,6 @@ impl CommandBuilder for PsqlBuilder {
 
         if self.single_transaction {
             args.push("--single-transaction".into());
-        }
-
-        if let Some(help) = &self.help {
-            args.push("--help".into());
-            args.push(help.into());
         }
 
         if self.echo_all {
@@ -446,9 +470,9 @@ impl CommandBuilder for PsqlBuilder {
             args.push("--html".into());
         }
 
-        if let Some((var, arg)) = &self.pset {
+        for assignment in &self.pset {
             args.push("--pset".into());
-            args.push(format!("{}={}", var.to_string_lossy(), arg.to_string_lossy()).into());
+            args.push(assignment.into());
         }
 
         if let Some(record_separator) = &self.record_separator {
@@ -525,8 +549,10 @@ impl CommandBuilder for PsqlBuilder {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::CommandExecutor;
     use crate::TestSettings;
     use crate::TestSocketSettings;
+    use crate::test_utils::{TestResult, assert_args, binary_dir};
     use crate::traits::CommandToString;
     use test_log::test;
 
@@ -578,6 +604,7 @@ mod tests {
             .file("test.sql")
             .list()
             .variable(("ON_ERROR_STOP", "1"))
+            .unset_variable("AUTOCOMMIT")
             .version()
             .no_psqlrc()
             .single_transaction()
@@ -597,6 +624,7 @@ mod tests {
             .field_separator("|")
             .html()
             .pset(("border", "1"))
+            .pset_option("footer")
             .record_separator("\n")
             .tuples_only()
             .table_attr("width=100")
@@ -617,9 +645,113 @@ mod tests {
 
         assert_eq!(
             format!(
-                r#"{command_prefix}"psql" "--command" "SELECT * FROM test" "--dbname" "dbname" "--file" "test.sql" "--list" "--variable" "ON_ERROR_STOP=1" "--version" "--no-psqlrc" "--single-transaction" "--help" "options" "--echo-all" "--echo-errors" "--echo-queries" "--echo-hidden" "--log-file" "psql.log" "--no-readline" "--output" "output.txt" "--quiet" "--single-step" "--single-line" "--no-align" "--csv" "--field-separator" "|" "--html" "--pset" "border=1" "--record-separator" "\n" "--tuples-only" "--table-attr" "width=100" "--expanded" "--field-separator-zero" "--record-separator-zero" "--host" "localhost" "--port" "5432" "--username" "postgres" "--no-password" "--password""#
+                r#"{command_prefix}"psql" "--version" "--help=options" "--command" "SELECT * FROM test" "--file" "test.sql" "--dbname" "dbname" "--list" "--variable" "ON_ERROR_STOP=1" "--variable" "AUTOCOMMIT" "--no-psqlrc" "--single-transaction" "--echo-all" "--echo-errors" "--echo-queries" "--echo-hidden" "--log-file" "psql.log" "--no-readline" "--output" "output.txt" "--quiet" "--single-step" "--single-line" "--no-align" "--csv" "--field-separator" "|" "--html" "--pset" "border=1" "--pset" "footer" "--record-separator" "\n" "--tuples-only" "--table-attr" "width=100" "--expanded" "--field-separator-zero" "--record-separator-zero" "--host" "localhost" "--port" "5432" "--username" "postgres" "--no-password" "--password""#
             ),
             command.to_command_string()
         );
+    }
+
+    #[test]
+    fn test_preserves_script_order_and_assignments() {
+        assert_args(
+            PsqlBuilder::new()
+                .command("CREATE TEMP TABLE items (id int)")
+                .file("insert items.sql")
+                .command("SELECT * FROM items")
+                .file("cleanup.sql")
+                .variable(("ON_ERROR_STOP", "1"))
+                .variable(("label", ""))
+                .unset_variable("label")
+                .pset(("format", "unaligned"))
+                .pset(("border", "2"))
+                .pset_option("expanded"),
+            &[
+                "--command",
+                "CREATE TEMP TABLE items (id int)",
+                "--file",
+                "insert items.sql",
+                "--command",
+                "SELECT * FROM items",
+                "--file",
+                "cleanup.sql",
+                "--variable",
+                "ON_ERROR_STOP=1",
+                "--variable",
+                "label=",
+                "--variable",
+                "label",
+                "--pset",
+                "format=unaligned",
+                "--pset",
+                "border=2",
+                "--pset",
+                "expanded",
+            ],
+        );
+    }
+
+    #[test]
+    fn test_optional_arguments_are_attached_to_the_option() {
+        assert_args(PsqlBuilder::new().help(""), &["--help"]);
+        assert_args(PsqlBuilder::new().help("commands"), &["--help=commands"]);
+    }
+
+    #[test]
+    fn test_informational_options_come_first_on_configured_builders() {
+        let version = PsqlBuilder::from(&TestSettings).version().get_args();
+        assert_eq!(version.first(), Some(&OsString::from("--version")));
+        let help = PsqlBuilder::from(&TestSettings).help("").get_args();
+        assert_eq!(help.first(), Some(&OsString::from("--help")));
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn test_native_argument_bytes_are_preserved() {
+        use std::os::unix::ffi::OsStringExt;
+
+        let name = OsString::from_vec(b"name\xff".to_vec());
+        let value = OsString::from_vec(b"value\xfe".to_vec());
+        let assignment = OsString::from_vec(b"name\xff=value\xfe".to_vec());
+        for args in [
+            PsqlBuilder::new().variable((&name, &value)).get_args(),
+            PsqlBuilder::new().pset((&name, &value)).get_args(),
+        ] {
+            assert_eq!(args.last(), Some(&assignment));
+        }
+    }
+
+    #[test]
+    fn test_cli_help_and_version() -> TestResult {
+        let Some(bin) = binary_dir() else {
+            return Ok(());
+        };
+        PsqlBuilder::new()
+            .program_dir(&bin)
+            .version()
+            .build()
+            .execute()?;
+        PsqlBuilder::new()
+            .program_dir(&bin)
+            .help("")
+            .build()
+            .execute()?;
+        Ok(())
+    }
+
+    #[test]
+    fn test_cli_command_help() -> TestResult {
+        let Some(bin) = binary_dir() else {
+            return Ok(());
+        };
+        let (help, _) = PsqlBuilder::new()
+            .program_dir(&bin)
+            .help("commands")
+            .build()
+            .execute()?;
+        assert!(
+            help.contains("\\copyright"),
+            "psql must display meta-command help: {help}"
+        );
+        Ok(())
     }
 }

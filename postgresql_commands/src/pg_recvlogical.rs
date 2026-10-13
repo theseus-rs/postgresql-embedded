@@ -9,6 +9,7 @@ use std::path::PathBuf;
 pub struct PgRecvLogicalBuilder {
     program_dir: Option<PathBuf>,
     envs: Vec<(OsString, OsString)>,
+    enable_failover: bool,
     create_slot: bool,
     drop_slot: bool,
     start: bool,
@@ -18,12 +19,12 @@ pub struct PgRecvLogicalBuilder {
     if_not_exists: bool,
     startpos: Option<OsString>,
     no_loop: bool,
-    option: Option<OsString>,
+    option: Vec<OsString>,
     plugin: Option<OsString>,
     status_interval: Option<OsString>,
     slot: Option<OsString>,
     two_phase: bool,
-    verbose: bool,
+    verbose: usize,
     version: bool,
     help: bool,
     dbname: Option<OsString>,
@@ -127,9 +128,10 @@ impl PgRecvLogicalBuilder {
     }
 
     /// pass option NAME with optional value VALUE to the output plugin
+    /// May be called multiple times; each value is retained.
     #[must_use]
     pub fn option<S: AsRef<OsStr>>(mut self, option: S) -> Self {
-        self.option = Some(option.as_ref().to_os_string());
+        self.option.push(option.as_ref().to_os_string());
         self
     }
 
@@ -162,9 +164,10 @@ impl PgRecvLogicalBuilder {
     }
 
     /// output verbose messages
+    /// May be called multiple times to increase verbosity.
     #[must_use]
     pub fn verbose(mut self) -> Self {
-        self.verbose = true;
+        self.verbose = self.verbose.saturating_add(1);
         self
     }
 
@@ -230,6 +233,13 @@ impl PgRecvLogicalBuilder {
         self.pg_password = Some(pg_password.as_ref().to_os_string());
         self
     }
+
+    /// Enable failover when creating a logical replication slot.
+    #[must_use]
+    pub fn enable_failover(mut self) -> Self {
+        self.enable_failover = true;
+        self
+    }
 }
 
 impl CommandBuilder for PgRecvLogicalBuilder {
@@ -246,6 +256,14 @@ impl CommandBuilder for PgRecvLogicalBuilder {
     /// Get the arguments for the command
     fn get_args(&self) -> Vec<OsString> {
         let mut args: Vec<OsString> = Vec::new();
+
+        if self.version {
+            args.push("--version".into());
+        }
+
+        if self.help {
+            args.push("--help".into());
+        }
 
         if self.create_slot {
             args.push("--create-slot".into());
@@ -287,7 +305,7 @@ impl CommandBuilder for PgRecvLogicalBuilder {
             args.push("--no-loop".into());
         }
 
-        if let Some(option) = &self.option {
+        for option in &self.option {
             args.push("--option".into());
             args.push(option.into());
         }
@@ -311,16 +329,8 @@ impl CommandBuilder for PgRecvLogicalBuilder {
             args.push("--two-phase".into());
         }
 
-        if self.verbose {
+        for _ in 0..self.verbose {
             args.push("--verbose".into());
-        }
-
-        if self.version {
-            args.push("--version".into());
-        }
-
-        if self.help {
-            args.push("--help".into());
         }
 
         if let Some(dbname) = &self.dbname {
@@ -351,6 +361,10 @@ impl CommandBuilder for PgRecvLogicalBuilder {
             args.push("--password".into());
         }
 
+        if self.enable_failover {
+            args.push("--enable-failover".into());
+        }
+
         args
     }
 
@@ -376,8 +390,10 @@ impl CommandBuilder for PgRecvLogicalBuilder {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::CommandExecutor;
     use crate::TestSettings;
     use crate::TestSocketSettings;
+    use crate::test_utils::{TestResult, assert_args, binary_dir};
     use crate::traits::CommandToString;
     use test_log::test;
 
@@ -448,6 +464,7 @@ mod tests {
             .no_password()
             .password()
             .pg_password("password")
+            .enable_failover()
             .build();
         #[cfg(not(target_os = "windows"))]
         let command_prefix = r#"PGDATABASE="database" PGPASSWORD="password" "#;
@@ -456,9 +473,61 @@ mod tests {
 
         assert_eq!(
             format!(
-                r#"{command_prefix}"pg_recvlogical" "--create-slot" "--drop-slot" "--start" "--endpos" "endpos" "--file" "file" "--fsync-interval" "fsync_interval" "--if-not-exists" "--startpos" "startpos" "--no-loop" "--option" "option" "--plugin" "plugin" "--status-interval" "status_interval" "--slot" "slot" "--two-phase" "--verbose" "--version" "--help" "--dbname" "dbname" "--host" "localhost" "--port" "5432" "--username" "username" "--no-password" "--password""#
+                r#"{command_prefix}"pg_recvlogical" "--version" "--help" "--create-slot" "--drop-slot" "--start" "--endpos" "endpos" "--file" "file" "--fsync-interval" "fsync_interval" "--if-not-exists" "--startpos" "startpos" "--no-loop" "--option" "option" "--plugin" "plugin" "--status-interval" "status_interval" "--slot" "slot" "--two-phase" "--verbose" "--dbname" "dbname" "--host" "localhost" "--port" "5432" "--username" "username" "--no-password" "--password" "--enable-failover""#
             ),
             command.to_command_string()
         );
+    }
+
+    #[test]
+    fn test_options() {
+        assert_args(
+            PgRecvLogicalBuilder::new().enable_failover(),
+            &["--enable-failover"],
+        );
+    }
+
+    #[test]
+    fn test_repeated_options() {
+        assert_args(
+            PgRecvLogicalBuilder::new().option("first").option("second"),
+            &["--option", "first", "--option", "second"],
+        );
+    }
+
+    #[test]
+    fn test_informational_options_come_first_on_configured_builders() {
+        let version = PgRecvLogicalBuilder::from(&TestSettings)
+            .version()
+            .get_args();
+        assert_eq!(version.first(), Some(&OsString::from("--version")));
+        let help = PgRecvLogicalBuilder::from(&TestSettings).help().get_args();
+        assert_eq!(help.first(), Some(&OsString::from("--help")));
+    }
+
+    #[test]
+    fn test_repeated_verbose_flags_increase_logging_detail() {
+        assert_args(
+            PgRecvLogicalBuilder::new().verbose().verbose(),
+            &["--verbose", "--verbose"],
+        );
+    }
+
+    #[test]
+    fn test_cli_help_and_version() -> TestResult {
+        let Some(bin) = binary_dir() else {
+            return Ok(());
+        };
+        PgRecvLogicalBuilder::new()
+            .program_dir(&bin)
+            .version()
+            .build()
+            .execute()?;
+        PgRecvLogicalBuilder::new()
+            .program_dir(&bin)
+            .help()
+            .build()
+            .execute()?;
+        Ok(())
     }
 }

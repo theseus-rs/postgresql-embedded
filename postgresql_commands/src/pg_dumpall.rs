@@ -9,10 +9,19 @@ use std::path::PathBuf;
 pub struct PgDumpAllBuilder {
     program_dir: Option<PathBuf>,
     envs: Vec<(OsString, OsString)>,
+    sequence_data: bool,
+    restrict_key: Option<OsString>,
+    filter: Vec<OsString>,
+    no_policies: bool,
+    no_statistics: bool,
+    no_schema: bool,
+    no_data: bool,
+    statistics_only: bool,
+    statistics: bool,
     file: Option<OsString>,
-    verbose: bool,
+    verbose: usize,
     version: bool,
-    lock_wait_timeout: Option<u16>,
+    lock_wait_timeout: Option<OsString>,
     help: bool,
     data_only: bool,
     clean: bool,
@@ -28,7 +37,7 @@ pub struct PgDumpAllBuilder {
     column_inserts: bool,
     disable_dollar_quoting: bool,
     disable_triggers: bool,
-    exclude_database: Option<OsString>,
+    exclude_database: Vec<OsString>,
     extra_float_digits: Option<OsString>,
     if_exists: bool,
     inserts: bool,
@@ -94,9 +103,10 @@ impl PgDumpAllBuilder {
     }
 
     /// verbose mode
+    /// May be called multiple times to increase verbosity.
     #[must_use]
     pub fn verbose(mut self) -> Self {
-        self.verbose = true;
+        self.verbose = self.verbose.saturating_add(1);
         self
     }
 
@@ -109,8 +119,8 @@ impl PgDumpAllBuilder {
 
     /// fail after waiting TIMEOUT for a table lock
     #[must_use]
-    pub fn lock_wait_timeout(mut self, lock_wait_timeout: u16) -> Self {
-        self.lock_wait_timeout = Some(lock_wait_timeout);
+    pub fn lock_wait_timeout<N: std::fmt::Display>(mut self, lock_wait_timeout: N) -> Self {
+        self.lock_wait_timeout = Some(lock_wait_timeout.to_string().into());
         self
     }
 
@@ -220,9 +230,11 @@ impl PgDumpAllBuilder {
     }
 
     /// exclude the named database from the dump
+    /// May be called multiple times; each value is retained.
     #[must_use]
     pub fn exclude_database<S: AsRef<OsStr>>(mut self, exclude_database: S) -> Self {
-        self.exclude_database = Some(exclude_database.as_ref().to_os_string());
+        self.exclude_database
+            .push(exclude_database.as_ref().to_os_string());
         self
     }
 
@@ -414,6 +426,69 @@ impl PgDumpAllBuilder {
         self.role = Some(role.as_ref().to_os_string());
         self
     }
+
+    /// Include sequence values even when excluding table data.
+    #[must_use]
+    pub fn sequence_data(mut self) -> Self {
+        self.sequence_data = true;
+        self
+    }
+
+    /// Set the psql restrict key used in generated scripts.
+    #[must_use]
+    pub fn restrict_key<S: AsRef<OsStr>>(mut self, restrict_key: S) -> Self {
+        self.restrict_key = Some(restrict_key.as_ref().to_os_string());
+        self
+    }
+
+    /// Read object selection rules from a file. May be called multiple times.
+    #[must_use]
+    pub fn filter<S: AsRef<OsStr>>(mut self, filter: S) -> Self {
+        self.filter.push(filter.as_ref().to_os_string());
+        self
+    }
+
+    /// Exclude row security policies.
+    #[must_use]
+    pub fn no_policies(mut self) -> Self {
+        self.no_policies = true;
+        self
+    }
+
+    /// Exclude optimizer statistics.
+    #[must_use]
+    pub fn no_statistics(mut self) -> Self {
+        self.no_statistics = true;
+        self
+    }
+
+    /// Exclude schema definitions.
+    #[must_use]
+    pub fn no_schema(mut self) -> Self {
+        self.no_schema = true;
+        self
+    }
+
+    /// Exclude table data.
+    #[must_use]
+    pub fn no_data(mut self) -> Self {
+        self.no_data = true;
+        self
+    }
+
+    /// Process only optimizer statistics.
+    #[must_use]
+    pub fn statistics_only(mut self) -> Self {
+        self.statistics_only = true;
+        self
+    }
+
+    /// Include optimizer statistics.
+    #[must_use]
+    pub fn statistics(mut self) -> Self {
+        self.statistics = true;
+        self
+    }
 }
 
 impl CommandBuilder for PgDumpAllBuilder {
@@ -432,26 +507,26 @@ impl CommandBuilder for PgDumpAllBuilder {
     fn get_args(&self) -> Vec<OsString> {
         let mut args: Vec<OsString> = Vec::new();
 
+        if self.version {
+            args.push("--version".into());
+        }
+
+        if self.help {
+            args.push("--help".into());
+        }
+
         if let Some(file) = &self.file {
             args.push("--file".into());
             args.push(file.into());
         }
 
-        if self.verbose {
+        for _ in 0..self.verbose {
             args.push("--verbose".into());
-        }
-
-        if self.version {
-            args.push("--version".into());
         }
 
         if let Some(lock_wait_timeout) = &self.lock_wait_timeout {
             args.push("--lock-wait-timeout".into());
-            args.push(lock_wait_timeout.to_string().into());
-        }
-
-        if self.help {
-            args.push("--help".into());
+            args.push(lock_wait_timeout.into());
         }
 
         if self.data_only {
@@ -512,7 +587,7 @@ impl CommandBuilder for PgDumpAllBuilder {
             args.push("--disable-triggers".into());
         }
 
-        if let Some(exclude_database) = &self.exclude_database {
+        for exclude_database in &self.exclude_database {
             args.push("--exclude-database".into());
             args.push(exclude_database.into());
         }
@@ -629,6 +704,44 @@ impl CommandBuilder for PgDumpAllBuilder {
             args.push(role.into());
         }
 
+        if self.sequence_data {
+            args.push("--sequence-data".into());
+        }
+
+        if let Some(restrict_key) = &self.restrict_key {
+            args.push("--restrict-key".into());
+            args.push(restrict_key.into());
+        }
+
+        for filter in &self.filter {
+            args.push("--filter".into());
+            args.push(filter.into());
+        }
+
+        if self.no_policies {
+            args.push("--no-policies".into());
+        }
+
+        if self.no_statistics {
+            args.push("--no-statistics".into());
+        }
+
+        if self.no_schema {
+            args.push("--no-schema".into());
+        }
+
+        if self.no_data {
+            args.push("--no-data".into());
+        }
+
+        if self.statistics_only {
+            args.push("--statistics-only".into());
+        }
+
+        if self.statistics {
+            args.push("--statistics".into());
+        }
+
         args
     }
 
@@ -654,8 +767,10 @@ impl CommandBuilder for PgDumpAllBuilder {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::CommandExecutor;
     use crate::TestSettings;
     use crate::TestSocketSettings;
+    use crate::test_utils::{TestResult, assert_args, binary_dir};
     use crate::traits::CommandToString;
     use test_log::test;
 
@@ -751,6 +866,15 @@ mod tests {
             .password()
             .pg_password("password")
             .role("postgres")
+            .sequence_data()
+            .restrict_key("abc123")
+            .filter("filter.txt")
+            .no_policies()
+            .no_statistics()
+            .no_schema()
+            .no_data()
+            .statistics_only()
+            .statistics()
             .build();
         #[cfg(not(target_os = "windows"))]
         let command_prefix = r#"PGDATABASE="database" PGPASSWORD="password" "#;
@@ -759,9 +883,98 @@ mod tests {
 
         assert_eq!(
             format!(
-                r#"{command_prefix}"pg_dumpall" "--file" "dump.sql" "--verbose" "--version" "--lock-wait-timeout" "10" "--help" "--data-only" "--clean" "--encoding" "UTF8" "--globals-only" "--no-owner" "--roles-only" "--schema-only" "--superuser" "postgres" "--tablespaces-only" "--no-privileges" "--binary-upgrade" "--column-inserts" "--disable-dollar-quoting" "--disable-triggers" "--exclude-database" "exclude" "--extra-float-digits" "2" "--if-exists" "--inserts" "--load-via-partition-root" "--no-comments" "--no-publications" "--no-role-passwords" "--no-security-labels" "--no-subscriptions" "--no-sync" "--no-table-access-method" "--no-tablespaces" "--no-toast-compression" "--no-unlogged-table-data" "--on-conflict-do-nothing" "--quote-all-identifiers" "--rows-per-insert" "1000" "--use-set-session-authorization" "--dbname" "postgres" "--host" "localhost" "--database" "postgres" "--port" "5432" "--username" "postgres" "--no-password" "--password" "--role" "postgres""#
+                r#"{command_prefix}"pg_dumpall" "--version" "--help" "--file" "dump.sql" "--verbose" "--lock-wait-timeout" "10" "--data-only" "--clean" "--encoding" "UTF8" "--globals-only" "--no-owner" "--roles-only" "--schema-only" "--superuser" "postgres" "--tablespaces-only" "--no-privileges" "--binary-upgrade" "--column-inserts" "--disable-dollar-quoting" "--disable-triggers" "--exclude-database" "exclude" "--extra-float-digits" "2" "--if-exists" "--inserts" "--load-via-partition-root" "--no-comments" "--no-publications" "--no-role-passwords" "--no-security-labels" "--no-subscriptions" "--no-sync" "--no-table-access-method" "--no-tablespaces" "--no-toast-compression" "--no-unlogged-table-data" "--on-conflict-do-nothing" "--quote-all-identifiers" "--rows-per-insert" "1000" "--use-set-session-authorization" "--dbname" "postgres" "--host" "localhost" "--database" "postgres" "--port" "5432" "--username" "postgres" "--no-password" "--password" "--role" "postgres" "--sequence-data" "--restrict-key" "abc123" "--filter" "filter.txt" "--no-policies" "--no-statistics" "--no-schema" "--no-data" "--statistics-only" "--statistics""#
             ),
             command.to_command_string()
         );
+    }
+
+    #[test]
+    fn test_numeric_arguments_accept_the_cli_value_range() {
+        assert_args(
+            PgDumpAllBuilder::new().lock_wait_timeout(100_000),
+            &["--lock-wait-timeout", "100000"],
+        );
+    }
+
+    #[test]
+    fn test_options() {
+        assert_args(
+            PgDumpAllBuilder::new().sequence_data(),
+            &["--sequence-data"],
+        );
+        assert_args(
+            PgDumpAllBuilder::new().restrict_key("abc123"),
+            &["--restrict-key", "abc123"],
+        );
+        assert_args(
+            PgDumpAllBuilder::new().filter("rules.txt"),
+            &["--filter", "rules.txt"],
+        );
+        assert_args(PgDumpAllBuilder::new().no_policies(), &["--no-policies"]);
+        assert_args(
+            PgDumpAllBuilder::new().no_statistics(),
+            &["--no-statistics"],
+        );
+        assert_args(PgDumpAllBuilder::new().no_schema(), &["--no-schema"]);
+        assert_args(PgDumpAllBuilder::new().no_data(), &["--no-data"]);
+        assert_args(
+            PgDumpAllBuilder::new().statistics_only(),
+            &["--statistics-only"],
+        );
+        assert_args(PgDumpAllBuilder::new().statistics(), &["--statistics"]);
+    }
+
+    #[test]
+    fn test_repeated_options() {
+        assert_args(
+            PgDumpAllBuilder::new()
+                .exclude_database("first")
+                .exclude_database("second"),
+            &[
+                "--exclude-database",
+                "first",
+                "--exclude-database",
+                "second",
+            ],
+        );
+        assert_args(
+            PgDumpAllBuilder::new().filter("first").filter("second"),
+            &["--filter", "first", "--filter", "second"],
+        );
+    }
+
+    #[test]
+    fn test_informational_options_come_first_on_configured_builders() {
+        let version = PgDumpAllBuilder::from(&TestSettings).version().get_args();
+        assert_eq!(version.first(), Some(&OsString::from("--version")));
+        let help = PgDumpAllBuilder::from(&TestSettings).help().get_args();
+        assert_eq!(help.first(), Some(&OsString::from("--help")));
+    }
+
+    #[test]
+    fn test_repeated_verbose_flags_increase_logging_detail() {
+        assert_args(
+            PgDumpAllBuilder::new().verbose().verbose(),
+            &["--verbose", "--verbose"],
+        );
+    }
+
+    #[test]
+    fn test_cli_help_and_version() -> TestResult {
+        let Some(bin) = binary_dir() else {
+            return Ok(());
+        };
+        PgDumpAllBuilder::new()
+            .program_dir(&bin)
+            .version()
+            .build()
+            .execute()?;
+        PgDumpAllBuilder::new()
+            .program_dir(&bin)
+            .help()
+            .build()
+            .execute()?;
+        Ok(())
     }
 }

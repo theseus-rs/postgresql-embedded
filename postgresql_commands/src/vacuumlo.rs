@@ -9,6 +9,7 @@ use std::path::PathBuf;
 pub struct VacuumLoBuilder {
     program_dir: Option<PathBuf>,
     envs: Vec<(OsString, OsString)>,
+    dbname: Vec<OsString>,
     limit: Option<usize>,
     dry_run: bool,
     verbose: bool,
@@ -126,6 +127,13 @@ impl VacuumLoBuilder {
         self.pg_password = Some(pg_password.as_ref().to_os_string());
         self
     }
+
+    /// Add a database to process. May be called multiple times.
+    #[must_use]
+    pub fn dbname<S: AsRef<OsStr>>(mut self, dbname: S) -> Self {
+        self.dbname.push(dbname.as_ref().to_os_string());
+        self
+    }
 }
 
 impl CommandBuilder for VacuumLoBuilder {
@@ -143,6 +151,14 @@ impl CommandBuilder for VacuumLoBuilder {
     fn get_args(&self) -> Vec<OsString> {
         let mut args: Vec<OsString> = Vec::new();
 
+        if self.version {
+            args.push("--version".into());
+        }
+
+        if self.help {
+            args.push("--help".into());
+        }
+
         if let Some(limit) = &self.limit {
             args.push("--limit".into());
             args.push(limit.to_string().into());
@@ -154,14 +170,6 @@ impl CommandBuilder for VacuumLoBuilder {
 
         if self.verbose {
             args.push("--verbose".into());
-        }
-
-        if self.version {
-            args.push("--version".into());
-        }
-
-        if self.help {
-            args.push("--help".into());
         }
 
         if let Some(host) = &self.host {
@@ -185,6 +193,10 @@ impl CommandBuilder for VacuumLoBuilder {
 
         if self.password {
             args.push("--password".into());
+        }
+
+        for dbname in &self.dbname {
+            args.push(dbname.into());
         }
 
         args
@@ -212,8 +224,10 @@ impl CommandBuilder for VacuumLoBuilder {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::CommandExecutor;
     use crate::TestSettings;
     use crate::TestSocketSettings;
+    use crate::test_utils::{TestResult, assert_args, binary_dir};
     use crate::traits::CommandToString;
     use test_log::test;
 
@@ -271,6 +285,7 @@ mod tests {
             .no_password()
             .password()
             .pg_password("password")
+            .dbname("testdb")
             .build();
         #[cfg(not(target_os = "windows"))]
         let command_prefix = r#"PGDATABASE="database" PGPASSWORD="password" "#;
@@ -279,9 +294,48 @@ mod tests {
 
         assert_eq!(
             format!(
-                r#"{command_prefix}"vacuumlo" "--limit" "100" "--dry-run" "--verbose" "--version" "--help" "--host" "localhost" "--port" "5432" "--username" "postgres" "--no-password" "--password""#
+                r#"{command_prefix}"vacuumlo" "--version" "--help" "--limit" "100" "--dry-run" "--verbose" "--host" "localhost" "--port" "5432" "--username" "postgres" "--no-password" "--password" "testdb""#
             ),
             command.to_command_string()
         );
+    }
+
+    #[test]
+    fn test_positional_arguments_follow_options() {
+        assert_args(
+            VacuumLoBuilder::new().dbname("one").dbname("two").dry_run(),
+            &["--dry-run", "one", "two"],
+        );
+    }
+
+    #[test]
+    fn test_options() {
+        assert_args(VacuumLoBuilder::new().dbname("test db"), &["test db"]);
+    }
+
+    #[test]
+    fn test_informational_options_come_first_on_configured_builders() {
+        let version = VacuumLoBuilder::from(&TestSettings).version().get_args();
+        assert_eq!(version.first(), Some(&OsString::from("--version")));
+        let help = VacuumLoBuilder::from(&TestSettings).help().get_args();
+        assert_eq!(help.first(), Some(&OsString::from("--help")));
+    }
+
+    #[test]
+    fn test_cli_help_and_version() -> TestResult {
+        let Some(bin) = binary_dir() else {
+            return Ok(());
+        };
+        VacuumLoBuilder::new()
+            .program_dir(&bin)
+            .version()
+            .build()
+            .execute()?;
+        VacuumLoBuilder::new()
+            .program_dir(&bin)
+            .help()
+            .build()
+            .execute()?;
+        Ok(())
     }
 }

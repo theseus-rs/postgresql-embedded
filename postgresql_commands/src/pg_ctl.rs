@@ -10,10 +10,15 @@ use std::path::PathBuf;
 pub struct PgCtlBuilder {
     program_dir: Option<PathBuf>,
     envs: Vec<(OsString, OsString)>,
+    event_source: Option<OsString>,
+    service_name: Option<OsString>,
+    service_password: Option<OsString>,
+    service_username: Option<OsString>,
+    start_type: Option<OsString>,
     mode: Option<Mode>,
     pgdata: Option<PathBuf>,
     silent: bool,
-    timeout: Option<u16>,
+    timeout: Option<OsString>,
     version: bool,
     wait: bool,
     no_wait: bool,
@@ -30,6 +35,10 @@ pub struct PgCtlBuilder {
 #[derive(Clone, Debug)]
 pub enum Mode {
     InitDb,
+    /// Register a Windows service.
+    Register,
+    /// Unregister a Windows service.
+    Unregister,
     Kill,
     LogRotate,
     Promote,
@@ -43,6 +52,8 @@ pub enum Mode {
 impl Display for Mode {
     fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
+            Mode::Register => write!(formatter, "register"),
+            Mode::Unregister => write!(formatter, "unregister"),
             Mode::InitDb => write!(formatter, "initdb"),
             Mode::Kill => write!(formatter, "kill"),
             Mode::LogRotate => write!(formatter, "logrotate"),
@@ -115,8 +126,8 @@ impl PgCtlBuilder {
 
     /// seconds to wait when using -w option
     #[must_use]
-    pub fn timeout(mut self, timeout: u16) -> Self {
-        self.timeout = Some(timeout);
+    pub fn timeout<N: std::fmt::Display>(mut self, timeout: N) -> Self {
+        self.timeout = Some(timeout.to_string().into());
         self
     }
 
@@ -163,9 +174,11 @@ impl PgCtlBuilder {
     }
 
     /// command line options to pass to postgres (`PostgreSQL` server executable) or initdb
+    /// May be called multiple times; each group of options is appended.
     #[must_use]
     pub fn options<S: AsRef<OsStr>>(mut self, options: &[S]) -> Self {
-        self.options = options.iter().map(|s| s.as_ref().to_os_string()).collect();
+        self.options
+            .extend(options.iter().map(|s| s.as_ref().to_os_string()));
         self
     }
 
@@ -196,6 +209,41 @@ impl PgCtlBuilder {
         self.pid = Some(pid.as_ref().to_os_string());
         self
     }
+
+    /// Set the Windows service event source.
+    #[must_use]
+    pub fn event_source<S: AsRef<OsStr>>(mut self, event_source: S) -> Self {
+        self.event_source = Some(event_source.as_ref().to_os_string());
+        self
+    }
+
+    /// Set the Windows service name.
+    #[must_use]
+    pub fn service_name<S: AsRef<OsStr>>(mut self, service_name: S) -> Self {
+        self.service_name = Some(service_name.as_ref().to_os_string());
+        self
+    }
+
+    /// Set the password of the Windows service account.
+    #[must_use]
+    pub fn service_password<S: AsRef<OsStr>>(mut self, service_password: S) -> Self {
+        self.service_password = Some(service_password.as_ref().to_os_string());
+        self
+    }
+
+    /// Set the Windows service account name.
+    #[must_use]
+    pub fn service_username<S: AsRef<OsStr>>(mut self, service_username: S) -> Self {
+        self.service_username = Some(service_username.as_ref().to_os_string());
+        self
+    }
+
+    /// Set the Windows service start type: auto or demand.
+    #[must_use]
+    pub fn start_type<S: AsRef<OsStr>>(mut self, start_type: S) -> Self {
+        self.start_type = Some(start_type.as_ref().to_os_string());
+        self
+    }
 }
 
 impl CommandBuilder for PgCtlBuilder {
@@ -213,6 +261,14 @@ impl CommandBuilder for PgCtlBuilder {
     fn get_args(&self) -> Vec<OsString> {
         let mut args: Vec<OsString> = Vec::new();
 
+        if self.version {
+            args.push("--version".into());
+        }
+
+        if self.help {
+            args.push("--help".into());
+        }
+
         if let Some(mode) = &self.mode {
             args.push(mode.to_string().into());
         }
@@ -228,11 +284,7 @@ impl CommandBuilder for PgCtlBuilder {
 
         if let Some(timeout) = &self.timeout {
             args.push("--timeout".into());
-            args.push(timeout.to_string().into());
-        }
-
-        if self.version {
-            args.push("--version".into());
+            args.push(timeout.into());
         }
 
         if self.wait {
@@ -241,10 +293,6 @@ impl CommandBuilder for PgCtlBuilder {
 
         if self.no_wait {
             args.push("--no-wait".into());
-        }
-
-        if self.help {
-            args.push("--help".into());
         }
 
         if self.core_files {
@@ -269,6 +317,31 @@ impl CommandBuilder for PgCtlBuilder {
         if let Some(shutdown_mode) = &self.shutdown_mode {
             args.push("--mode".into());
             args.push(shutdown_mode.to_string().into());
+        }
+
+        if let Some(event_source) = &self.event_source {
+            args.push("-e".into());
+            args.push(event_source.into());
+        }
+
+        if let Some(service_name) = &self.service_name {
+            args.push("-N".into());
+            args.push(service_name.into());
+        }
+
+        if let Some(service_password) = &self.service_password {
+            args.push("-P".into());
+            args.push(service_password.into());
+        }
+
+        if let Some(service_username) = &self.service_username {
+            args.push("-U".into());
+            args.push(service_username.into());
+        }
+
+        if let Some(start_type) = &self.start_type {
+            args.push("-S".into());
+            args.push(start_type.into());
         }
 
         if let Some(signal) = &self.signal {
@@ -298,7 +371,9 @@ impl CommandBuilder for PgCtlBuilder {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::CommandExecutor;
     use crate::TestSettings;
+    use crate::test_utils::{TestResult, assert_args, binary_dir};
     use crate::traits::CommandToString;
     use test_log::test;
 
@@ -361,6 +436,11 @@ mod tests {
             .shutdown_mode(ShutdownMode::Smart)
             .signal("HUP")
             .pid("12345")
+            .event_source("PostgreSQL")
+            .service_name("postgresql-service")
+            .service_password("service_password")
+            .service_username("service_user")
+            .start_type("auto")
             .build();
         #[cfg(not(target_os = "windows"))]
         let command_prefix = r#"PGDATABASE="database" "#;
@@ -369,9 +449,107 @@ mod tests {
 
         assert_eq!(
             format!(
-                r#"{command_prefix}"pg_ctl" "start" "--pgdata" "pgdata" "--silent" "--timeout" "60" "--version" "--wait" "--no-wait" "--help" "--core-files" "--log" "log" "-o" "-c log_connections=on" "-p" "path_to_postgres" "--mode" "smart" "HUP" "12345""#
+                r#"{command_prefix}"pg_ctl" "--version" "--help" "start" "--pgdata" "pgdata" "--silent" "--timeout" "60" "--wait" "--no-wait" "--core-files" "--log" "log" "-o" "-c log_connections=on" "-p" "path_to_postgres" "--mode" "smart" "-e" "PostgreSQL" "-N" "postgresql-service" "-P" "service_password" "-U" "service_user" "-S" "auto" "HUP" "12345""#
             ),
             command.to_command_string()
         );
+    }
+
+    #[test]
+    fn test_numeric_arguments_accept_the_cli_value_range() {
+        assert_args(
+            PgCtlBuilder::new().timeout(100_000),
+            &["--timeout", "100000"],
+        );
+    }
+
+    #[test]
+    fn test_windows_service_options_and_repeated_server_options() {
+        assert_args(
+            PgCtlBuilder::new()
+                .mode(Mode::Register)
+                .service_name("PostgreSQL")
+                .service_username("service-user")
+                .service_password("secret")
+                .event_source("PostgreSQL")
+                .start_type("auto"),
+            &[
+                "register",
+                "-e",
+                "PostgreSQL",
+                "-N",
+                "PostgreSQL",
+                "-P",
+                "secret",
+                "-U",
+                "service-user",
+                "-S",
+                "auto",
+            ],
+        );
+        assert_args(
+            PgCtlBuilder::new()
+                .mode(Mode::Unregister)
+                .service_name("PostgreSQL"),
+            &["unregister", "-N", "PostgreSQL"],
+        );
+        assert_args(
+            PgCtlBuilder::new()
+                .options(&["-c work_mem=8MB"])
+                .options(&["-c maintenance_work_mem=32MB"]),
+            &[
+                "-o",
+                "-c work_mem=8MB",
+                "-o",
+                "-c maintenance_work_mem=32MB",
+            ],
+        );
+    }
+
+    #[test]
+    fn test_options() {
+        assert_args(
+            PgCtlBuilder::new().event_source("value with spaces"),
+            &["-e", "value with spaces"],
+        );
+        assert_args(
+            PgCtlBuilder::new().service_name("value with spaces"),
+            &["-N", "value with spaces"],
+        );
+        assert_args(
+            PgCtlBuilder::new().service_password("value with spaces"),
+            &["-P", "value with spaces"],
+        );
+        assert_args(
+            PgCtlBuilder::new().service_username("value with spaces"),
+            &["-U", "value with spaces"],
+        );
+        assert_args(PgCtlBuilder::new().start_type("auto"), &["-S", "auto"]);
+    }
+
+    #[test]
+    fn test_informational_options_come_first_on_configured_builders() {
+        let version = PgCtlBuilder::from(&TestSettings).version().get_args();
+        assert_eq!(version.first(), Some(&OsString::from("--version")));
+        let help = PgCtlBuilder::from(&TestSettings).help().get_args();
+        assert_eq!(help.first(), Some(&OsString::from("--help")));
+    }
+
+    #[test]
+    fn test_cli_help_and_version() -> TestResult {
+        let Some(bin) = binary_dir() else {
+            return Ok(());
+        };
+        PgCtlBuilder::new()
+            .program_dir(&bin)
+            .version()
+            .build()
+            .execute()?;
+        PgCtlBuilder::new()
+            .program_dir(&bin)
+            .help()
+            .build()
+            .execute()?;
+        Ok(())
     }
 }

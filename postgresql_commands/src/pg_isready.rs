@@ -15,7 +15,7 @@ pub struct PgIsReadyBuilder {
     help: bool,
     host: Option<OsString>,
     port: Option<u16>,
-    timeout: Option<u16>,
+    timeout: Option<OsString>,
     username: Option<OsString>,
 }
 
@@ -90,8 +90,8 @@ impl PgIsReadyBuilder {
 
     /// Set the seconds to wait when attempting connection, 0 disables (default: 3)
     #[must_use]
-    pub fn timeout(mut self, timeout: u16) -> Self {
-        self.timeout = Some(timeout);
+    pub fn timeout<N: std::fmt::Display>(mut self, timeout: N) -> Self {
+        self.timeout = Some(timeout.to_string().into());
         self
     }
 
@@ -118,6 +118,14 @@ impl CommandBuilder for PgIsReadyBuilder {
     fn get_args(&self) -> Vec<OsString> {
         let mut args: Vec<OsString> = Vec::new();
 
+        if self.version {
+            args.push("--version".into());
+        }
+
+        if self.help {
+            args.push("--help".into());
+        }
+
         if let Some(dbname) = &self.dbname {
             args.push("--dbname".into());
             args.push(dbname.into());
@@ -125,14 +133,6 @@ impl CommandBuilder for PgIsReadyBuilder {
 
         if self.quiet {
             args.push("--quiet".into());
-        }
-
-        if self.version {
-            args.push("--version".into());
-        }
-
-        if self.help {
-            args.push("--help".into());
         }
 
         if let Some(host) = &self.host {
@@ -147,7 +147,7 @@ impl CommandBuilder for PgIsReadyBuilder {
 
         if let Some(timeout) = &self.timeout {
             args.push("--timeout".into());
-            args.push(timeout.to_string().into());
+            args.push(timeout.into());
         }
 
         if let Some(username) = &self.username {
@@ -174,8 +174,10 @@ impl CommandBuilder for PgIsReadyBuilder {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::CommandExecutor;
     use crate::TestSettings;
     use crate::TestSocketSettings;
+    use crate::test_utils::{TestResult, assert_args, binary_dir};
     use crate::traits::CommandToString;
     use test_log::test;
 
@@ -240,9 +242,43 @@ mod tests {
 
         assert_eq!(
             format!(
-                r#"{command_prefix}"pg_isready" "--dbname" "postgres" "--quiet" "--version" "--help" "--host" "localhost" "--port" "5432" "--timeout" "3" "--username" "postgres""#
+                r#"{command_prefix}"pg_isready" "--version" "--help" "--dbname" "postgres" "--quiet" "--host" "localhost" "--port" "5432" "--timeout" "3" "--username" "postgres""#
             ),
             command.to_command_string()
         );
+    }
+
+    #[test]
+    fn test_numeric_arguments_accept_the_cli_value_range() {
+        assert_args(
+            PgIsReadyBuilder::new().timeout(100_000),
+            &["--timeout", "100000"],
+        );
+    }
+
+    #[test]
+    fn test_informational_options_come_first_on_configured_builders() {
+        let version = PgIsReadyBuilder::from(&TestSettings).version().get_args();
+        assert_eq!(version.first(), Some(&OsString::from("--version")));
+        let help = PgIsReadyBuilder::from(&TestSettings).help().get_args();
+        assert_eq!(help.first(), Some(&OsString::from("--help")));
+    }
+
+    #[test]
+    fn test_cli_help_and_version() -> TestResult {
+        let Some(bin) = binary_dir() else {
+            return Ok(());
+        };
+        PgIsReadyBuilder::new()
+            .program_dir(&bin)
+            .version()
+            .build()
+            .execute()?;
+        PgIsReadyBuilder::new()
+            .program_dir(&bin)
+            .help()
+            .build()
+            .execute()?;
+        Ok(())
     }
 }

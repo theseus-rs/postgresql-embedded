@@ -9,28 +9,39 @@ use std::path::PathBuf;
 pub struct PgRestoreBuilder {
     program_dir: Option<PathBuf>,
     envs: Vec<(OsString, OsString)>,
+    restrict_key: Option<OsString>,
+    filter: Vec<OsString>,
+    no_policies: bool,
+    no_statistics: bool,
+    no_schema: bool,
+    no_data: bool,
+    statistics_only: bool,
+    statistics: bool,
+    transaction_size: Option<OsString>,
+    no_reconnect: bool,
+    filename: Option<OsString>,
     dbname: Option<OsString>,
     file: Option<OsString>,
     format: Option<OsString>,
     list: bool,
-    verbose: bool,
+    verbose: usize,
     version: bool,
     help: bool,
     data_only: bool,
     clean: bool,
     create: bool,
     exit_on_error: bool,
-    index: Option<OsString>,
+    index: Vec<OsString>,
     jobs: Option<OsString>,
     use_list: Option<OsString>,
-    schema: Option<OsString>,
-    exclude_schema: Option<OsString>,
+    schema: Vec<OsString>,
+    exclude_schema: Vec<OsString>,
     no_owner: bool,
-    function: Option<OsString>,
+    function: Vec<OsString>,
     schema_only: bool,
     superuser: Option<OsString>,
-    table: Option<OsString>,
-    trigger: Option<OsString>,
+    table: Vec<OsString>,
+    trigger: Vec<OsString>,
     no_privileges: bool,
     single_transaction: bool,
     disable_triggers: bool,
@@ -43,7 +54,7 @@ pub struct PgRestoreBuilder {
     no_subscriptions: bool,
     no_table_access_method: bool,
     no_tablespaces: bool,
-    section: Option<OsString>,
+    section: Vec<OsString>,
     strict_names: bool,
     use_set_session_authorization: bool,
     host: Option<OsString>,
@@ -112,9 +123,10 @@ impl PgRestoreBuilder {
     }
 
     /// verbose mode
+    /// May be called multiple times to increase verbosity.
     #[must_use]
     pub fn verbose(mut self) -> Self {
-        self.verbose = true;
+        self.verbose = self.verbose.saturating_add(1);
         self
     }
 
@@ -161,9 +173,10 @@ impl PgRestoreBuilder {
     }
 
     /// restore named index
+    /// May be called multiple times; each value is retained.
     #[must_use]
     pub fn index<S: AsRef<OsStr>>(mut self, name: S) -> Self {
-        self.index = Some(name.as_ref().to_os_string());
+        self.index.push(name.as_ref().to_os_string());
         self
     }
 
@@ -182,16 +195,18 @@ impl PgRestoreBuilder {
     }
 
     /// restore only objects in this schema
+    /// May be called multiple times; each value is retained.
     #[must_use]
     pub fn schema<S: AsRef<OsStr>>(mut self, name: S) -> Self {
-        self.schema = Some(name.as_ref().to_os_string());
+        self.schema.push(name.as_ref().to_os_string());
         self
     }
 
     /// do not restore objects in this schema
+    /// May be called multiple times; each value is retained.
     #[must_use]
     pub fn exclude_schema<S: AsRef<OsStr>>(mut self, name: S) -> Self {
-        self.exclude_schema = Some(name.as_ref().to_os_string());
+        self.exclude_schema.push(name.as_ref().to_os_string());
         self
     }
 
@@ -203,9 +218,10 @@ impl PgRestoreBuilder {
     }
 
     /// restore named function
+    /// May be called multiple times; each value is retained.
     #[must_use]
     pub fn function<S: AsRef<OsStr>>(mut self, name: S) -> Self {
-        self.function = Some(name.as_ref().to_os_string());
+        self.function.push(name.as_ref().to_os_string());
         self
     }
 
@@ -224,16 +240,18 @@ impl PgRestoreBuilder {
     }
 
     /// restore named relation (table, view, etc.)
+    /// May be called multiple times; each value is retained.
     #[must_use]
     pub fn table<S: AsRef<OsStr>>(mut self, name: S) -> Self {
-        self.table = Some(name.as_ref().to_os_string());
+        self.table.push(name.as_ref().to_os_string());
         self
     }
 
     /// restore named trigger
+    /// May be called multiple times; each value is retained.
     #[must_use]
     pub fn trigger<S: AsRef<OsStr>>(mut self, name: S) -> Self {
-        self.trigger = Some(name.as_ref().to_os_string());
+        self.trigger.push(name.as_ref().to_os_string());
         self
     }
 
@@ -322,9 +340,10 @@ impl PgRestoreBuilder {
     }
 
     /// restore named section (pre-data, data, or post-data)
+    /// May be called multiple times; each value is retained.
     #[must_use]
     pub fn section<S: AsRef<OsStr>>(mut self, section: S) -> Self {
-        self.section = Some(section.as_ref().to_os_string());
+        self.section.push(section.as_ref().to_os_string());
         self
     }
 
@@ -390,6 +409,83 @@ impl PgRestoreBuilder {
         self.role = Some(rolename.as_ref().to_os_string());
         self
     }
+
+    /// Set the psql restrict key used in generated scripts.
+    #[must_use]
+    pub fn restrict_key<S: AsRef<OsStr>>(mut self, restrict_key: S) -> Self {
+        self.restrict_key = Some(restrict_key.as_ref().to_os_string());
+        self
+    }
+
+    /// Read object selection rules from a file. May be called multiple times.
+    #[must_use]
+    pub fn filter<S: AsRef<OsStr>>(mut self, filter: S) -> Self {
+        self.filter.push(filter.as_ref().to_os_string());
+        self
+    }
+
+    /// Exclude row security policies.
+    #[must_use]
+    pub fn no_policies(mut self) -> Self {
+        self.no_policies = true;
+        self
+    }
+
+    /// Exclude optimizer statistics.
+    #[must_use]
+    pub fn no_statistics(mut self) -> Self {
+        self.no_statistics = true;
+        self
+    }
+
+    /// Exclude schema definitions.
+    #[must_use]
+    pub fn no_schema(mut self) -> Self {
+        self.no_schema = true;
+        self
+    }
+
+    /// Exclude table data.
+    #[must_use]
+    pub fn no_data(mut self) -> Self {
+        self.no_data = true;
+        self
+    }
+
+    /// Process only optimizer statistics.
+    #[must_use]
+    pub fn statistics_only(mut self) -> Self {
+        self.statistics_only = true;
+        self
+    }
+
+    /// Include optimizer statistics.
+    #[must_use]
+    pub fn statistics(mut self) -> Self {
+        self.statistics = true;
+        self
+    }
+
+    /// Commit after restoring this many objects.
+    #[must_use]
+    pub fn transaction_size<S: AsRef<OsStr>>(mut self, transaction_size: S) -> Self {
+        self.transaction_size = Some(transaction_size.as_ref().to_os_string());
+        self
+    }
+
+    /// Accept the obsolete no-reconnect option.
+    #[must_use]
+    pub fn no_reconnect(mut self) -> Self {
+        self.no_reconnect = true;
+        self
+    }
+
+    /// Archive file or directory to restore; omit to read standard input.
+    #[must_use]
+    pub fn filename<S: AsRef<OsStr>>(mut self, filename: S) -> Self {
+        self.filename = Some(filename.as_ref().to_os_string());
+        self
+    }
 }
 
 impl CommandBuilder for PgRestoreBuilder {
@@ -407,6 +503,14 @@ impl CommandBuilder for PgRestoreBuilder {
     #[expect(clippy::too_many_lines)]
     fn get_args(&self) -> Vec<OsString> {
         let mut args: Vec<OsString> = Vec::new();
+
+        if self.version {
+            args.push("--version".into());
+        }
+
+        if self.help {
+            args.push("--help".into());
+        }
 
         if let Some(name) = &self.dbname {
             args.push("--dbname".into());
@@ -427,16 +531,8 @@ impl CommandBuilder for PgRestoreBuilder {
             args.push("--list".into());
         }
 
-        if self.verbose {
+        for _ in 0..self.verbose {
             args.push("--verbose".into());
-        }
-
-        if self.version {
-            args.push("--version".into());
-        }
-
-        if self.help {
-            args.push("--help".into());
         }
 
         if self.data_only {
@@ -455,7 +551,7 @@ impl CommandBuilder for PgRestoreBuilder {
             args.push("--exit-on-error".into());
         }
 
-        if let Some(name) = &self.index {
+        for name in &self.index {
             args.push("--index".into());
             args.push(name.into());
         }
@@ -470,12 +566,12 @@ impl CommandBuilder for PgRestoreBuilder {
             args.push(filename.into());
         }
 
-        if let Some(name) = &self.schema {
+        for name in &self.schema {
             args.push("--schema".into());
             args.push(name.into());
         }
 
-        if let Some(name) = &self.exclude_schema {
+        for name in &self.exclude_schema {
             args.push("--exclude-schema".into());
             args.push(name.into());
         }
@@ -484,7 +580,7 @@ impl CommandBuilder for PgRestoreBuilder {
             args.push("--no-owner".into());
         }
 
-        if let Some(name) = &self.function {
+        for name in &self.function {
             args.push("--function".into());
             args.push(name.into());
         }
@@ -498,12 +594,12 @@ impl CommandBuilder for PgRestoreBuilder {
             args.push(name.into());
         }
 
-        if let Some(name) = &self.table {
+        for name in &self.table {
             args.push("--table".into());
             args.push(name.into());
         }
 
-        if let Some(name) = &self.trigger {
+        for name in &self.trigger {
             args.push("--trigger".into());
             args.push(name.into());
         }
@@ -556,7 +652,7 @@ impl CommandBuilder for PgRestoreBuilder {
             args.push("--no-tablespaces".into());
         }
 
-        if let Some(section) = &self.section {
+        for section in &self.section {
             args.push("--section".into());
             args.push(section.into());
         }
@@ -597,6 +693,53 @@ impl CommandBuilder for PgRestoreBuilder {
             args.push(role.into());
         }
 
+        if let Some(restrict_key) = &self.restrict_key {
+            args.push("--restrict-key".into());
+            args.push(restrict_key.into());
+        }
+
+        for filter in &self.filter {
+            args.push("--filter".into());
+            args.push(filter.into());
+        }
+
+        if self.no_policies {
+            args.push("--no-policies".into());
+        }
+
+        if self.no_statistics {
+            args.push("--no-statistics".into());
+        }
+
+        if self.no_schema {
+            args.push("--no-schema".into());
+        }
+
+        if self.no_data {
+            args.push("--no-data".into());
+        }
+
+        if self.statistics_only {
+            args.push("--statistics-only".into());
+        }
+
+        if self.statistics {
+            args.push("--statistics".into());
+        }
+
+        if let Some(transaction_size) = &self.transaction_size {
+            args.push("--transaction-size".into());
+            args.push(transaction_size.into());
+        }
+
+        if self.no_reconnect {
+            args.push("--no-reconnect".into());
+        }
+
+        if let Some(filename) = &self.filename {
+            args.push(filename.into());
+        }
+
         args
     }
 
@@ -622,8 +765,10 @@ impl CommandBuilder for PgRestoreBuilder {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::CommandExecutor;
     use crate::TestSettings;
     use crate::TestSocketSettings;
+    use crate::test_utils::{TestResult, assert_args, binary_dir};
     use crate::traits::CommandToString;
     use test_log::test;
 
@@ -714,6 +859,17 @@ mod tests {
             .password()
             .pg_password("password")
             .role("role")
+            .restrict_key("abc123")
+            .filter("filter.txt")
+            .no_policies()
+            .no_statistics()
+            .no_schema()
+            .no_data()
+            .statistics_only()
+            .statistics()
+            .transaction_size("100")
+            .no_reconnect()
+            .filename("backup.dump")
             .build();
         #[cfg(not(target_os = "windows"))]
         let command_prefix = r#"PGDATABASE="database" PGPASSWORD="password" "#;
@@ -722,9 +878,124 @@ mod tests {
 
         assert_eq!(
             format!(
-                r#"{command_prefix}"pg_restore" "--dbname" "dbname" "--file" "file" "--format" "format" "--list" "--verbose" "--version" "--help" "--data-only" "--clean" "--create" "--exit-on-error" "--index" "index" "--jobs" "jobs" "--use-list" "use_list" "--schema" "schema" "--exclude-schema" "exclude_schema" "--no-owner" "--function" "function" "--schema-only" "--superuser" "superuser" "--table" "table" "--trigger" "trigger" "--no-privileges" "--single-transaction" "--disable-triggers" "--enable-row-security" "--if-exists" "--no-comments" "--no-data-for-failed-tables" "--no-publications" "--no-security-labels" "--no-subscriptions" "--no-table-access-method" "--no-tablespaces" "--section" "section" "--strict-names" "--use-set-session-authorization" "--host" "localhost" "--port" "5432" "--username" "username" "--no-password" "--password" "--role" "role""#
+                r#"{command_prefix}"pg_restore" "--version" "--help" "--dbname" "dbname" "--file" "file" "--format" "format" "--list" "--verbose" "--data-only" "--clean" "--create" "--exit-on-error" "--index" "index" "--jobs" "jobs" "--use-list" "use_list" "--schema" "schema" "--exclude-schema" "exclude_schema" "--no-owner" "--function" "function" "--schema-only" "--superuser" "superuser" "--table" "table" "--trigger" "trigger" "--no-privileges" "--single-transaction" "--disable-triggers" "--enable-row-security" "--if-exists" "--no-comments" "--no-data-for-failed-tables" "--no-publications" "--no-security-labels" "--no-subscriptions" "--no-table-access-method" "--no-tablespaces" "--section" "section" "--strict-names" "--use-set-session-authorization" "--host" "localhost" "--port" "5432" "--username" "username" "--no-password" "--password" "--role" "role" "--restrict-key" "abc123" "--filter" "filter.txt" "--no-policies" "--no-statistics" "--no-schema" "--no-data" "--statistics-only" "--statistics" "--transaction-size" "100" "--no-reconnect" "backup.dump""#
             ),
             command.to_command_string()
         );
+    }
+
+    #[test]
+    fn test_positional_arguments_follow_options() {
+        assert_args(
+            PgRestoreBuilder::new()
+                .filename("backup dir")
+                .dbname("target"),
+            &["--dbname", "target", "backup dir"],
+        );
+    }
+
+    #[test]
+    fn test_options() {
+        assert_args(
+            PgRestoreBuilder::new().restrict_key("abc123"),
+            &["--restrict-key", "abc123"],
+        );
+        assert_args(
+            PgRestoreBuilder::new().filter("rules.txt"),
+            &["--filter", "rules.txt"],
+        );
+        assert_args(PgRestoreBuilder::new().no_policies(), &["--no-policies"]);
+        assert_args(
+            PgRestoreBuilder::new().no_statistics(),
+            &["--no-statistics"],
+        );
+        assert_args(PgRestoreBuilder::new().no_schema(), &["--no-schema"]);
+        assert_args(PgRestoreBuilder::new().no_data(), &["--no-data"]);
+        assert_args(
+            PgRestoreBuilder::new().statistics_only(),
+            &["--statistics-only"],
+        );
+        assert_args(PgRestoreBuilder::new().statistics(), &["--statistics"]);
+        assert_args(
+            PgRestoreBuilder::new().transaction_size("100"),
+            &["--transaction-size", "100"],
+        );
+        assert_args(PgRestoreBuilder::new().no_reconnect(), &["--no-reconnect"]);
+        assert_args(
+            PgRestoreBuilder::new().filename("value with spaces"),
+            &["value with spaces"],
+        );
+    }
+
+    #[test]
+    fn test_repeated_options() {
+        assert_args(
+            PgRestoreBuilder::new().index("first").index("second"),
+            &["--index", "first", "--index", "second"],
+        );
+        assert_args(
+            PgRestoreBuilder::new().schema("first").schema("second"),
+            &["--schema", "first", "--schema", "second"],
+        );
+        assert_args(
+            PgRestoreBuilder::new()
+                .exclude_schema("first")
+                .exclude_schema("second"),
+            &["--exclude-schema", "first", "--exclude-schema", "second"],
+        );
+        assert_args(
+            PgRestoreBuilder::new().function("first").function("second"),
+            &["--function", "first", "--function", "second"],
+        );
+        assert_args(
+            PgRestoreBuilder::new().table("first").table("second"),
+            &["--table", "first", "--table", "second"],
+        );
+        assert_args(
+            PgRestoreBuilder::new().trigger("first").trigger("second"),
+            &["--trigger", "first", "--trigger", "second"],
+        );
+        assert_args(
+            PgRestoreBuilder::new().section("first").section("second"),
+            &["--section", "first", "--section", "second"],
+        );
+        assert_args(
+            PgRestoreBuilder::new().filter("first").filter("second"),
+            &["--filter", "first", "--filter", "second"],
+        );
+    }
+
+    #[test]
+    fn test_informational_options_come_first_on_configured_builders() {
+        let version = PgRestoreBuilder::from(&TestSettings).version().get_args();
+        assert_eq!(version.first(), Some(&OsString::from("--version")));
+        let help = PgRestoreBuilder::from(&TestSettings).help().get_args();
+        assert_eq!(help.first(), Some(&OsString::from("--help")));
+    }
+
+    #[test]
+    fn test_repeated_verbose_flags_increase_logging_detail() {
+        assert_args(
+            PgRestoreBuilder::new().verbose().verbose(),
+            &["--verbose", "--verbose"],
+        );
+    }
+
+    #[test]
+    fn test_cli_help_and_version() -> TestResult {
+        let Some(bin) = binary_dir() else {
+            return Ok(());
+        };
+        PgRestoreBuilder::new()
+            .program_dir(&bin)
+            .version()
+            .build()
+            .execute()?;
+        PgRestoreBuilder::new()
+            .program_dir(&bin)
+            .help()
+            .build()
+            .execute()?;
+        Ok(())
     }
 }

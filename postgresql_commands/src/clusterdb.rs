@@ -13,7 +13,7 @@ pub struct ClusterDbBuilder {
     dbname: Option<OsString>,
     echo: bool,
     quiet: bool,
-    table: Option<OsString>,
+    table: Vec<OsString>,
     verbose: bool,
     version: bool,
     help: bool,
@@ -49,7 +49,7 @@ impl ClusterDbBuilder {
 
     /// Location of the program binary
     #[must_use]
-    fn program_dir<P: Into<PathBuf>>(mut self, path: P) -> Self {
+    pub fn program_dir<P: Into<PathBuf>>(mut self, path: P) -> Self {
         self.program_dir = Some(path.into());
         self
     }
@@ -83,9 +83,10 @@ impl ClusterDbBuilder {
     }
 
     /// Cluster specific table(s) only
+    /// May be called multiple times; each value is retained.
     #[must_use]
     pub fn table<S: AsRef<OsStr>>(mut self, table: S) -> Self {
-        self.table = Some(table.as_ref().to_os_string());
+        self.table.push(table.as_ref().to_os_string());
         self
     }
 
@@ -175,6 +176,14 @@ impl CommandBuilder for ClusterDbBuilder {
     fn get_args(&self) -> Vec<OsString> {
         let mut args: Vec<OsString> = Vec::new();
 
+        if self.version {
+            args.push("--version".into());
+        }
+
+        if self.help {
+            args.push("--help".into());
+        }
+
         if self.all {
             args.push("--all".into());
         }
@@ -192,21 +201,13 @@ impl CommandBuilder for ClusterDbBuilder {
             args.push("--quiet".into());
         }
 
-        if let Some(table) = &self.table {
+        for table in &self.table {
             args.push("--table".into());
             args.push(table.into());
         }
 
         if self.verbose {
             args.push("--verbose".into());
-        }
-
-        if self.version {
-            args.push("--version".into());
-        }
-
-        if self.help {
-            args.push("--help".into());
         }
 
         if let Some(host) = &self.host {
@@ -262,8 +263,10 @@ impl CommandBuilder for ClusterDbBuilder {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::CommandExecutor;
     use crate::TestSettings;
     use crate::TestSocketSettings;
+    use crate::test_utils::{TestResult, assert_args, binary_dir};
     use crate::traits::CommandToString;
     use test_log::test;
 
@@ -319,7 +322,7 @@ mod tests {
 
         assert_eq!(
             format!(
-                r#"{command_prefix}"clusterdb" "--all" "--dbname" "dbname" "--echo" "--quiet" "--table" "table" "--verbose" "--version" "--help" "--host" "localhost" "--port" "5432" "--username" "postgres" "--no-password" "--password" "--maintenance-db" "postgres""#
+                r#"{command_prefix}"clusterdb" "--version" "--help" "--all" "--dbname" "dbname" "--echo" "--quiet" "--table" "table" "--verbose" "--host" "localhost" "--port" "5432" "--username" "postgres" "--no-password" "--password" "--maintenance-db" "postgres""#
             ),
             command.to_command_string()
         );
@@ -339,5 +342,39 @@ mod tests {
             ),
             command.to_command_string()
         );
+    }
+
+    #[test]
+    fn test_repeated_options() {
+        assert_args(
+            ClusterDbBuilder::new().table("first").table("second"),
+            &["--table", "first", "--table", "second"],
+        );
+    }
+
+    #[test]
+    fn test_informational_options_come_first_on_configured_builders() {
+        let version = ClusterDbBuilder::from(&TestSettings).version().get_args();
+        assert_eq!(version.first(), Some(&OsString::from("--version")));
+        let help = ClusterDbBuilder::from(&TestSettings).help().get_args();
+        assert_eq!(help.first(), Some(&OsString::from("--help")));
+    }
+
+    #[test]
+    fn test_cli_help_and_version() -> TestResult {
+        let Some(bin) = binary_dir() else {
+            return Ok(());
+        };
+        ClusterDbBuilder::new()
+            .program_dir(&bin)
+            .version()
+            .build()
+            .execute()?;
+        ClusterDbBuilder::new()
+            .program_dir(&bin)
+            .help()
+            .build()
+            .execute()?;
+        Ok(())
     }
 }

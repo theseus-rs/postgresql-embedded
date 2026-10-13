@@ -166,6 +166,14 @@ impl CommandBuilder for DropDbBuilder {
     fn get_args(&self) -> Vec<OsString> {
         let mut args: Vec<OsString> = Vec::new();
 
+        if self.version {
+            args.push("--version".into());
+        }
+
+        if self.help {
+            args.push("--help".into());
+        }
+
         if self.echo {
             args.push("--echo".into());
         }
@@ -178,16 +186,8 @@ impl CommandBuilder for DropDbBuilder {
             args.push("--interactive".into());
         }
 
-        if self.version {
-            args.push("--version".into());
-        }
-
         if self.if_exists {
             args.push("--if-exists".into());
-        }
-
-        if self.help {
-            args.push("--help".into());
         }
 
         if let Some(host) = &self.host {
@@ -247,8 +247,10 @@ impl CommandBuilder for DropDbBuilder {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::CommandExecutor;
     use crate::TestSettings;
     use crate::TestSocketSettings;
+    use crate::test_utils::{TestResult, binary_dir};
     use crate::traits::CommandToString;
     use test_log::test;
 
@@ -303,7 +305,7 @@ mod tests {
 
         assert_eq!(
             format!(
-                r#"{command_prefix}"dropdb" "--echo" "--force" "--interactive" "--version" "--if-exists" "--help" "--host" "localhost" "--port" "5432" "--username" "postgres" "--no-password" "--password" "--maintenance-db" "postgres" "dbname""#
+                r#"{command_prefix}"dropdb" "--version" "--help" "--echo" "--force" "--interactive" "--if-exists" "--host" "localhost" "--port" "5432" "--username" "postgres" "--no-password" "--password" "--maintenance-db" "postgres" "dbname""#
             ),
             command.to_command_string()
         );
@@ -323,5 +325,31 @@ mod tests {
             ),
             command.to_command_string()
         );
+    }
+
+    #[test]
+    fn test_informational_options_come_first_on_configured_builders() {
+        let version = DropDbBuilder::from(&TestSettings).version().get_args();
+        assert_eq!(version.first(), Some(&OsString::from("--version")));
+        let help = DropDbBuilder::from(&TestSettings).help().get_args();
+        assert_eq!(help.first(), Some(&OsString::from("--help")));
+    }
+
+    #[test]
+    fn test_cli_help_and_version() -> TestResult {
+        let Some(bin) = binary_dir() else {
+            return Ok(());
+        };
+        DropDbBuilder::new()
+            .program_dir(&bin)
+            .version()
+            .build()
+            .execute()?;
+        DropDbBuilder::new()
+            .program_dir(&bin)
+            .help()
+            .build()
+            .execute()?;
+        Ok(())
     }
 }

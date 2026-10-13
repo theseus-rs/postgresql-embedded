@@ -17,7 +17,7 @@ pub struct PgReceiveWalBuilder {
     status_interval: Option<OsString>,
     slot: Option<OsString>,
     synchronous: bool,
-    verbose: bool,
+    verbose: usize,
     version: bool,
     compress: Option<OsString>,
     help: bool,
@@ -117,9 +117,10 @@ impl PgReceiveWalBuilder {
     }
 
     /// output verbose messages
+    /// May be called multiple times to increase verbosity.
     #[must_use]
     pub fn verbose(mut self) -> Self {
-        self.verbose = true;
+        self.verbose = self.verbose.saturating_add(1);
         self
     }
 
@@ -223,6 +224,14 @@ impl CommandBuilder for PgReceiveWalBuilder {
     fn get_args(&self) -> Vec<OsString> {
         let mut args: Vec<OsString> = Vec::new();
 
+        if self.version {
+            args.push("--version".into());
+        }
+
+        if self.help {
+            args.push("--help".into());
+        }
+
         if let Some(directory) = &self.directory {
             args.push("--directory".into());
             args.push(directory.into());
@@ -259,21 +268,13 @@ impl CommandBuilder for PgReceiveWalBuilder {
             args.push("--synchronous".into());
         }
 
-        if self.verbose {
+        for _ in 0..self.verbose {
             args.push("--verbose".into());
-        }
-
-        if self.version {
-            args.push("--version".into());
         }
 
         if let Some(compress) = &self.compress {
             args.push("--compress".into());
             args.push(compress.into());
-        }
-
-        if self.help {
-            args.push("--help".into());
         }
 
         if let Some(dbname) = &self.dbname {
@@ -337,8 +338,10 @@ impl CommandBuilder for PgReceiveWalBuilder {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::CommandExecutor;
     use crate::TestSettings;
     use crate::TestSocketSettings;
+    use crate::test_utils::{TestResult, assert_args, binary_dir};
     use crate::traits::CommandToString;
     use test_log::test;
 
@@ -414,9 +417,45 @@ mod tests {
 
         assert_eq!(
             format!(
-                r#"{command_prefix}"pg_receivewal" "--directory" "directory" "--endpos" "endpos" "--if-not-exists" "--no-loop" "--no-sync" "--status-interval" "status_interval" "--slot" "slot" "--synchronous" "--verbose" "--version" "--compress" "compress" "--help" "--dbname" "dbname" "--host" "localhost" "--port" "5432" "--username" "username" "--no-password" "--password" "--create-slot" "--drop-slot""#
+                r#"{command_prefix}"pg_receivewal" "--version" "--help" "--directory" "directory" "--endpos" "endpos" "--if-not-exists" "--no-loop" "--no-sync" "--status-interval" "status_interval" "--slot" "slot" "--synchronous" "--verbose" "--compress" "compress" "--dbname" "dbname" "--host" "localhost" "--port" "5432" "--username" "username" "--no-password" "--password" "--create-slot" "--drop-slot""#
             ),
             command.to_command_string()
         );
+    }
+
+    #[test]
+    fn test_informational_options_come_first_on_configured_builders() {
+        let version = PgReceiveWalBuilder::from(&TestSettings)
+            .version()
+            .get_args();
+        assert_eq!(version.first(), Some(&OsString::from("--version")));
+        let help = PgReceiveWalBuilder::from(&TestSettings).help().get_args();
+        assert_eq!(help.first(), Some(&OsString::from("--help")));
+    }
+
+    #[test]
+    fn test_repeated_verbose_flags_increase_logging_detail() {
+        assert_args(
+            PgReceiveWalBuilder::new().verbose().verbose(),
+            &["--verbose", "--verbose"],
+        );
+    }
+
+    #[test]
+    fn test_cli_help_and_version() -> TestResult {
+        let Some(bin) = binary_dir() else {
+            return Ok(());
+        };
+        PgReceiveWalBuilder::new()
+            .program_dir(&bin)
+            .version()
+            .build()
+            .execute()?;
+        PgReceiveWalBuilder::new()
+            .program_dir(&bin)
+            .help()
+            .build()
+            .execute()?;
+        Ok(())
     }
 }

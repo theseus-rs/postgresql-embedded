@@ -12,12 +12,12 @@ pub struct ReindexDbBuilder {
     concurrently: bool,
     dbname: Option<OsString>,
     echo: bool,
-    index: Option<OsString>,
+    index: Vec<OsString>,
     jobs: Option<u32>,
     quiet: bool,
     system: bool,
-    schema: Option<OsString>,
-    table: Option<OsString>,
+    schema: Vec<OsString>,
+    table: Vec<OsString>,
     tablespace: Option<OsString>,
     verbose: bool,
     version: bool,
@@ -88,9 +88,10 @@ impl ReindexDbBuilder {
     }
 
     /// recreate specific index(es) only
+    /// May be called multiple times; each value is retained.
     #[must_use]
     pub fn index<S: AsRef<OsStr>>(mut self, index: S) -> Self {
-        self.index = Some(index.as_ref().to_os_string());
+        self.index.push(index.as_ref().to_os_string());
         self
     }
 
@@ -116,16 +117,18 @@ impl ReindexDbBuilder {
     }
 
     /// reindex specific schema(s) only
+    /// May be called multiple times; each value is retained.
     #[must_use]
     pub fn schema<S: AsRef<OsStr>>(mut self, schema: S) -> Self {
-        self.schema = Some(schema.as_ref().to_os_string());
+        self.schema.push(schema.as_ref().to_os_string());
         self
     }
 
     /// reindex specific table(s) only
+    /// May be called multiple times; each value is retained.
     #[must_use]
     pub fn table<S: AsRef<OsStr>>(mut self, table: S) -> Self {
-        self.table = Some(table.as_ref().to_os_string());
+        self.table.push(table.as_ref().to_os_string());
         self
     }
 
@@ -222,6 +225,14 @@ impl CommandBuilder for ReindexDbBuilder {
     fn get_args(&self) -> Vec<OsString> {
         let mut args: Vec<OsString> = Vec::new();
 
+        if self.version {
+            args.push("--version".into());
+        }
+
+        if self.help {
+            args.push("--help".into());
+        }
+
         if self.all {
             args.push("--all".into());
         }
@@ -239,7 +250,7 @@ impl CommandBuilder for ReindexDbBuilder {
             args.push("--echo".into());
         }
 
-        if let Some(index) = &self.index {
+        for index in &self.index {
             args.push("--index".into());
             args.push(index.into());
         }
@@ -257,12 +268,12 @@ impl CommandBuilder for ReindexDbBuilder {
             args.push("--system".into());
         }
 
-        if let Some(schema) = &self.schema {
+        for schema in &self.schema {
             args.push("--schema".into());
             args.push(schema.into());
         }
 
-        if let Some(table) = &self.table {
+        for table in &self.table {
             args.push("--table".into());
             args.push(table.into());
         }
@@ -274,14 +285,6 @@ impl CommandBuilder for ReindexDbBuilder {
 
         if self.verbose {
             args.push("--verbose".into());
-        }
-
-        if self.version {
-            args.push("--version".into());
-        }
-
-        if self.help {
-            args.push("--help".into());
         }
 
         if let Some(host) = &self.host {
@@ -337,8 +340,10 @@ impl CommandBuilder for ReindexDbBuilder {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::CommandExecutor;
     use crate::TestSettings;
     use crate::TestSocketSettings;
+    use crate::test_utils::{TestResult, assert_args, binary_dir};
     use crate::traits::CommandToString;
     use test_log::test;
 
@@ -414,9 +419,51 @@ mod tests {
 
         assert_eq!(
             format!(
-                r#"{command_prefix}"reindexdb" "--all" "--concurrently" "--dbname" "dbname" "--echo" "--index" "index" "--jobs" "1" "--quiet" "--system" "--schema" "schema" "--table" "table" "--tablespace" "tablespace" "--verbose" "--version" "--help" "--host" "localhost" "--port" "5432" "--username" "username" "--no-password" "--password" "--maintenance-db" "maintenance-db""#
+                r#"{command_prefix}"reindexdb" "--version" "--help" "--all" "--concurrently" "--dbname" "dbname" "--echo" "--index" "index" "--jobs" "1" "--quiet" "--system" "--schema" "schema" "--table" "table" "--tablespace" "tablespace" "--verbose" "--host" "localhost" "--port" "5432" "--username" "username" "--no-password" "--password" "--maintenance-db" "maintenance-db""#
             ),
             command.to_command_string()
         );
+    }
+
+    #[test]
+    fn test_repeated_options() {
+        assert_args(
+            ReindexDbBuilder::new().index("first").index("second"),
+            &["--index", "first", "--index", "second"],
+        );
+        assert_args(
+            ReindexDbBuilder::new().schema("first").schema("second"),
+            &["--schema", "first", "--schema", "second"],
+        );
+        assert_args(
+            ReindexDbBuilder::new().table("first").table("second"),
+            &["--table", "first", "--table", "second"],
+        );
+    }
+
+    #[test]
+    fn test_informational_options_come_first_on_configured_builders() {
+        let version = ReindexDbBuilder::from(&TestSettings).version().get_args();
+        assert_eq!(version.first(), Some(&OsString::from("--version")));
+        let help = ReindexDbBuilder::from(&TestSettings).help().get_args();
+        assert_eq!(help.first(), Some(&OsString::from("--help")));
+    }
+
+    #[test]
+    fn test_cli_help_and_version() -> TestResult {
+        let Some(bin) = binary_dir() else {
+            return Ok(());
+        };
+        ReindexDbBuilder::new()
+            .program_dir(&bin)
+            .version()
+            .build()
+            .execute()?;
+        ReindexDbBuilder::new()
+            .program_dir(&bin)
+            .help()
+            .build()
+            .execute()?;
+        Ok(())
     }
 }

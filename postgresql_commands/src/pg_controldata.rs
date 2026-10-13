@@ -69,17 +69,17 @@ impl CommandBuilder for PgControlDataBuilder {
     fn get_args(&self) -> Vec<OsString> {
         let mut args: Vec<OsString> = Vec::new();
 
-        if let Some(pgdata) = &self.pgdata {
-            args.push("--pgdata".into());
-            args.push(pgdata.into());
-        }
-
         if self.version {
             args.push("--version".into());
         }
 
         if self.help {
             args.push("--help".into());
+        }
+
+        if let Some(pgdata) = &self.pgdata {
+            args.push("--pgdata".into());
+            args.push(pgdata.into());
         }
 
         args
@@ -101,7 +101,9 @@ impl CommandBuilder for PgControlDataBuilder {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::CommandExecutor;
     use crate::TestSettings;
+    use crate::test_utils::{TestResult, binary_dir};
     use crate::traits::CommandToString;
     use test_log::test;
 
@@ -139,8 +141,36 @@ mod tests {
         let command_prefix = String::new();
 
         assert_eq!(
-            format!(r#"{command_prefix}"pg_controldata" "--pgdata" "pgdata" "--version" "--help""#),
+            format!(r#"{command_prefix}"pg_controldata" "--version" "--help" "--pgdata" "pgdata""#),
             command.to_command_string()
         );
+    }
+
+    #[test]
+    fn test_informational_options_come_first_on_configured_builders() {
+        let version = PgControlDataBuilder::from(&TestSettings)
+            .version()
+            .get_args();
+        assert_eq!(version.first(), Some(&OsString::from("--version")));
+        let help = PgControlDataBuilder::from(&TestSettings).help().get_args();
+        assert_eq!(help.first(), Some(&OsString::from("--help")));
+    }
+
+    #[test]
+    fn test_cli_help_and_version() -> TestResult {
+        let Some(bin) = binary_dir() else {
+            return Ok(());
+        };
+        PgControlDataBuilder::new()
+            .program_dir(&bin)
+            .version()
+            .build()
+            .execute()?;
+        PgControlDataBuilder::new()
+            .program_dir(&bin)
+            .help()
+            .build()
+            .execute()?;
+        Ok(())
     }
 }
