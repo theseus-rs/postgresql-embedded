@@ -9,6 +9,7 @@ use std::path::PathBuf;
 pub struct PgResetWalBuilder {
     program_dir: Option<PathBuf>,
     envs: Vec<(OsString, OsString)>,
+    char_signedness: Option<OsString>,
     commit_timestamp_ids: Option<(OsString, OsString)>,
     pgdata: Option<PathBuf>,
     epoch: Option<OsString>,
@@ -141,6 +142,13 @@ impl PgResetWalBuilder {
         self.help = true;
         self
     }
+
+    /// Set the default char signedness: signed or unsigned.
+    #[must_use]
+    pub fn char_signedness<S: AsRef<OsStr>>(mut self, char_signedness: S) -> Self {
+        self.char_signedness = Some(char_signedness.as_ref().to_os_string());
+        self
+    }
 }
 
 impl CommandBuilder for PgResetWalBuilder {
@@ -157,6 +165,14 @@ impl CommandBuilder for PgResetWalBuilder {
     /// Get the arguments for the command
     fn get_args(&self) -> Vec<OsString> {
         let mut args: Vec<OsString> = Vec::new();
+
+        if self.version {
+            args.push("--version".into());
+        }
+
+        if self.help {
+            args.push("--help".into());
+        }
 
         if let Some((xid1, xid2)) = &self.commit_timestamp_ids {
             args.push("--commit-timestamp-ids".into());
@@ -206,10 +222,6 @@ impl CommandBuilder for PgResetWalBuilder {
             args.push(xid.into());
         }
 
-        if self.version {
-            args.push("--version".into());
-        }
-
         if let Some(xid) = &self.next_transaction_id {
             args.push("--next-transaction-id".into());
             args.push(xid.into());
@@ -220,8 +232,9 @@ impl CommandBuilder for PgResetWalBuilder {
             args.push(size.into());
         }
 
-        if self.help {
-            args.push("--help".into());
+        if let Some(char_signedness) = &self.char_signedness {
+            args.push("--char-signedness".into());
+            args.push(char_signedness.into());
         }
 
         args
@@ -243,7 +256,9 @@ impl CommandBuilder for PgResetWalBuilder {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::CommandExecutor;
     use crate::TestSettings;
+    use crate::test_utils::{TestResult, assert_args, binary_dir};
     use crate::traits::CommandToString;
     use test_log::test;
 
@@ -285,6 +300,7 @@ mod tests {
             .next_transaction_id("next_transaction_id")
             .wal_segsize("wal_segsize")
             .help()
+            .char_signedness("signed")
             .build();
         #[cfg(not(target_os = "windows"))]
         let command_prefix = r#"PGDATABASE="database" "#;
@@ -293,9 +309,43 @@ mod tests {
 
         assert_eq!(
             format!(
-                r#"{command_prefix}"pg_resetwal" "--commit-timestamp-ids" "1,2" "--pgdata" "pgdata" "--epoch" "epoch" "--force" "--next-wal-file" "next_wal_file" "--multixact-ids" "3,4" "--dry-run" "--next-oid" "next_oid" "--multixact-offset" "multixact_offset" "--oldest-transaction-id" "oldest_transaction_id" "--version" "--next-transaction-id" "next_transaction_id" "--wal-segsize" "wal_segsize" "--help""#
+                r#"{command_prefix}"pg_resetwal" "--version" "--help" "--commit-timestamp-ids" "1,2" "--pgdata" "pgdata" "--epoch" "epoch" "--force" "--next-wal-file" "next_wal_file" "--multixact-ids" "3,4" "--dry-run" "--next-oid" "next_oid" "--multixact-offset" "multixact_offset" "--oldest-transaction-id" "oldest_transaction_id" "--next-transaction-id" "next_transaction_id" "--wal-segsize" "wal_segsize" "--char-signedness" "signed""#
             ),
             command.to_command_string()
         );
+    }
+
+    #[test]
+    fn test_options() {
+        assert_args(
+            PgResetWalBuilder::new().char_signedness("signed"),
+            &["--char-signedness", "signed"],
+        );
+    }
+
+    #[test]
+    fn test_informational_options_come_first_on_configured_builders() {
+        let version = PgResetWalBuilder::from(&TestSettings).version().get_args();
+        assert_eq!(version.first(), Some(&OsString::from("--version")));
+        let help = PgResetWalBuilder::from(&TestSettings).help().get_args();
+        assert_eq!(help.first(), Some(&OsString::from("--help")));
+    }
+
+    #[test]
+    fn test_cli_help_and_version() -> TestResult {
+        let Some(bin) = binary_dir() else {
+            return Ok(());
+        };
+        PgResetWalBuilder::new()
+            .program_dir(&bin)
+            .version()
+            .build()
+            .execute()?;
+        PgResetWalBuilder::new()
+            .program_dir(&bin)
+            .help()
+            .build()
+            .execute()?;
+        Ok(())
     }
 }

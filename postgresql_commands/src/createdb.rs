@@ -9,6 +9,7 @@ use std::path::PathBuf;
 pub struct CreateDbBuilder {
     program_dir: Option<PathBuf>,
     envs: Vec<(OsString, OsString)>,
+    builtin_locale: Option<OsString>,
     tablespace: Option<OsString>,
     echo: bool,
     encoding: Option<OsString>,
@@ -222,6 +223,13 @@ impl CreateDbBuilder {
         self.description = Some(description.as_ref().to_os_string());
         self
     }
+
+    /// Set the builtin locale for the new database.
+    #[must_use]
+    pub fn builtin_locale<S: AsRef<OsStr>>(mut self, builtin_locale: S) -> Self {
+        self.builtin_locale = Some(builtin_locale.as_ref().to_os_string());
+        self
+    }
 }
 
 impl CommandBuilder for CreateDbBuilder {
@@ -238,6 +246,14 @@ impl CommandBuilder for CreateDbBuilder {
     /// Get the arguments for the command
     fn get_args(&self) -> Vec<OsString> {
         let mut args: Vec<OsString> = Vec::new();
+
+        if self.version {
+            args.push("--version".into());
+        }
+
+        if self.help {
+            args.push("--help".into());
+        }
 
         if let Some(tablespace) = &self.tablespace {
             args.push("--tablespace".into());
@@ -298,14 +314,6 @@ impl CommandBuilder for CreateDbBuilder {
             args.push(template.into());
         }
 
-        if self.version {
-            args.push("--version".into());
-        }
-
-        if self.help {
-            args.push("--help".into());
-        }
-
         if let Some(host) = &self.host {
             args.push("--host".into());
             args.push(host.into());
@@ -332,6 +340,11 @@ impl CommandBuilder for CreateDbBuilder {
         if let Some(maintenance_db) = &self.maintenance_db {
             args.push("--maintenance-db".into());
             args.push(maintenance_db.into());
+        }
+
+        if let Some(builtin_locale) = &self.builtin_locale {
+            args.push("--builtin-locale".into());
+            args.push(builtin_locale.into());
         }
 
         if let Some(dbname) = &self.dbname {
@@ -367,8 +380,10 @@ impl CommandBuilder for CreateDbBuilder {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::CommandExecutor;
     use crate::TestSettings;
     use crate::TestSocketSettings;
+    use crate::test_utils::{TestResult, assert_args, binary_dir};
     use crate::traits::CommandToString;
     use test_log::test;
 
@@ -424,6 +439,7 @@ mod tests {
             .maintenance_db("postgres")
             .dbname("testdb")
             .description("Test Database")
+            .builtin_locale("C.UTF-8")
             .build();
         #[cfg(not(target_os = "windows"))]
         let command_prefix = r#"PGDATABASE="database" PGPASSWORD="password" "#;
@@ -432,7 +448,7 @@ mod tests {
 
         assert_eq!(
             format!(
-                r#"{command_prefix}"createdb" "--tablespace" "pg_default" "--echo" "--encoding" "UTF8" "--locale" "en_US.UTF-8" "--lc-collate" "en_US.UTF-8" "--lc-ctype" "en_US.UTF-8" "--icu-locale" "en_US" "--icu-rules" "standard" "--locale-provider" "icu" "--owner" "postgres" "--strategy" "wal_log" "--template" "template0" "--version" "--help" "--host" "localhost" "--port" "5432" "--username" "postgres" "--no-password" "--password" "--maintenance-db" "postgres" "testdb" "Test Database""#
+                r#"{command_prefix}"createdb" "--version" "--help" "--tablespace" "pg_default" "--echo" "--encoding" "UTF8" "--locale" "en_US.UTF-8" "--lc-collate" "en_US.UTF-8" "--lc-ctype" "en_US.UTF-8" "--icu-locale" "en_US" "--icu-rules" "standard" "--locale-provider" "icu" "--owner" "postgres" "--strategy" "wal_log" "--template" "template0" "--host" "localhost" "--port" "5432" "--username" "postgres" "--no-password" "--password" "--maintenance-db" "postgres" "--builtin-locale" "C.UTF-8" "testdb" "Test Database""#
             ),
             command.to_command_string()
         );
@@ -452,5 +468,39 @@ mod tests {
             ),
             command.to_command_string()
         );
+    }
+
+    #[test]
+    fn test_options() {
+        assert_args(
+            CreateDbBuilder::new().builtin_locale("C.UTF-8"),
+            &["--builtin-locale", "C.UTF-8"],
+        );
+    }
+
+    #[test]
+    fn test_informational_options_come_first_on_configured_builders() {
+        let version = CreateDbBuilder::from(&TestSettings).version().get_args();
+        assert_eq!(version.first(), Some(&OsString::from("--version")));
+        let help = CreateDbBuilder::from(&TestSettings).help().get_args();
+        assert_eq!(help.first(), Some(&OsString::from("--help")));
+    }
+
+    #[test]
+    fn test_cli_help_and_version() -> TestResult {
+        let Some(bin) = binary_dir() else {
+            return Ok(());
+        };
+        CreateDbBuilder::new()
+            .program_dir(&bin)
+            .version()
+            .build()
+            .execute()?;
+        CreateDbBuilder::new()
+            .program_dir(&bin)
+            .help()
+            .build()
+            .execute()?;
+        Ok(())
     }
 }

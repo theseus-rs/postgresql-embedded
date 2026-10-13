@@ -40,6 +40,9 @@ pub mod traits;
 pub mod vacuumdb;
 pub mod vacuumlo;
 
+#[cfg(test)]
+mod test_utils;
+
 pub use error::{Error, Result};
 #[cfg(test)]
 pub use traits::TestSettings;

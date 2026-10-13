@@ -9,6 +9,8 @@ use std::path::PathBuf;
 pub struct PgBenchBuilder {
     program_dir: Option<PathBuf>,
     envs: Vec<(OsString, OsString)>,
+    dbname: Option<OsString>,
+    exit_on_abort: bool,
     initialize: bool,
     init_steps: Option<OsString>,
     fill_factor: Option<usize>,
@@ -21,21 +23,21 @@ pub struct PgBenchBuilder {
     partitions: Option<usize>,
     tablespace: Option<OsString>,
     unlogged_tables: bool,
-    builtin: Option<OsString>,
-    file: Option<OsString>,
+    builtin: Vec<OsString>,
+    file: Vec<OsString>,
     skip_some_updates: bool,
     select_only: bool,
     client: Option<usize>,
     connect: bool,
-    define: Option<OsString>,
+    define: Vec<OsString>,
     jobs: Option<usize>,
     log: bool,
-    latency_limit: Option<usize>,
+    latency_limit: Option<OsString>,
     protocol: Option<OsString>,
     no_vacuum_bench: bool,
     progress: Option<usize>,
     report_per_command: bool,
-    rate: Option<usize>,
+    rate: Option<OsString>,
     scale_bench: Option<usize>,
     transactions: Option<usize>,
     time: Option<usize>,
@@ -169,16 +171,18 @@ impl PgBenchBuilder {
     }
 
     /// add builtin script NAME weighted at W (default: 1)
+    /// May be called multiple times; each value is retained.
     #[must_use]
     pub fn builtin<S: AsRef<OsStr>>(mut self, name: S) -> Self {
-        self.builtin = Some(name.as_ref().to_os_string());
+        self.builtin.push(name.as_ref().to_os_string());
         self
     }
 
     /// add script FILENAME weighted at W (default: 1)
+    /// May be called multiple times; each value is retained.
     #[must_use]
     pub fn file<S: AsRef<OsStr>>(mut self, filename: S) -> Self {
-        self.file = Some(filename.as_ref().to_os_string());
+        self.file.push(filename.as_ref().to_os_string());
         self
     }
 
@@ -211,9 +215,10 @@ impl PgBenchBuilder {
     }
 
     /// define variable for use by custom script
+    /// May be called multiple times; each value is retained.
     #[must_use]
     pub fn define<S: AsRef<OsStr>>(mut self, var: S) -> Self {
-        self.define = Some(var.as_ref().to_os_string());
+        self.define.push(var.as_ref().to_os_string());
         self
     }
 
@@ -233,8 +238,8 @@ impl PgBenchBuilder {
 
     /// count transactions lasting more than NUM ms as late
     #[must_use]
-    pub fn latency_limit(mut self, num: usize) -> Self {
-        self.latency_limit = Some(num);
+    pub fn latency_limit<N: std::fmt::Display>(mut self, num: N) -> Self {
+        self.latency_limit = Some(num.to_string().into());
         self
     }
 
@@ -268,8 +273,8 @@ impl PgBenchBuilder {
 
     /// target rate in transactions per second
     #[must_use]
-    pub fn rate(mut self, num: usize) -> Self {
-        self.rate = Some(num);
+    pub fn rate<N: std::fmt::Display>(mut self, num: N) -> Self {
+        self.rate = Some(num.to_string().into());
         self
     }
 
@@ -405,6 +410,20 @@ impl PgBenchBuilder {
         self.help = true;
         self
     }
+
+    /// Database name to connect to.
+    #[must_use]
+    pub fn dbname<S: AsRef<OsStr>>(mut self, dbname: S) -> Self {
+        self.dbname = Some(dbname.as_ref().to_os_string());
+        self
+    }
+
+    /// Exit when any benchmark client is aborted.
+    #[must_use]
+    pub fn exit_on_abort(mut self) -> Self {
+        self.exit_on_abort = true;
+        self
+    }
 }
 
 impl CommandBuilder for PgBenchBuilder {
@@ -422,6 +441,14 @@ impl CommandBuilder for PgBenchBuilder {
     #[expect(clippy::too_many_lines)]
     fn get_args(&self) -> Vec<OsString> {
         let mut args: Vec<OsString> = Vec::new();
+
+        if self.version {
+            args.push("--version".into());
+        }
+
+        if self.help {
+            args.push("--help".into());
+        }
 
         if self.initialize {
             args.push("--initialize".into());
@@ -478,12 +505,12 @@ impl CommandBuilder for PgBenchBuilder {
             args.push("--unlogged-tables".into());
         }
 
-        if let Some(name) = &self.builtin {
+        for name in &self.builtin {
             args.push("--builtin".into());
             args.push(name.into());
         }
 
-        if let Some(filename) = &self.file {
+        for filename in &self.file {
             args.push("--file".into());
             args.push(filename.into());
         }
@@ -505,7 +532,7 @@ impl CommandBuilder for PgBenchBuilder {
             args.push("--connect".into());
         }
 
-        if let Some(var) = &self.define {
+        for var in &self.define {
             args.push("--define".into());
             args.push(var.into());
         }
@@ -521,7 +548,7 @@ impl CommandBuilder for PgBenchBuilder {
 
         if let Some(num) = &self.latency_limit {
             args.push("--latency-limit".into());
-            args.push(num.to_string().into());
+            args.push(num.into());
         }
 
         if let Some(protocol) = &self.protocol {
@@ -544,7 +571,7 @@ impl CommandBuilder for PgBenchBuilder {
 
         if let Some(num) = &self.rate {
             args.push("--rate".into());
-            args.push(num.to_string().into());
+            args.push(num.into());
         }
 
         if let Some(scale) = &self.scale_bench {
@@ -627,12 +654,13 @@ impl CommandBuilder for PgBenchBuilder {
             args.push(username.into());
         }
 
-        if self.version {
-            args.push("--version".into());
+        if let Some(dbname) = &self.dbname {
+            args.push("--dbname".into());
+            args.push(dbname.into());
         }
 
-        if self.help {
-            args.push("--help".into());
+        if self.exit_on_abort {
+            args.push("--exit-on-abort".into());
         }
 
         args
@@ -654,8 +682,10 @@ impl CommandBuilder for PgBenchBuilder {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::CommandExecutor;
     use crate::TestSettings;
     use crate::TestSocketSettings;
+    use crate::test_utils::{TestResult, assert_args, binary_dir};
     use crate::traits::CommandToString;
     use test_log::test;
 
@@ -748,6 +778,8 @@ mod tests {
             .username("username")
             .version()
             .help()
+            .dbname("testdb")
+            .exit_on_abort()
             .build();
         #[cfg(not(target_os = "windows"))]
         let command_prefix = r#"PGDATABASE="database" "#;
@@ -756,9 +788,68 @@ mod tests {
 
         assert_eq!(
             format!(
-                r#"{command_prefix}"pgbench" "--initialize" "--init-steps" "steps" "--fillfactor" "10" "--no-vacuum" "--quiet" "--scale" "10" "--foreign-keys" "--index-tablespace" "tablespace" "--partition-method" "method" "--partitions" "10" "--tablespace" "tablespace" "--unlogged-tables" "--builtin" "name" "--file" "filename" "--skip-some-updates" "--select-only" "--client" "10" "--connect" "--define" "var" "--jobs" "10" "--log" "--latency-limit" "10" "--protocol" "protocol" "--no-vacuum" "--progress" "10" "--report-per-command" "--rate" "10" "--scale" "10" "--transactions" "10" "--time" "10" "--vacuum-all" "--aggregate-interval" "10" "--failures-detailed" "--log-prefix" "prefix" "--max-tries" "10" "--progress-timestamp" "--random-seed" "seed" "--sampling-rate" "10" "--show-script" "name" "--verbose-errors" "--debug" "--host" "localhost" "--port" "5432" "--username" "username" "--version" "--help""#
+                r#"{command_prefix}"pgbench" "--version" "--help" "--initialize" "--init-steps" "steps" "--fillfactor" "10" "--no-vacuum" "--quiet" "--scale" "10" "--foreign-keys" "--index-tablespace" "tablespace" "--partition-method" "method" "--partitions" "10" "--tablespace" "tablespace" "--unlogged-tables" "--builtin" "name" "--file" "filename" "--skip-some-updates" "--select-only" "--client" "10" "--connect" "--define" "var" "--jobs" "10" "--log" "--latency-limit" "10" "--protocol" "protocol" "--no-vacuum" "--progress" "10" "--report-per-command" "--rate" "10" "--scale" "10" "--transactions" "10" "--time" "10" "--vacuum-all" "--aggregate-interval" "10" "--failures-detailed" "--log-prefix" "prefix" "--max-tries" "10" "--progress-timestamp" "--random-seed" "seed" "--sampling-rate" "10" "--show-script" "name" "--verbose-errors" "--debug" "--host" "localhost" "--port" "5432" "--username" "username" "--dbname" "testdb" "--exit-on-abort""#
             ),
             command.to_command_string()
         );
+    }
+
+    #[test]
+    fn test_numeric_arguments_accept_the_cli_value_range() {
+        assert_args(
+            PgBenchBuilder::new().rate(1.5).latency_limit(0.25),
+            &["--latency-limit", "0.25", "--rate", "1.5"],
+        );
+    }
+
+    #[test]
+    fn test_options() {
+        assert_args(
+            PgBenchBuilder::new().dbname("test db"),
+            &["--dbname", "test db"],
+        );
+        assert_args(PgBenchBuilder::new().exit_on_abort(), &["--exit-on-abort"]);
+    }
+
+    #[test]
+    fn test_repeated_options() {
+        assert_args(
+            PgBenchBuilder::new().builtin("first").builtin("second"),
+            &["--builtin", "first", "--builtin", "second"],
+        );
+        assert_args(
+            PgBenchBuilder::new().file("first").file("second"),
+            &["--file", "first", "--file", "second"],
+        );
+        assert_args(
+            PgBenchBuilder::new().define("first").define("second"),
+            &["--define", "first", "--define", "second"],
+        );
+    }
+
+    #[test]
+    fn test_informational_options_come_first_on_configured_builders() {
+        let version = PgBenchBuilder::from(&TestSettings).version().get_args();
+        assert_eq!(version.first(), Some(&OsString::from("--version")));
+        let help = PgBenchBuilder::from(&TestSettings).help().get_args();
+        assert_eq!(help.first(), Some(&OsString::from("--help")));
+    }
+
+    #[test]
+    fn test_cli_help_and_version() -> TestResult {
+        let Some(bin) = binary_dir() else {
+            return Ok(());
+        };
+        PgBenchBuilder::new()
+            .program_dir(&bin)
+            .version()
+            .build()
+            .execute()?;
+        PgBenchBuilder::new()
+            .program_dir(&bin)
+            .help()
+            .build()
+            .execute()?;
+        Ok(())
     }
 }

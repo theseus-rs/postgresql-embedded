@@ -9,17 +9,19 @@ use std::path::PathBuf;
 pub struct CreateUserBuilder {
     program_dir: Option<PathBuf>,
     envs: Vec<(OsString, OsString)>,
-    with_admin: Option<OsString>,
-    connection_limit: Option<u32>,
+    encrypted: bool,
+    rolename: Option<OsString>,
+    with_admin: Vec<OsString>,
+    connection_limit: Option<OsString>,
     createdb: bool,
     no_createdb: bool,
     echo: bool,
-    member_of: Option<OsString>,
+    member_of: Vec<OsString>,
     inherit: bool,
     no_inherit: bool,
     login: bool,
     no_login: bool,
-    with_member: Option<OsString>,
+    with_member: Vec<OsString>,
     pwprompt: bool,
     createrole: bool,
     no_createrole: bool,
@@ -70,16 +72,17 @@ impl CreateUserBuilder {
     }
 
     /// ROLE will be a member of new role with admin option
+    /// May be called multiple times; each value is retained.
     #[must_use]
     pub fn with_admin<S: AsRef<OsStr>>(mut self, role: S) -> Self {
-        self.with_admin = Some(role.as_ref().to_os_string());
+        self.with_admin.push(role.as_ref().to_os_string());
         self
     }
 
     /// Connection limit for role (default: no limit)
     #[must_use]
-    pub fn connection_limit(mut self, limit: u32) -> Self {
-        self.connection_limit = Some(limit);
+    pub fn connection_limit<N: std::fmt::Display>(mut self, limit: N) -> Self {
+        self.connection_limit = Some(limit.to_string().into());
         self
     }
 
@@ -105,9 +108,10 @@ impl CreateUserBuilder {
     }
 
     /// New role will be a member of ROLE
+    /// May be called multiple times; each value is retained.
     #[must_use]
     pub fn member_of<S: AsRef<OsStr>>(mut self, role: S) -> Self {
-        self.member_of = Some(role.as_ref().to_os_string());
+        self.member_of.push(role.as_ref().to_os_string());
         self
     }
 
@@ -140,9 +144,10 @@ impl CreateUserBuilder {
     }
 
     /// ROLE will be a member of new role
+    /// May be called multiple times; each value is retained.
     #[must_use]
     pub fn with_member<S: AsRef<OsStr>>(mut self, role: S) -> Self {
-        self.with_member = Some(role.as_ref().to_os_string());
+        self.with_member.push(role.as_ref().to_os_string());
         self
     }
 
@@ -278,6 +283,20 @@ impl CreateUserBuilder {
         self.pg_password = Some(pg_password.as_ref().to_os_string());
         self
     }
+
+    /// Accept the legacy encrypted-password option (ignored by modern servers).
+    #[must_use]
+    pub fn encrypted(mut self) -> Self {
+        self.encrypted = true;
+        self
+    }
+
+    /// Name of the role to create.
+    #[must_use]
+    pub fn rolename<S: AsRef<OsStr>>(mut self, rolename: S) -> Self {
+        self.rolename = Some(rolename.as_ref().to_os_string());
+        self
+    }
 }
 
 impl CommandBuilder for CreateUserBuilder {
@@ -295,14 +314,22 @@ impl CommandBuilder for CreateUserBuilder {
     fn get_args(&self) -> Vec<OsString> {
         let mut args: Vec<OsString> = Vec::new();
 
-        if let Some(role) = &self.with_admin {
+        if self.version {
+            args.push("--version".into());
+        }
+
+        if self.help {
+            args.push("--help".into());
+        }
+
+        for role in &self.with_admin {
             args.push("--with-admin".into());
             args.push(role.into());
         }
 
         if let Some(limit) = &self.connection_limit {
             args.push("--connection-limit".into());
-            args.push(limit.to_string().into());
+            args.push(limit.into());
         }
 
         if self.createdb {
@@ -317,7 +344,7 @@ impl CommandBuilder for CreateUserBuilder {
             args.push("--echo".into());
         }
 
-        if let Some(role) = &self.member_of {
+        for role in &self.member_of {
             args.push("--member-of".into());
             args.push(role.into());
         }
@@ -338,7 +365,7 @@ impl CommandBuilder for CreateUserBuilder {
             args.push("--no-login".into());
         }
 
-        if let Some(role) = &self.with_member {
+        for role in &self.with_member {
             args.push("--with-member".into());
             args.push(role.into());
         }
@@ -368,10 +395,6 @@ impl CommandBuilder for CreateUserBuilder {
             args.push(timestamp.into());
         }
 
-        if self.version {
-            args.push("--version".into());
-        }
-
         if self.interactive {
             args.push("--interactive".into());
         }
@@ -390,10 +413,6 @@ impl CommandBuilder for CreateUserBuilder {
 
         if self.no_replication {
             args.push("--no-replication".into());
-        }
-
-        if self.help {
-            args.push("--help".into());
         }
 
         if let Some(host) = &self.host {
@@ -417,6 +436,14 @@ impl CommandBuilder for CreateUserBuilder {
 
         if self.password {
             args.push("--password".into());
+        }
+
+        if self.encrypted {
+            args.push("--encrypted".into());
+        }
+
+        if let Some(rolename) = &self.rolename {
+            args.push(rolename.into());
         }
 
         args
@@ -444,8 +471,10 @@ impl CommandBuilder for CreateUserBuilder {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::CommandExecutor;
     use crate::TestSettings;
     use crate::TestSocketSettings;
+    use crate::test_utils::{TestResult, assert_args, binary_dir};
     use crate::traits::CommandToString;
     use test_log::test;
 
@@ -508,6 +537,8 @@ mod tests {
             .no_password()
             .password()
             .pg_password("password")
+            .encrypted()
+            .rolename("test_role")
             .build();
         #[cfg(not(target_os = "windows"))]
         let command_prefix = r#"PGDATABASE="database" PGPASSWORD="password" "#;
@@ -516,7 +547,7 @@ mod tests {
 
         assert_eq!(
             format!(
-                r#"{command_prefix}"createuser" "--with-admin" "admin" "--connection-limit" "10" "--createdb" "--no-createdb" "--echo" "--member-of" "member" "--inherit" "--no-inherit" "--login" "--no-login" "--with-member" "member" "--pwprompt" "--createrole" "--no-createrole" "--superuser" "--no-superuser" "--valid-until" "2021-12-31" "--version" "--interactive" "--bypassrls" "--no-bypassrls" "--replication" "--no-replication" "--help" "--host" "localhost" "--port" "5432" "--username" "username" "--no-password" "--password""#
+                r#"{command_prefix}"createuser" "--version" "--help" "--with-admin" "admin" "--connection-limit" "10" "--createdb" "--no-createdb" "--echo" "--member-of" "member" "--inherit" "--no-inherit" "--login" "--no-login" "--with-member" "member" "--pwprompt" "--createrole" "--no-createrole" "--superuser" "--no-superuser" "--valid-until" "2021-12-31" "--interactive" "--bypassrls" "--no-bypassrls" "--replication" "--no-replication" "--host" "localhost" "--port" "5432" "--username" "username" "--no-password" "--password" "--encrypted" "test_role""#
             ),
             command.to_command_string()
         );
@@ -536,5 +567,80 @@ mod tests {
             ),
             command.to_command_string()
         );
+    }
+
+    #[test]
+    fn test_positional_arguments_follow_options() {
+        assert_args(
+            CreateUserBuilder::new()
+                .rolename("new role")
+                .username("admin"),
+            &["--username", "admin", "new role"],
+        );
+    }
+
+    #[test]
+    fn test_numeric_arguments_accept_the_cli_value_range() {
+        assert_args(
+            CreateUserBuilder::new().connection_limit(-1),
+            &["--connection-limit", "-1"],
+        );
+    }
+
+    #[test]
+    fn test_options() {
+        assert_args(CreateUserBuilder::new().encrypted(), &["--encrypted"]);
+        assert_args(
+            CreateUserBuilder::new().rolename("test role"),
+            &["test role"],
+        );
+    }
+
+    #[test]
+    fn test_repeated_options() {
+        assert_args(
+            CreateUserBuilder::new()
+                .with_admin("first")
+                .with_admin("second"),
+            &["--with-admin", "first", "--with-admin", "second"],
+        );
+        assert_args(
+            CreateUserBuilder::new()
+                .member_of("first")
+                .member_of("second"),
+            &["--member-of", "first", "--member-of", "second"],
+        );
+        assert_args(
+            CreateUserBuilder::new()
+                .with_member("first")
+                .with_member("second"),
+            &["--with-member", "first", "--with-member", "second"],
+        );
+    }
+
+    #[test]
+    fn test_informational_options_come_first_on_configured_builders() {
+        let version = CreateUserBuilder::from(&TestSettings).version().get_args();
+        assert_eq!(version.first(), Some(&OsString::from("--version")));
+        let help = CreateUserBuilder::from(&TestSettings).help().get_args();
+        assert_eq!(help.first(), Some(&OsString::from("--help")));
+    }
+
+    #[test]
+    fn test_cli_help_and_version() -> TestResult {
+        let Some(bin) = binary_dir() else {
+            return Ok(());
+        };
+        CreateUserBuilder::new()
+            .program_dir(&bin)
+            .version()
+            .build()
+            .execute()?;
+        CreateUserBuilder::new()
+            .program_dir(&bin)
+            .help()
+            .build()
+            .execute()?;
+        Ok(())
     }
 }

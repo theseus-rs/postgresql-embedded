@@ -9,8 +9,10 @@ use std::path::PathBuf;
 pub struct PgVerifyBackupBuilder {
     program_dir: Option<PathBuf>,
     envs: Vec<(OsString, OsString)>,
+    format: Option<OsString>,
+    backup_dir: Option<OsString>,
     exit_on_error: bool,
-    ignore: Option<OsString>,
+    ignore: Vec<OsString>,
     manifest_path: Option<OsString>,
     no_parse_wal: bool,
     progress: bool,
@@ -48,9 +50,10 @@ impl PgVerifyBackupBuilder {
     }
 
     /// ignore indicated path
+    /// May be called multiple times; each value is retained.
     #[must_use]
     pub fn ignore<S: AsRef<OsStr>>(mut self, ignore: S) -> Self {
-        self.ignore = Some(ignore.as_ref().to_os_string());
+        self.ignore.push(ignore.as_ref().to_os_string());
         self
     }
 
@@ -109,6 +112,20 @@ impl PgVerifyBackupBuilder {
         self.help = true;
         self
     }
+
+    /// Select the backup format: plain or tar.
+    #[must_use]
+    pub fn format<S: AsRef<OsStr>>(mut self, format: S) -> Self {
+        self.format = Some(format.as_ref().to_os_string());
+        self
+    }
+
+    /// Directory containing the backup to verify.
+    #[must_use]
+    pub fn backup_dir<S: AsRef<OsStr>>(mut self, backup_dir: S) -> Self {
+        self.backup_dir = Some(backup_dir.as_ref().to_os_string());
+        self
+    }
 }
 
 impl CommandBuilder for PgVerifyBackupBuilder {
@@ -126,11 +143,19 @@ impl CommandBuilder for PgVerifyBackupBuilder {
     fn get_args(&self) -> Vec<OsString> {
         let mut args: Vec<OsString> = Vec::new();
 
+        if self.version {
+            args.push("--version".into());
+        }
+
+        if self.help {
+            args.push("--help".into());
+        }
+
         if self.exit_on_error {
             args.push("--exit-on-error".into());
         }
 
-        if let Some(ignore) = &self.ignore {
+        for ignore in &self.ignore {
             args.push("--ignore".into());
             args.push(ignore.into());
         }
@@ -161,12 +186,13 @@ impl CommandBuilder for PgVerifyBackupBuilder {
             args.push(wal_directory.into());
         }
 
-        if self.version {
-            args.push("--version".into());
+        if let Some(format) = &self.format {
+            args.push("--format".into());
+            args.push(format.into());
         }
 
-        if self.help {
-            args.push("--help".into());
+        if let Some(backup_dir) = &self.backup_dir {
+            args.push(backup_dir.into());
         }
 
         args
@@ -188,7 +214,9 @@ impl CommandBuilder for PgVerifyBackupBuilder {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::CommandExecutor;
     use crate::TestSettings;
+    use crate::test_utils::{TestResult, assert_args, binary_dir};
     use crate::traits::CommandToString;
     use test_log::test;
 
@@ -226,6 +254,8 @@ mod tests {
             .wal_directory("wal_directory")
             .version()
             .help()
+            .format("tar")
+            .backup_dir("backup")
             .build();
         #[cfg(not(target_os = "windows"))]
         let command_prefix = r#"PGDATABASE="database" "#;
@@ -234,9 +264,69 @@ mod tests {
 
         assert_eq!(
             format!(
-                r#"{command_prefix}"pg_verifybackup" "--exit-on-error" "--ignore" "ignore" "--manifest-path" "manifest-path" "--no-parse-wal" "--progress" "--quiet" "--skip-checksums" "--wal-directory" "wal_directory" "--version" "--help""#
+                r#"{command_prefix}"pg_verifybackup" "--version" "--help" "--exit-on-error" "--ignore" "ignore" "--manifest-path" "manifest-path" "--no-parse-wal" "--progress" "--quiet" "--skip-checksums" "--wal-directory" "wal_directory" "--format" "tar" "backup""#
             ),
             command.to_command_string()
         );
+    }
+
+    #[test]
+    fn test_positional_arguments_follow_options() {
+        assert_args(
+            PgVerifyBackupBuilder::new()
+                .backup_dir("backup dir")
+                .no_parse_wal(),
+            &["--no-parse-wal", "backup dir"],
+        );
+    }
+
+    #[test]
+    fn test_options() {
+        assert_args(
+            PgVerifyBackupBuilder::new().format("tar"),
+            &["--format", "tar"],
+        );
+        assert_args(
+            PgVerifyBackupBuilder::new().backup_dir("value with spaces"),
+            &["value with spaces"],
+        );
+    }
+
+    #[test]
+    fn test_repeated_options() {
+        assert_args(
+            PgVerifyBackupBuilder::new()
+                .ignore("first")
+                .ignore("second"),
+            &["--ignore", "first", "--ignore", "second"],
+        );
+    }
+
+    #[test]
+    fn test_informational_options_come_first_on_configured_builders() {
+        let version = PgVerifyBackupBuilder::from(&TestSettings)
+            .version()
+            .get_args();
+        assert_eq!(version.first(), Some(&OsString::from("--version")));
+        let help = PgVerifyBackupBuilder::from(&TestSettings).help().get_args();
+        assert_eq!(help.first(), Some(&OsString::from("--help")));
+    }
+
+    #[test]
+    fn test_cli_help_and_version() -> TestResult {
+        let Some(bin) = binary_dir() else {
+            return Ok(());
+        };
+        PgVerifyBackupBuilder::new()
+            .program_dir(&bin)
+            .version()
+            .build()
+            .execute()?;
+        PgVerifyBackupBuilder::new()
+            .program_dir(&bin)
+            .help()
+            .build()
+            .execute()?;
+        Ok(())
     }
 }

@@ -9,6 +9,7 @@ use std::path::PathBuf;
 pub struct VacuumDbBuilder {
     program_dir: Option<PathBuf>,
     envs: Vec<(OsString, OsString)>,
+    missing_stats_only: bool,
     all: bool,
     buffer_usage_limit: Option<OsString>,
     dbname: Option<OsString>,
@@ -24,12 +25,12 @@ pub struct VacuumDbBuilder {
     no_process_main: bool,
     no_process_toast: bool,
     no_truncate: bool,
-    schema: Option<OsString>,
-    exclude_schema: Option<OsString>,
+    schema: Vec<OsString>,
+    exclude_schema: Vec<OsString>,
     parallel: Option<u32>,
     quiet: bool,
     skip_locked: bool,
-    table: Option<OsString>,
+    table: Vec<OsString>,
     verbose: bool,
     version: bool,
     analyze: bool,
@@ -180,16 +181,19 @@ impl VacuumDbBuilder {
     }
 
     /// vacuum tables in the specified schema(s) only
+    /// May be called multiple times; each value is retained.
     #[must_use]
     pub fn schema<S: AsRef<OsStr>>(mut self, schema: S) -> Self {
-        self.schema = Some(schema.as_ref().to_os_string());
+        self.schema.push(schema.as_ref().to_os_string());
         self
     }
 
     /// do not vacuum tables in the specified schema(s)
+    /// May be called multiple times; each value is retained.
     #[must_use]
     pub fn exclude_schema<S: AsRef<OsStr>>(mut self, exclude_schema: S) -> Self {
-        self.exclude_schema = Some(exclude_schema.as_ref().to_os_string());
+        self.exclude_schema
+            .push(exclude_schema.as_ref().to_os_string());
         self
     }
 
@@ -215,9 +219,10 @@ impl VacuumDbBuilder {
     }
 
     /// vacuum specific table(s) only
+    /// May be called multiple times; each value is retained.
     #[must_use]
     pub fn table<S: AsRef<OsStr>>(mut self, table: S) -> Self {
-        self.table = Some(table.as_ref().to_os_string());
+        self.table.push(table.as_ref().to_os_string());
         self
     }
 
@@ -311,6 +316,13 @@ impl VacuumDbBuilder {
         self.maintenance_db = Some(maintenance_db.as_ref().to_os_string());
         self
     }
+
+    /// Analyze only relations with missing statistics.
+    #[must_use]
+    pub fn missing_stats_only(mut self) -> Self {
+        self.missing_stats_only = true;
+        self
+    }
 }
 
 impl CommandBuilder for VacuumDbBuilder {
@@ -328,6 +340,14 @@ impl CommandBuilder for VacuumDbBuilder {
     #[expect(clippy::too_many_lines)]
     fn get_args(&self) -> Vec<OsString> {
         let mut args: Vec<OsString> = Vec::new();
+
+        if self.version {
+            args.push("--version".into());
+        }
+
+        if self.help {
+            args.push("--help".into());
+        }
 
         if self.all {
             args.push("--all".into());
@@ -394,12 +414,12 @@ impl CommandBuilder for VacuumDbBuilder {
             args.push("--no-truncate".into());
         }
 
-        if let Some(schema) = &self.schema {
+        for schema in &self.schema {
             args.push("--schema".into());
             args.push(schema.into());
         }
 
-        if let Some(exclude_schema) = &self.exclude_schema {
+        for exclude_schema in &self.exclude_schema {
             args.push("--exclude-schema".into());
             args.push(exclude_schema.into());
         }
@@ -417,17 +437,13 @@ impl CommandBuilder for VacuumDbBuilder {
             args.push("--skip-locked".into());
         }
 
-        if let Some(table) = &self.table {
+        for table in &self.table {
             args.push("--table".into());
             args.push(table.into());
         }
 
         if self.verbose {
             args.push("--verbose".into());
-        }
-
-        if self.version {
-            args.push("--version".into());
         }
 
         if self.analyze {
@@ -440,10 +456,6 @@ impl CommandBuilder for VacuumDbBuilder {
 
         if self.analyze_in_stages {
             args.push("--analyze-in-stages".into());
-        }
-
-        if self.help {
-            args.push("--help".into());
         }
 
         if let Some(host) = &self.host {
@@ -474,6 +486,10 @@ impl CommandBuilder for VacuumDbBuilder {
             args.push(maintenance_db.into());
         }
 
+        if self.missing_stats_only {
+            args.push("--missing-stats-only".into());
+        }
+
         args
     }
 
@@ -499,8 +515,10 @@ impl CommandBuilder for VacuumDbBuilder {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::CommandExecutor;
     use crate::TestSettings;
     use crate::TestSocketSettings;
+    use crate::test_utils::{TestResult, assert_args, binary_dir};
     use crate::traits::CommandToString;
     use test_log::test;
 
@@ -581,6 +599,7 @@ mod tests {
             .password()
             .pg_password("password")
             .maintenance_db("maintenance_db")
+            .missing_stats_only()
             .build();
         #[cfg(not(target_os = "windows"))]
         let command_prefix = r#"PGDATABASE="database" PGPASSWORD="password" "#;
@@ -589,9 +608,61 @@ mod tests {
 
         assert_eq!(
             format!(
-                r#"{command_prefix}"vacuumdb" "--all" "--buffer-usage-limit" "buffer_usage_limit" "--dbname" "dbname" "--disable-page-skipping" "--echo" "--full" "--freeze" "--force-index-cleanup" "--jobs" "1" "--min-mxid-age" "min_mxid_age" "--min-xid-age" "min_xid_age" "--no-index-cleanup" "--no-process-main" "--no-process-toast" "--no-truncate" "--schema" "schema" "--exclude-schema" "exclude_schema" "--parallel" "1" "--quiet" "--skip-locked" "--table" "table" "--verbose" "--version" "--analyze" "--analyze-only" "--analyze-in-stages" "--help" "--host" "localhost" "--port" "5432" "--username" "username" "--no-password" "--password" "--maintenance-db" "maintenance_db""#
+                r#"{command_prefix}"vacuumdb" "--version" "--help" "--all" "--buffer-usage-limit" "buffer_usage_limit" "--dbname" "dbname" "--disable-page-skipping" "--echo" "--full" "--freeze" "--force-index-cleanup" "--jobs" "1" "--min-mxid-age" "min_mxid_age" "--min-xid-age" "min_xid_age" "--no-index-cleanup" "--no-process-main" "--no-process-toast" "--no-truncate" "--schema" "schema" "--exclude-schema" "exclude_schema" "--parallel" "1" "--quiet" "--skip-locked" "--table" "table" "--verbose" "--analyze" "--analyze-only" "--analyze-in-stages" "--host" "localhost" "--port" "5432" "--username" "username" "--no-password" "--password" "--maintenance-db" "maintenance_db" "--missing-stats-only""#
             ),
             command.to_command_string()
         );
+    }
+
+    #[test]
+    fn test_options() {
+        assert_args(
+            VacuumDbBuilder::new().missing_stats_only(),
+            &["--missing-stats-only"],
+        );
+    }
+
+    #[test]
+    fn test_repeated_options() {
+        assert_args(
+            VacuumDbBuilder::new().schema("first").schema("second"),
+            &["--schema", "first", "--schema", "second"],
+        );
+        assert_args(
+            VacuumDbBuilder::new()
+                .exclude_schema("first")
+                .exclude_schema("second"),
+            &["--exclude-schema", "first", "--exclude-schema", "second"],
+        );
+        assert_args(
+            VacuumDbBuilder::new().table("first").table("second"),
+            &["--table", "first", "--table", "second"],
+        );
+    }
+
+    #[test]
+    fn test_informational_options_come_first_on_configured_builders() {
+        let version = VacuumDbBuilder::from(&TestSettings).version().get_args();
+        assert_eq!(version.first(), Some(&OsString::from("--version")));
+        let help = VacuumDbBuilder::from(&TestSettings).help().get_args();
+        assert_eq!(help.first(), Some(&OsString::from("--help")));
+    }
+
+    #[test]
+    fn test_cli_help_and_version() -> TestResult {
+        let Some(bin) = binary_dir() else {
+            return Ok(());
+        };
+        VacuumDbBuilder::new()
+            .program_dir(&bin)
+            .version()
+            .build()
+            .execute()?;
+        VacuumDbBuilder::new()
+            .program_dir(&bin)
+            .help()
+            .build()
+            .execute()?;
+        Ok(())
     }
 }

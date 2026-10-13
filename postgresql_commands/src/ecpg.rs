@@ -9,14 +9,17 @@ use std::path::PathBuf;
 pub struct EcpgBuilder {
     program_dir: Option<PathBuf>,
     envs: Vec<(OsString, OsString)>,
+    debug: bool,
+    verbose: bool,
+    file: Vec<OsString>,
     c: bool,
     compatibility_mode: Option<OsString>,
-    symbol: Option<OsString>,
+    symbol: Vec<OsString>,
     header_file: bool,
     system_include_files: bool,
-    directory: Option<OsString>,
+    directory: Vec<OsString>,
     outfile: Option<OsString>,
-    runtime_behavior: Option<OsString>,
+    runtime_behavior: Vec<OsString>,
     regression: bool,
     autocommit: bool,
     version: bool,
@@ -57,9 +60,10 @@ impl EcpgBuilder {
     }
 
     /// Define SYMBOL
+    /// May be called multiple times; each value is retained.
     #[must_use]
     pub fn symbol<S: AsRef<OsStr>>(mut self, symbol: S) -> Self {
-        self.symbol = Some(symbol.as_ref().to_os_string());
+        self.symbol.push(symbol.as_ref().to_os_string());
         self
     }
 
@@ -78,9 +82,10 @@ impl EcpgBuilder {
     }
 
     /// Search DIRECTORY for include files
+    /// May be called multiple times; each value is retained.
     #[must_use]
     pub fn directory<S: AsRef<OsStr>>(mut self, directory: S) -> Self {
-        self.directory = Some(directory.as_ref().to_os_string());
+        self.directory.push(directory.as_ref().to_os_string());
         self
     }
 
@@ -92,9 +97,11 @@ impl EcpgBuilder {
     }
 
     /// Specify run-time behavior
+    /// May be called multiple times; each value is retained.
     #[must_use]
     pub fn runtime_behavior<S: AsRef<OsStr>>(mut self, runtime_behavior: S) -> Self {
-        self.runtime_behavior = Some(runtime_behavior.as_ref().to_os_string());
+        self.runtime_behavior
+            .push(runtime_behavior.as_ref().to_os_string());
         self
     }
 
@@ -125,6 +132,27 @@ impl EcpgBuilder {
         self.help = true;
         self
     }
+
+    /// Enable parser debugging, when compiled into ecpg.
+    #[must_use]
+    pub fn debug(mut self) -> Self {
+        self.debug = true;
+        self
+    }
+
+    /// Print the preprocessor version and include search paths.
+    #[must_use]
+    pub fn verbose(mut self) -> Self {
+        self.verbose = true;
+        self
+    }
+
+    /// Add an input source file. May be called multiple times.
+    #[must_use]
+    pub fn file<S: AsRef<OsStr>>(mut self, file: S) -> Self {
+        self.file.push(file.as_ref().to_os_string());
+        self
+    }
 }
 
 impl CommandBuilder for EcpgBuilder {
@@ -142,6 +170,14 @@ impl CommandBuilder for EcpgBuilder {
     fn get_args(&self) -> Vec<OsString> {
         let mut args: Vec<OsString> = Vec::new();
 
+        if self.version {
+            args.push("--version".into());
+        }
+
+        if self.help {
+            args.push("--help".into());
+        }
+
         if self.c {
             args.push("-c".into());
         }
@@ -151,7 +187,7 @@ impl CommandBuilder for EcpgBuilder {
             args.push(mode.into());
         }
 
-        if let Some(symbol) = &self.symbol {
+        for symbol in &self.symbol {
             args.push("-D".into());
             args.push(symbol.into());
         }
@@ -164,7 +200,7 @@ impl CommandBuilder for EcpgBuilder {
             args.push("-i".into());
         }
 
-        if let Some(directory) = &self.directory {
+        for directory in &self.directory {
             args.push("-I".into());
             args.push(directory.into());
         }
@@ -174,7 +210,7 @@ impl CommandBuilder for EcpgBuilder {
             args.push(outfile.into());
         }
 
-        if let Some(behavior) = &self.runtime_behavior {
+        for behavior in &self.runtime_behavior {
             args.push("-r".into());
             args.push(behavior.into());
         }
@@ -187,12 +223,16 @@ impl CommandBuilder for EcpgBuilder {
             args.push("-t".into());
         }
 
-        if self.version {
-            args.push("--version".into());
+        if self.debug {
+            args.push("-d".into());
         }
 
-        if self.help {
-            args.push("--help".into());
+        if self.verbose {
+            args.push("-v".into());
+        }
+
+        for file in &self.file {
+            args.push(file.into());
         }
 
         args
@@ -214,7 +254,9 @@ impl CommandBuilder for EcpgBuilder {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::CommandExecutor;
     use crate::TestSettings;
+    use crate::test_utils::{TestResult, assert_args, binary_dir};
     use crate::traits::CommandToString;
     use test_log::test;
 
@@ -254,6 +296,9 @@ mod tests {
             .autocommit()
             .version()
             .help()
+            .debug()
+            .verbose()
+            .file("input.pgc")
             .build();
         #[cfg(not(target_os = "windows"))]
         let command_prefix = r#"PGDATABASE="database" "#;
@@ -262,9 +307,83 @@ mod tests {
 
         assert_eq!(
             format!(
-                r#"{command_prefix}"ecpg" "-c" "-C" "mode" "-D" "symbol" "-h" "-i" "-I" "directory" "-o" "outfile" "-r" "behavior" "--regression" "-t" "--version" "--help""#
+                r#"{command_prefix}"ecpg" "--version" "--help" "-c" "-C" "mode" "-D" "symbol" "-h" "-i" "-I" "directory" "-o" "outfile" "-r" "behavior" "--regression" "-t" "-d" "-v" "input.pgc""#
             ),
             command.to_command_string()
         );
+    }
+
+    #[test]
+    fn test_positional_arguments_follow_options() {
+        assert_args(
+            EcpgBuilder::new()
+                .file("one.pgc")
+                .outfile("out.c")
+                .file("two.pgc"),
+            &["-o", "out.c", "one.pgc", "two.pgc"],
+        );
+    }
+
+    #[test]
+    fn test_options() {
+        assert_args(EcpgBuilder::new().debug(), &["-d"]);
+        assert_args(EcpgBuilder::new().verbose(), &["-v"]);
+        assert_args(
+            EcpgBuilder::new().file("value with spaces"),
+            &["value with spaces"],
+        );
+    }
+
+    #[test]
+    fn test_repeated_options() {
+        assert_args(
+            EcpgBuilder::new().symbol("first").symbol("second"),
+            &["-D", "first", "-D", "second"],
+        );
+        assert_args(
+            EcpgBuilder::new().directory("first").directory("second"),
+            &["-I", "first", "-I", "second"],
+        );
+        assert_args(
+            EcpgBuilder::new()
+                .runtime_behavior("first")
+                .runtime_behavior("second"),
+            &["-r", "first", "-r", "second"],
+        );
+    }
+
+    #[test]
+    fn test_informational_options_come_first_on_configured_builders() {
+        let version = EcpgBuilder::from(&TestSettings).version().get_args();
+        assert_eq!(version.first(), Some(&OsString::from("--version")));
+        let help = EcpgBuilder::from(&TestSettings).help().get_args();
+        assert_eq!(help.first(), Some(&OsString::from("--help")));
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn test_native_argument_bytes_are_preserved() {
+        use std::os::unix::ffi::OsStringExt;
+
+        let value = OsString::from_vec(b"value\xfe".to_vec());
+        assert_eq!(EcpgBuilder::new().file(&value).get_args(), vec![value]);
+    }
+
+    #[test]
+    fn test_cli_help_and_version() -> TestResult {
+        let Some(bin) = binary_dir() else {
+            return Ok(());
+        };
+        EcpgBuilder::new()
+            .program_dir(&bin)
+            .version()
+            .build()
+            .execute()?;
+        EcpgBuilder::new()
+            .program_dir(&bin)
+            .help()
+            .build()
+            .execute()?;
+        Ok(())
     }
 }

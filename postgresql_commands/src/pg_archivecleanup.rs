@@ -9,6 +9,7 @@ use std::path::PathBuf;
 pub struct PgArchiveCleanupBuilder {
     program_dir: Option<PathBuf>,
     envs: Vec<(OsString, OsString)>,
+    clean_backup_history: bool,
     debug: bool,
     dry_run: bool,
     version: bool,
@@ -85,6 +86,13 @@ impl PgArchiveCleanupBuilder {
         self.oldest_kept_wal_file = Some(oldest_kept_wal_file.as_ref().to_os_string());
         self
     }
+
+    /// Include backup history files in cleanup.
+    #[must_use]
+    pub fn clean_backup_history(mut self) -> Self {
+        self.clean_backup_history = true;
+        self
+    }
 }
 
 impl CommandBuilder for PgArchiveCleanupBuilder {
@@ -102,6 +110,14 @@ impl CommandBuilder for PgArchiveCleanupBuilder {
     fn get_args(&self) -> Vec<OsString> {
         let mut args: Vec<OsString> = Vec::new();
 
+        if self.version {
+            args.push("--version".into());
+        }
+
+        if self.help {
+            args.push("--help".into());
+        }
+
         if self.debug {
             args.push("-d".into());
         }
@@ -110,17 +126,13 @@ impl CommandBuilder for PgArchiveCleanupBuilder {
             args.push("-n".into());
         }
 
-        if self.version {
-            args.push("--version".into());
-        }
-
         if let Some(ext) = &self.ext {
             args.push("-x".into());
             args.push(ext.into());
         }
 
-        if self.help {
-            args.push("--help".into());
+        if self.clean_backup_history {
+            args.push("--clean-backup-history".into());
         }
 
         if let Some(archive_location) = &self.archive_location {
@@ -150,7 +162,9 @@ impl CommandBuilder for PgArchiveCleanupBuilder {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::CommandExecutor;
     use crate::TestSettings;
+    use crate::test_utils::{TestResult, assert_args, binary_dir};
     use crate::traits::CommandToString;
     use test_log::test;
 
@@ -185,6 +199,7 @@ mod tests {
             .help()
             .archive_location("archive_location")
             .oldest_kept_wal_file("000000010000000000000001")
+            .clean_backup_history()
             .build();
         #[cfg(not(target_os = "windows"))]
         let command_prefix = r#"PGDATABASE="database" "#;
@@ -193,9 +208,47 @@ mod tests {
 
         assert_eq!(
             format!(
-                r#"{command_prefix}"pg_archivecleanup" "-d" "-n" "--version" "-x" "partial" "--help" "archive_location" "000000010000000000000001""#
+                r#"{command_prefix}"pg_archivecleanup" "--version" "--help" "-d" "-n" "-x" "partial" "--clean-backup-history" "archive_location" "000000010000000000000001""#
             ),
             command.to_command_string()
         );
+    }
+
+    #[test]
+    fn test_options() {
+        assert_args(
+            PgArchiveCleanupBuilder::new().clean_backup_history(),
+            &["--clean-backup-history"],
+        );
+    }
+
+    #[test]
+    fn test_informational_options_come_first_on_configured_builders() {
+        let version = PgArchiveCleanupBuilder::from(&TestSettings)
+            .version()
+            .get_args();
+        assert_eq!(version.first(), Some(&OsString::from("--version")));
+        let help = PgArchiveCleanupBuilder::from(&TestSettings)
+            .help()
+            .get_args();
+        assert_eq!(help.first(), Some(&OsString::from("--help")));
+    }
+
+    #[test]
+    fn test_cli_help_and_version() -> TestResult {
+        let Some(bin) = binary_dir() else {
+            return Ok(());
+        };
+        PgArchiveCleanupBuilder::new()
+            .program_dir(&bin)
+            .version()
+            .build()
+            .execute()?;
+        PgArchiveCleanupBuilder::new()
+            .program_dir(&bin)
+            .help()
+            .build()
+            .execute()?;
+        Ok(())
     }
 }

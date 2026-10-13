@@ -9,13 +9,13 @@ use std::path::PathBuf;
 pub struct Oid2NameBuilder {
     program_dir: Option<PathBuf>,
     envs: Vec<(OsString, OsString)>,
-    filenode: Option<OsString>,
+    filenode: Vec<OsString>,
     indexes: bool,
-    oid: Option<OsString>,
+    oid: Vec<OsString>,
     quiet: bool,
     tablespaces: bool,
     system_objects: bool,
-    table: Option<OsString>,
+    table: Vec<OsString>,
     version: bool,
     extended: bool,
     help: bool,
@@ -53,9 +53,10 @@ impl Oid2NameBuilder {
     }
 
     /// show info for table with given file node
+    /// May be called multiple times; each value is retained.
     #[must_use]
     pub fn filenode<S: AsRef<OsStr>>(mut self, filenode: S) -> Self {
-        self.filenode = Some(filenode.as_ref().to_os_string());
+        self.filenode.push(filenode.as_ref().to_os_string());
         self
     }
 
@@ -67,9 +68,10 @@ impl Oid2NameBuilder {
     }
 
     /// show info for table with given OID
+    /// May be called multiple times; each value is retained.
     #[must_use]
     pub fn oid<S: AsRef<OsStr>>(mut self, oid: S) -> Self {
-        self.oid = Some(oid.as_ref().to_os_string());
+        self.oid.push(oid.as_ref().to_os_string());
         self
     }
 
@@ -95,9 +97,10 @@ impl Oid2NameBuilder {
     }
 
     /// show info for named table
+    /// May be called multiple times; each value is retained.
     #[must_use]
     pub fn table<S: AsRef<OsStr>>(mut self, table: S) -> Self {
-        self.table = Some(table.as_ref().to_os_string());
+        self.table.push(table.as_ref().to_os_string());
         self
     }
 
@@ -166,7 +169,15 @@ impl CommandBuilder for Oid2NameBuilder {
     fn get_args(&self) -> Vec<OsString> {
         let mut args: Vec<OsString> = Vec::new();
 
-        if let Some(filenode) = &self.filenode {
+        if self.version {
+            args.push("--version".into());
+        }
+
+        if self.help {
+            args.push("--help".into());
+        }
+
+        for filenode in &self.filenode {
             args.push("--filenode".into());
             args.push(filenode.into());
         }
@@ -175,7 +186,7 @@ impl CommandBuilder for Oid2NameBuilder {
             args.push("--indexes".into());
         }
 
-        if let Some(oid) = &self.oid {
+        for oid in &self.oid {
             args.push("--oid".into());
             args.push(oid.into());
         }
@@ -192,21 +203,13 @@ impl CommandBuilder for Oid2NameBuilder {
             args.push("--system-objects".into());
         }
 
-        if let Some(table) = &self.table {
+        for table in &self.table {
             args.push("--table".into());
             args.push(table.into());
         }
 
-        if self.version {
-            args.push("--version".into());
-        }
-
         if self.extended {
             args.push("--extended".into());
-        }
-
-        if self.help {
-            args.push("--help".into());
         }
 
         if let Some(dbname) = &self.dbname {
@@ -248,8 +251,10 @@ impl CommandBuilder for Oid2NameBuilder {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::CommandExecutor;
     use crate::TestSettings;
     use crate::TestSocketSettings;
+    use crate::test_utils::{TestResult, assert_args, binary_dir};
     use crate::traits::CommandToString;
     use test_log::test;
 
@@ -304,7 +309,7 @@ mod tests {
 
         assert_eq!(
             format!(
-                r#"{command_prefix}"oid2name" "--filenode" "filenode" "--indexes" "--oid" "oid" "--quiet" "--tablespaces" "--system-objects" "--table" "table" "--version" "--extended" "--help" "--dbname" "dbname" "--host" "localhost" "--port" "5432" "--username" "username""#
+                r#"{command_prefix}"oid2name" "--version" "--help" "--filenode" "filenode" "--indexes" "--oid" "oid" "--quiet" "--tablespaces" "--system-objects" "--table" "table" "--extended" "--dbname" "dbname" "--host" "localhost" "--port" "5432" "--username" "username""#
             ),
             command.to_command_string()
         );
@@ -324,5 +329,47 @@ mod tests {
             ),
             command.to_command_string()
         );
+    }
+
+    #[test]
+    fn test_repeated_options() {
+        assert_args(
+            Oid2NameBuilder::new().filenode("first").filenode("second"),
+            &["--filenode", "first", "--filenode", "second"],
+        );
+        assert_args(
+            Oid2NameBuilder::new().oid("first").oid("second"),
+            &["--oid", "first", "--oid", "second"],
+        );
+        assert_args(
+            Oid2NameBuilder::new().table("first").table("second"),
+            &["--table", "first", "--table", "second"],
+        );
+    }
+
+    #[test]
+    fn test_informational_options_come_first_on_configured_builders() {
+        let version = Oid2NameBuilder::from(&TestSettings).version().get_args();
+        assert_eq!(version.first(), Some(&OsString::from("--version")));
+        let help = Oid2NameBuilder::from(&TestSettings).help().get_args();
+        assert_eq!(help.first(), Some(&OsString::from("--help")));
+    }
+
+    #[test]
+    fn test_cli_help_and_version() -> TestResult {
+        let Some(bin) = binary_dir() else {
+            return Ok(());
+        };
+        Oid2NameBuilder::new()
+            .program_dir(&bin)
+            .version()
+            .build()
+            .execute()?;
+        Oid2NameBuilder::new()
+            .program_dir(&bin)
+            .help()
+            .build()
+            .execute()?;
+        Ok(())
     }
 }

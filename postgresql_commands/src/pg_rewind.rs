@@ -9,6 +9,7 @@ use std::path::PathBuf;
 pub struct PgRewindBuilder {
     program_dir: Option<PathBuf>,
     envs: Vec<(OsString, OsString)>,
+    sync_method: Option<OsString>,
     restore_target_wal: bool,
     target_pgdata: Option<PathBuf>,
     source_pgdata: Option<PathBuf>,
@@ -133,6 +134,13 @@ impl PgRewindBuilder {
         self.help = true;
         self
     }
+
+    /// Select the file synchronization method.
+    #[must_use]
+    pub fn sync_method<S: AsRef<OsStr>>(mut self, sync_method: S) -> Self {
+        self.sync_method = Some(sync_method.as_ref().to_os_string());
+        self
+    }
 }
 
 impl CommandBuilder for PgRewindBuilder {
@@ -149,6 +157,14 @@ impl CommandBuilder for PgRewindBuilder {
     /// Get the arguments for the command
     fn get_args(&self) -> Vec<OsString> {
         let mut args: Vec<OsString> = Vec::new();
+
+        if self.version {
+            args.push("--version".into());
+        }
+
+        if self.help {
+            args.push("--help".into());
+        }
 
         if self.restore_target_wal {
             args.push("--restore-target-wal".into());
@@ -198,12 +214,9 @@ impl CommandBuilder for PgRewindBuilder {
             args.push("--no-ensure-shutdown".into());
         }
 
-        if self.version {
-            args.push("--version".into());
-        }
-
-        if self.help {
-            args.push("--help".into());
+        if let Some(sync_method) = &self.sync_method {
+            args.push("--sync-method".into());
+            args.push(sync_method.into());
         }
 
         args
@@ -225,7 +238,9 @@ impl CommandBuilder for PgRewindBuilder {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::CommandExecutor;
     use crate::TestSettings;
+    use crate::test_utils::{TestResult, assert_args, binary_dir};
     use crate::traits::CommandToString;
     use test_log::test;
 
@@ -266,6 +281,7 @@ mod tests {
             .no_ensure_shutdown()
             .version()
             .help()
+            .sync_method("fsync")
             .build();
         #[cfg(not(target_os = "windows"))]
         let command_prefix = r#"PGDATABASE="database" "#;
@@ -274,9 +290,43 @@ mod tests {
 
         assert_eq!(
             format!(
-                r#"{command_prefix}"pg_rewind" "--restore-target-wal" "--target-pgdata" "target_pgdata" "--source-pgdata" "source_pgdata" "--source-server" "source_server" "--dry-run" "--no-sync" "--progress" "--write-recovery-conf" "--config-file" "config_file" "--debug" "--no-ensure-shutdown" "--version" "--help""#
+                r#"{command_prefix}"pg_rewind" "--version" "--help" "--restore-target-wal" "--target-pgdata" "target_pgdata" "--source-pgdata" "source_pgdata" "--source-server" "source_server" "--dry-run" "--no-sync" "--progress" "--write-recovery-conf" "--config-file" "config_file" "--debug" "--no-ensure-shutdown" "--sync-method" "fsync""#
             ),
             command.to_command_string()
         );
+    }
+
+    #[test]
+    fn test_options() {
+        assert_args(
+            PgRewindBuilder::new().sync_method("fsync"),
+            &["--sync-method", "fsync"],
+        );
+    }
+
+    #[test]
+    fn test_informational_options_come_first_on_configured_builders() {
+        let version = PgRewindBuilder::from(&TestSettings).version().get_args();
+        assert_eq!(version.first(), Some(&OsString::from("--version")));
+        let help = PgRewindBuilder::from(&TestSettings).help().get_args();
+        assert_eq!(help.first(), Some(&OsString::from("--help")));
+    }
+
+    #[test]
+    fn test_cli_help_and_version() -> TestResult {
+        let Some(bin) = binary_dir() else {
+            return Ok(());
+        };
+        PgRewindBuilder::new()
+            .program_dir(&bin)
+            .version()
+            .build()
+            .execute()?;
+        PgRewindBuilder::new()
+            .program_dir(&bin)
+            .help()
+            .build()
+            .execute()?;
+        Ok(())
     }
 }

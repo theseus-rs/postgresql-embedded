@@ -9,6 +9,8 @@ use std::path::PathBuf;
 pub struct PgTestFsyncBuilder {
     program_dir: Option<PathBuf>,
     envs: Vec<(OsString, OsString)>,
+    help: bool,
+    version: bool,
     filename: Option<OsString>,
     secs_per_test: Option<usize>,
 }
@@ -45,6 +47,20 @@ impl PgTestFsyncBuilder {
         self.secs_per_test = Some(secs);
         self
     }
+
+    /// Show help, then exit.
+    #[must_use]
+    pub fn help(mut self) -> Self {
+        self.help = true;
+        self
+    }
+
+    /// Show version information, then exit.
+    #[must_use]
+    pub fn version(mut self) -> Self {
+        self.version = true;
+        self
+    }
 }
 
 impl CommandBuilder for PgTestFsyncBuilder {
@@ -61,6 +77,14 @@ impl CommandBuilder for PgTestFsyncBuilder {
     /// Get the arguments for the command
     fn get_args(&self) -> Vec<OsString> {
         let mut args: Vec<OsString> = Vec::new();
+
+        if self.version {
+            args.push("--version".into());
+        }
+
+        if self.help {
+            args.push("--help".into());
+        }
 
         if let Some(filename) = &self.filename {
             args.push("-f".into());
@@ -91,7 +115,9 @@ impl CommandBuilder for PgTestFsyncBuilder {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::CommandExecutor;
     use crate::TestSettings;
+    use crate::test_utils::{TestResult, assert_args, binary_dir};
     use crate::traits::CommandToString;
     use test_log::test;
 
@@ -121,6 +147,8 @@ mod tests {
             .env("PGDATABASE", "database")
             .filename("filename")
             .secs_per_test(10)
+            .help()
+            .version()
             .build();
         #[cfg(not(target_os = "windows"))]
         let command_prefix = r#"PGDATABASE="database" "#;
@@ -128,8 +156,42 @@ mod tests {
         let command_prefix = String::new();
 
         assert_eq!(
-            format!(r#"{command_prefix}"pg_test_fsync" "-f" "filename" "-s" "10""#),
+            format!(
+                r#"{command_prefix}"pg_test_fsync" "--version" "--help" "-f" "filename" "-s" "10""#
+            ),
             command.to_command_string()
         );
+    }
+
+    #[test]
+    fn test_options() {
+        assert_args(PgTestFsyncBuilder::new().help(), &["--help"]);
+        assert_args(PgTestFsyncBuilder::new().version(), &["--version"]);
+    }
+
+    #[test]
+    fn test_informational_options_come_first_on_configured_builders() {
+        let version = PgTestFsyncBuilder::from(&TestSettings).version().get_args();
+        assert_eq!(version.first(), Some(&OsString::from("--version")));
+        let help = PgTestFsyncBuilder::from(&TestSettings).help().get_args();
+        assert_eq!(help.first(), Some(&OsString::from("--help")));
+    }
+
+    #[test]
+    fn test_cli_help_and_version() -> TestResult {
+        let Some(bin) = binary_dir() else {
+            return Ok(());
+        };
+        PgTestFsyncBuilder::new()
+            .program_dir(&bin)
+            .version()
+            .build()
+            .execute()?;
+        PgTestFsyncBuilder::new()
+            .program_dir(&bin)
+            .help()
+            .build()
+            .execute()?;
+        Ok(())
     }
 }

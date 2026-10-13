@@ -9,6 +9,10 @@ use std::path::PathBuf;
 pub struct InitDbBuilder {
     program_dir: Option<PathBuf>,
     envs: Vec<(OsString, OsString)>,
+    builtin_locale: Option<OsString>,
+    sync_method: Option<OsString>,
+    no_data_checksums: bool,
+    no_sync_data_files: bool,
     auth: Option<OsString>,
     auth_host: Option<OsString>,
     auth_local: Option<OsString>,
@@ -33,7 +37,7 @@ pub struct InitDbBuilder {
     pwprompt: bool,
     waldir: Option<OsString>,
     wal_segsize: Option<OsString>,
-    set: Option<OsString>,
+    set: Vec<OsString>,
     debug: bool,
     discard_caches: bool,
     directory: Option<OsString>,
@@ -236,9 +240,10 @@ impl InitDbBuilder {
     }
 
     /// Override default setting for server parameter
+    /// May be called multiple times; each value is retained.
     #[must_use]
     pub fn set<S: AsRef<OsStr>>(mut self, set: S) -> Self {
-        self.set = Some(set.as_ref().to_os_string());
+        self.set.push(set.as_ref().to_os_string());
         self
     }
 
@@ -311,6 +316,34 @@ impl InitDbBuilder {
         self.help = true;
         self
     }
+
+    /// Set the builtin locale for the cluster.
+    #[must_use]
+    pub fn builtin_locale<S: AsRef<OsStr>>(mut self, builtin_locale: S) -> Self {
+        self.builtin_locale = Some(builtin_locale.as_ref().to_os_string());
+        self
+    }
+
+    /// Select the file synchronization method.
+    #[must_use]
+    pub fn sync_method<S: AsRef<OsStr>>(mut self, sync_method: S) -> Self {
+        self.sync_method = Some(sync_method.as_ref().to_os_string());
+        self
+    }
+
+    /// Disable data page checksums.
+    #[must_use]
+    pub fn no_data_checksums(mut self) -> Self {
+        self.no_data_checksums = true;
+        self
+    }
+
+    /// Skip synchronization of files within database directories.
+    #[must_use]
+    pub fn no_sync_data_files(mut self) -> Self {
+        self.no_sync_data_files = true;
+        self
+    }
 }
 
 impl CommandBuilder for InitDbBuilder {
@@ -328,6 +361,14 @@ impl CommandBuilder for InitDbBuilder {
     #[expect(clippy::too_many_lines)]
     fn get_args(&self) -> Vec<OsString> {
         let mut args: Vec<OsString> = Vec::new();
+
+        if self.version {
+            args.push("--version".into());
+        }
+
+        if self.help {
+            args.push("--help".into());
+        }
 
         if let Some(auth) = &self.auth {
             args.push("--auth".into());
@@ -445,7 +486,7 @@ impl CommandBuilder for InitDbBuilder {
             args.push(wal_segsize.into());
         }
 
-        if let Some(set) = &self.set {
+        for set in &self.set {
             args.push("--set".into());
             args.push(set.into());
         }
@@ -483,12 +524,22 @@ impl CommandBuilder for InitDbBuilder {
             args.push("--sync-only".into());
         }
 
-        if self.version {
-            args.push("--version".into());
+        if let Some(builtin_locale) = &self.builtin_locale {
+            args.push("--builtin-locale".into());
+            args.push(builtin_locale.into());
         }
 
-        if self.help {
-            args.push("--help".into());
+        if let Some(sync_method) = &self.sync_method {
+            args.push("--sync-method".into());
+            args.push(sync_method.into());
+        }
+
+        if self.no_data_checksums {
+            args.push("--no-data-checksums".into());
+        }
+
+        if self.no_sync_data_files {
+            args.push("--no-sync-data-files".into());
         }
 
         args
@@ -510,7 +561,13 @@ impl CommandBuilder for InitDbBuilder {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::CommandExecutor;
     use crate::TestSettings;
+    use crate::pg_controldata::PgControlDataBuilder;
+    use crate::postgres::PostgresBuilder;
+    use crate::test_utils::{
+        TestResult, assert_args, binary_dir, initialize_database, query_database,
+    };
     use crate::traits::CommandToString;
     use test_log::test;
 
@@ -576,6 +633,10 @@ mod tests {
             .sync_only()
             .version()
             .help()
+            .builtin_locale("C.UTF-8")
+            .sync_method("fsync")
+            .no_data_checksums()
+            .no_sync_data_files()
             .build();
         #[cfg(not(target_os = "windows"))]
         let command_prefix = r#"PGDATABASE="database" "#;
@@ -584,9 +645,107 @@ mod tests {
 
         assert_eq!(
             format!(
-                r#"{command_prefix}"initdb" "--auth" "md5" "--auth-host" "md5" "--auth-local" "md5" "--pgdata" "pgdata" "--encoding" "UTF8" "--allow-group-access" "--icu-locale" "en_US" "--icu-rules" "phonebook" "--data-checksums" "--locale" "en_US" "--lc-collate" "en_US" "--lc-ctype" "en_US" "--lc-messages" "en_US" "--lc-monetary" "en_US" "--lc-numeric" "en_US" "--lc-time" "en_US" "--no-locale" "--locale-provider" "icu" "--pwfile" ".pwfile" "--text-search-config" "english" "--username" "postgres" "--pwprompt" "--waldir" "waldir" "--wal-segsize" "1" "--set" "timezone=UTC" "--debug" "--discard-caches" "-L" "directory" "--no-clean" "--no-sync" "--no-instructions" "--show" "--sync-only" "--version" "--help""#
+                r#"{command_prefix}"initdb" "--version" "--help" "--auth" "md5" "--auth-host" "md5" "--auth-local" "md5" "--pgdata" "pgdata" "--encoding" "UTF8" "--allow-group-access" "--icu-locale" "en_US" "--icu-rules" "phonebook" "--data-checksums" "--locale" "en_US" "--lc-collate" "en_US" "--lc-ctype" "en_US" "--lc-messages" "en_US" "--lc-monetary" "en_US" "--lc-numeric" "en_US" "--lc-time" "en_US" "--no-locale" "--locale-provider" "icu" "--pwfile" ".pwfile" "--text-search-config" "english" "--username" "postgres" "--pwprompt" "--waldir" "waldir" "--wal-segsize" "1" "--set" "timezone=UTC" "--debug" "--discard-caches" "-L" "directory" "--no-clean" "--no-sync" "--no-instructions" "--show" "--sync-only" "--builtin-locale" "C.UTF-8" "--sync-method" "fsync" "--no-data-checksums" "--no-sync-data-files""#
             ),
             command.to_command_string()
         );
+    }
+
+    #[test]
+    fn test_uses_the_short_input_directory_option() {
+        assert_args(
+            InitDbBuilder::new().directory("share dir"),
+            &["-L", "share dir"],
+        );
+    }
+
+    #[test]
+    fn test_options() {
+        assert_args(
+            InitDbBuilder::new().builtin_locale("C.UTF-8"),
+            &["--builtin-locale", "C.UTF-8"],
+        );
+        assert_args(
+            InitDbBuilder::new().sync_method("fsync"),
+            &["--sync-method", "fsync"],
+        );
+        assert_args(
+            InitDbBuilder::new().no_data_checksums(),
+            &["--no-data-checksums"],
+        );
+        assert_args(
+            InitDbBuilder::new().no_sync_data_files(),
+            &["--no-sync-data-files"],
+        );
+    }
+
+    #[test]
+    fn test_repeated_options() {
+        assert_args(
+            InitDbBuilder::new().set("first").set("second"),
+            &["--set", "first", "--set", "second"],
+        );
+    }
+
+    #[test]
+    fn test_informational_options_come_first_on_configured_builders() {
+        let version = InitDbBuilder::from(&TestSettings).version().get_args();
+        assert_eq!(version.first(), Some(&OsString::from("--version")));
+        let help = InitDbBuilder::from(&TestSettings).help().get_args();
+        assert_eq!(help.first(), Some(&OsString::from("--help")));
+    }
+
+    #[test]
+    fn test_cli_help_and_version() -> TestResult {
+        let Some(bin) = binary_dir() else {
+            return Ok(());
+        };
+        InitDbBuilder::new()
+            .program_dir(&bin)
+            .version()
+            .build()
+            .execute()?;
+        InitDbBuilder::new()
+            .program_dir(&bin)
+            .help()
+            .build()
+            .execute()?;
+        Ok(())
+    }
+
+    #[test]
+    fn test_cli_initialize_with_repeated_settings() -> TestResult {
+        let Some(bin) = binary_dir() else {
+            return Ok(());
+        };
+        let temporary = initialize_database(
+            &bin,
+            InitDbBuilder::new()
+                .no_data_checksums()
+                .set("max_connections=20")
+                .set("shared_buffers=16MB"),
+        )?;
+        let data = temporary.path().join("data");
+        let stdout = query_database(
+            PostgresBuilder::new().program_dir(&bin).data_dir(&data),
+            b"SELECT current_setting('max_connections'), current_setting('shared_buffers');\n",
+        )?;
+        for expected in ["20", "16MB"] {
+            assert!(stdout.contains(expected), "missing {expected}: {stdout}");
+        }
+
+        let (control, _) = PgControlDataBuilder::new()
+            .program_dir(&bin)
+            .pgdata(&data)
+            .env(OsStr::new("LC_ALL"), OsStr::new("C"))
+            .build()
+            .execute()?;
+        assert!(
+            control
+                .lines()
+                .any(|line| line.starts_with("Data page checksum version:") && line.ends_with('0')),
+            "{control}"
+        );
+        Ok(())
     }
 }

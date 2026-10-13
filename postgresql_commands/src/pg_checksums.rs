@@ -9,6 +9,7 @@ use std::path::PathBuf;
 pub struct PgChecksumsBuilder {
     program_dir: Option<PathBuf>,
     envs: Vec<(OsString, OsString)>,
+    sync_method: Option<OsString>,
     pgdata: Option<PathBuf>,
     check: bool,
     disable: bool,
@@ -109,6 +110,13 @@ impl PgChecksumsBuilder {
         self.help = true;
         self
     }
+
+    /// Select the file synchronization method.
+    #[must_use]
+    pub fn sync_method<S: AsRef<OsStr>>(mut self, sync_method: S) -> Self {
+        self.sync_method = Some(sync_method.as_ref().to_os_string());
+        self
+    }
 }
 
 impl CommandBuilder for PgChecksumsBuilder {
@@ -125,6 +133,14 @@ impl CommandBuilder for PgChecksumsBuilder {
     /// Get the arguments for the command
     fn get_args(&self) -> Vec<OsString> {
         let mut args: Vec<OsString> = Vec::new();
+
+        if self.version {
+            args.push("--version".into());
+        }
+
+        if self.help {
+            args.push("--help".into());
+        }
 
         if let Some(pgdata) = &self.pgdata {
             args.push("--pgdata".into());
@@ -160,12 +176,9 @@ impl CommandBuilder for PgChecksumsBuilder {
             args.push("--verbose".into());
         }
 
-        if self.version {
-            args.push("--version".into());
-        }
-
-        if self.help {
-            args.push("--help".into());
+        if let Some(sync_method) = &self.sync_method {
+            args.push("--sync-method".into());
+            args.push(sync_method.into());
         }
 
         args
@@ -187,7 +200,9 @@ impl CommandBuilder for PgChecksumsBuilder {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::CommandExecutor;
     use crate::TestSettings;
+    use crate::test_utils::{TestResult, assert_args, binary_dir};
     use crate::traits::CommandToString;
     use test_log::test;
 
@@ -225,6 +240,7 @@ mod tests {
             .verbose()
             .version()
             .help()
+            .sync_method("fsync")
             .build();
         #[cfg(not(target_os = "windows"))]
         let command_prefix = r#"PGDATABASE="database" "#;
@@ -233,9 +249,43 @@ mod tests {
 
         assert_eq!(
             format!(
-                r#"{command_prefix}"pg_checksums" "--pgdata" "pgdata" "--check" "--disable" "--enable" "--filenode" "12345" "--no-sync" "--progress" "--verbose" "--version" "--help""#
+                r#"{command_prefix}"pg_checksums" "--version" "--help" "--pgdata" "pgdata" "--check" "--disable" "--enable" "--filenode" "12345" "--no-sync" "--progress" "--verbose" "--sync-method" "fsync""#
             ),
             command.to_command_string()
         );
+    }
+
+    #[test]
+    fn test_options() {
+        assert_args(
+            PgChecksumsBuilder::new().sync_method("fsync"),
+            &["--sync-method", "fsync"],
+        );
+    }
+
+    #[test]
+    fn test_informational_options_come_first_on_configured_builders() {
+        let version = PgChecksumsBuilder::from(&TestSettings).version().get_args();
+        assert_eq!(version.first(), Some(&OsString::from("--version")));
+        let help = PgChecksumsBuilder::from(&TestSettings).help().get_args();
+        assert_eq!(help.first(), Some(&OsString::from("--help")));
+    }
+
+    #[test]
+    fn test_cli_help_and_version() -> TestResult {
+        let Some(bin) = binary_dir() else {
+            return Ok(());
+        };
+        PgChecksumsBuilder::new()
+            .program_dir(&bin)
+            .version()
+            .build()
+            .execute()?;
+        PgChecksumsBuilder::new()
+            .program_dir(&bin)
+            .help()
+            .build()
+            .execute()?;
+        Ok(())
     }
 }

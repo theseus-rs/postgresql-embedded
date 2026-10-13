@@ -8,8 +8,11 @@ use std::path::PathBuf;
 pub struct PostgresBuilder {
     program_dir: Option<PathBuf>,
     envs: Vec<(OsString, OsString)>,
-    n_buffers: Option<u32>,
-    runtime_param: Option<(OsString, OsString)>,
+    ssl: bool,
+    binary_upgrade: bool,
+    protocol_version: Option<OsString>,
+    n_buffers: Option<OsString>,
+    runtime_param: Vec<(OsString, OsString)>,
     print_runtime_param: Option<OsString>,
     debugging_level: Option<u8>,
     data_dir: Option<PathBuf>,
@@ -21,14 +24,14 @@ pub struct PostgresBuilder {
     max_connections: Option<u32>,
     port: Option<u16>,
     show_stats: bool,
-    work_mem: Option<u32>,
+    work_mem: Option<OsString>,
     version: bool,
     describe_config: bool,
     help: bool,
-    forbidden_plan_types: Option<OsString>,
+    forbidden_plan_types: Vec<OsString>,
     allow_system_table_changes: bool,
     disable_system_indexes: bool,
-    show_timings: Option<OsString>,
+    show_timings: Vec<OsString>,
     send_sigabrt: bool,
     wait_seconds: Option<u32>,
     single_user_mode: bool,
@@ -69,15 +72,17 @@ impl PostgresBuilder {
 
     /// number of shared buffers
     #[must_use]
-    pub fn n_buffers(mut self, n_buffers: u32) -> Self {
-        self.n_buffers = Some(n_buffers);
+    pub fn n_buffers<N: std::fmt::Display>(mut self, n_buffers: N) -> Self {
+        self.n_buffers = Some(n_buffers.to_string().into());
         self
     }
 
     /// set run-time parameter
+    /// May be called multiple times; each value is retained.
     #[must_use]
     pub fn runtime_param<S: AsRef<OsStr>>(mut self, name: S, value: S) -> Self {
-        self.runtime_param = Some((name.as_ref().into(), value.as_ref().into()));
+        self.runtime_param
+            .push((name.as_ref().into(), value.as_ref().into()));
         self
     }
 
@@ -160,8 +165,8 @@ impl PostgresBuilder {
 
     /// set amount of memory for sorts (in kB)
     #[must_use]
-    pub fn work_mem(mut self, mem: u32) -> Self {
-        self.work_mem = Some(mem);
+    pub fn work_mem<N: std::fmt::Display>(mut self, mem: N) -> Self {
+        self.work_mem = Some(mem.to_string().into());
         self
     }
 
@@ -187,9 +192,11 @@ impl PostgresBuilder {
     }
 
     /// forbid use of some plan types
+    /// May be called multiple times; each value is retained.
     #[must_use]
     pub fn forbidden_plan_types<S: AsRef<OsStr>>(mut self, types: S) -> Self {
-        self.forbidden_plan_types = Some(types.as_ref().to_os_string());
+        self.forbidden_plan_types
+            .push(types.as_ref().to_os_string());
         self
     }
 
@@ -208,9 +215,10 @@ impl PostgresBuilder {
     }
 
     /// show timings after each query
+    /// May be called multiple times; each value is retained.
     #[must_use]
     pub fn show_timings<S: AsRef<OsStr>>(mut self, timings: S) -> Self {
-        self.show_timings = Some(timings.as_ref().to_os_string());
+        self.show_timings.push(timings.as_ref().to_os_string());
         self
     }
 
@@ -283,6 +291,27 @@ impl PostgresBuilder {
         self.check_mode = true;
         self
     }
+
+    /// Enable SSL connections.
+    #[must_use]
+    pub fn ssl(mut self) -> Self {
+        self.ssl = true;
+        self
+    }
+
+    /// Enable binary upgrade mode (for use by pg_upgrade).
+    #[must_use]
+    pub fn binary_upgrade(mut self) -> Self {
+        self.binary_upgrade = true;
+        self
+    }
+
+    /// Set the frontend protocol version in standalone mode.
+    #[must_use]
+    pub fn protocol_version<S: AsRef<OsStr>>(mut self, protocol_version: S) -> Self {
+        self.protocol_version = Some(protocol_version.as_ref().to_os_string());
+        self
+    }
 }
 
 impl CommandBuilder for PostgresBuilder {
@@ -301,14 +330,41 @@ impl CommandBuilder for PostgresBuilder {
     fn get_args(&self) -> Vec<OsString> {
         let mut args: Vec<OsString> = Vec::new();
 
-        if let Some(n_buffers) = &self.n_buffers {
-            args.push("-B".into());
-            args.push(n_buffers.to_string().into());
+        if self.version {
+            args.push("--version".into());
         }
 
-        if let Some((name, value)) = &self.runtime_param {
+        if self.help {
+            args.push("--help".into());
+        }
+
+        if self.describe_config {
+            args.push("--describe-config".into());
+        }
+
+        if self.single_user_mode {
+            args.push("--single".into());
+        }
+
+        if self.bootstrapping_mode {
+            args.push("--boot".into());
+        }
+
+        if self.check_mode {
+            args.push("--check".into());
+        }
+
+        if let Some(n_buffers) = &self.n_buffers {
+            args.push("-B".into());
+            args.push(n_buffers.into());
+        }
+
+        for (name, value) in &self.runtime_param {
             args.push("-c".into());
-            args.push(format!("{}={}", name.to_string_lossy(), value.to_string_lossy()).into());
+            let mut assignment = name.clone();
+            assignment.push("=");
+            assignment.push(value);
+            args.push(assignment);
         }
 
         if let Some(name) = &self.print_runtime_param {
@@ -364,22 +420,10 @@ impl CommandBuilder for PostgresBuilder {
 
         if let Some(work_mem) = &self.work_mem {
             args.push("-S".into());
-            args.push(work_mem.to_string().into());
+            args.push(work_mem.into());
         }
 
-        if self.version {
-            args.push("--version".into());
-        }
-
-        if self.describe_config {
-            args.push("--describe-config".into());
-        }
-
-        if self.help {
-            args.push("--help".into());
-        }
-
-        if let Some(forbidden_plan_types) = &self.forbidden_plan_types {
+        for forbidden_plan_types in &self.forbidden_plan_types {
             args.push("-f".into());
             args.push(forbidden_plan_types.into());
         }
@@ -392,7 +436,7 @@ impl CommandBuilder for PostgresBuilder {
             args.push("-P".into());
         }
 
-        if let Some(show_timings) = &self.show_timings {
+        for show_timings in &self.show_timings {
             args.push("-t".into());
             args.push(show_timings.into());
         }
@@ -404,14 +448,6 @@ impl CommandBuilder for PostgresBuilder {
         if let Some(seconds) = &self.wait_seconds {
             args.push("-W".into());
             args.push(seconds.to_string().into());
-        }
-
-        if self.single_user_mode {
-            args.push("--single".into());
-        }
-
-        if let Some(dbname) = &self.dbname {
-            args.push(dbname.into());
         }
 
         if let Some(level) = &self.override_debugging_level {
@@ -432,12 +468,21 @@ impl CommandBuilder for PostgresBuilder {
             args.push(file.into());
         }
 
-        if self.bootstrapping_mode {
-            args.push("--boot".into());
+        if self.ssl {
+            args.push("-l".into());
         }
 
-        if self.check_mode {
-            args.push("--check".into());
+        if self.binary_upgrade {
+            args.push("-b".into());
+        }
+
+        if let Some(protocol_version) = &self.protocol_version {
+            args.push("-v".into());
+            args.push(protocol_version.into());
+        }
+
+        if let Some(dbname) = &self.dbname {
+            args.push(dbname.into());
         }
 
         args
@@ -459,8 +504,13 @@ impl CommandBuilder for PostgresBuilder {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::CommandExecutor;
     use crate::TestSettings;
     use crate::TestSocketSettings;
+    use crate::initdb::InitDbBuilder;
+    use crate::test_utils::{
+        TestResult, assert_args, binary_dir, initialize_database, query_database,
+    };
     use crate::traits::CommandToString;
     use test_log::test;
 
@@ -532,8 +582,9 @@ mod tests {
             .echo_statement()
             .no_newline_delimiter()
             .output_file("output_file")
-            .bootstrapping_mode()
-            .check_mode()
+            .ssl()
+            .binary_upgrade()
+            .protocol_version("196608")
             .build();
         #[cfg(not(target_os = "windows"))]
         let command_prefix = r#"PGDATABASE="database" "#;
@@ -542,9 +593,138 @@ mod tests {
 
         assert_eq!(
             format!(
-                r#"{command_prefix}"postgres" "-B" "100" "-c" "name=value" "-C" "name" "-d" "3" "-D" "data_dir" "-e" "-F" "-h" "localhost" "-i" "-k" "socket_location" "-N" "100" "-p" "5432" "-s" "-S" "100" "--version" "--describe-config" "--help" "-f" "type" "-O" "-P" "-t" "timings" "-T" "-W" "10" "--single" "dbname" "-d" "3" "-E" "-j" "-r" "output_file" "--boot" "--check""#
+                r#"{command_prefix}"postgres" "--version" "--help" "--describe-config" "--single" "-B" "100" "-c" "name=value" "-C" "name" "-d" "3" "-D" "data_dir" "-e" "-F" "-h" "localhost" "-i" "-k" "socket_location" "-N" "100" "-p" "5432" "-s" "-S" "100" "-f" "type" "-O" "-P" "-t" "timings" "-T" "-W" "10" "-d" "3" "-E" "-j" "-r" "output_file" "-l" "-b" "-v" "196608" "dbname""#
             ),
             command.to_command_string()
         );
+    }
+
+    #[test]
+    fn test_dispatch_precedes_options_and_database_follows_them() {
+        assert_args(
+            PostgresBuilder::new()
+                .data_dir("data")
+                .dbname("test db")
+                .single_user_mode()
+                .runtime_param("work_mem", "8MB")
+                .runtime_param("maintenance_work_mem", "32MB"),
+            &[
+                "--single",
+                "-c",
+                "work_mem=8MB",
+                "-c",
+                "maintenance_work_mem=32MB",
+                "-D",
+                "data",
+                "test db",
+            ],
+        );
+        assert_args(
+            PostgresBuilder::new().data_dir("data").bootstrapping_mode(),
+            &["--boot", "-D", "data"],
+        );
+        assert_args(
+            PostgresBuilder::new().data_dir("data").check_mode(),
+            &["--check", "-D", "data"],
+        );
+        assert_args(
+            PostgresBuilder::new().data_dir("data").describe_config(),
+            &["--describe-config", "-D", "data"],
+        );
+    }
+
+    #[test]
+    fn test_numeric_arguments_accept_the_cli_value_range() {
+        assert_args(
+            PostgresBuilder::new().n_buffers("128MB").work_mem("8MB"),
+            &["-B", "128MB", "-S", "8MB"],
+        );
+    }
+
+    #[test]
+    fn test_options() {
+        assert_args(PostgresBuilder::new().ssl(), &["-l"]);
+        assert_args(PostgresBuilder::new().binary_upgrade(), &["-b"]);
+        assert_args(
+            PostgresBuilder::new().protocol_version("196608"),
+            &["-v", "196608"],
+        );
+    }
+
+    #[test]
+    fn test_repeated_options() {
+        assert_args(
+            PostgresBuilder::new()
+                .forbidden_plan_types("first")
+                .forbidden_plan_types("second"),
+            &["-f", "first", "-f", "second"],
+        );
+        assert_args(
+            PostgresBuilder::new()
+                .show_timings("first")
+                .show_timings("second"),
+            &["-t", "first", "-t", "second"],
+        );
+    }
+
+    #[test]
+    fn test_informational_options_come_first_on_configured_builders() {
+        let version = PostgresBuilder::from(&TestSettings).version().get_args();
+        assert_eq!(version.first(), Some(&OsString::from("--version")));
+        let help = PostgresBuilder::from(&TestSettings).help().get_args();
+        assert_eq!(help.first(), Some(&OsString::from("--help")));
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn test_native_argument_bytes_are_preserved() {
+        use std::os::unix::ffi::OsStringExt;
+
+        let name = OsString::from_vec(b"name\xff".to_vec());
+        let value = OsString::from_vec(b"value\xfe".to_vec());
+        let assignment = OsString::from_vec(b"name\xff=value\xfe".to_vec());
+        let args = PostgresBuilder::new()
+            .runtime_param(&name, &value)
+            .get_args();
+        assert_eq!(args.last(), Some(&assignment));
+    }
+
+    #[test]
+    fn test_cli_help_and_version() -> TestResult {
+        let Some(bin) = binary_dir() else {
+            return Ok(());
+        };
+        PostgresBuilder::new()
+            .program_dir(&bin)
+            .version()
+            .build()
+            .execute()?;
+        PostgresBuilder::new()
+            .program_dir(&bin)
+            .help()
+            .build()
+            .execute()?;
+        Ok(())
+    }
+
+    #[test]
+    fn test_cli_query_with_repeated_runtime_parameters() -> TestResult {
+        let Some(bin) = binary_dir() else {
+            return Ok(());
+        };
+        let temporary = initialize_database(&bin, InitDbBuilder::new())?;
+        let data = temporary.path().join("data");
+        let stdout = query_database(
+            PostgresBuilder::new()
+                .program_dir(&bin)
+                .data_dir(&data)
+                .runtime_param("work_mem", "8MB")
+                .runtime_param("maintenance_work_mem", "32MB"),
+            b"SELECT current_setting('work_mem'), current_setting('maintenance_work_mem');\n",
+        )?;
+        for expected in ["8MB", "32MB"] {
+            assert!(stdout.contains(expected), "missing {expected}: {stdout}");
+        }
+        Ok(())
     }
 }

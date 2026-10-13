@@ -9,6 +9,7 @@ use std::path::PathBuf;
 pub struct DropUserBuilder {
     program_dir: Option<PathBuf>,
     envs: Vec<(OsString, OsString)>,
+    rolename: Option<OsString>,
     echo: bool,
     interactive: bool,
     version: bool,
@@ -126,6 +127,13 @@ impl DropUserBuilder {
         self.pg_password = Some(pg_password.as_ref().to_os_string());
         self
     }
+
+    /// Name of the role to drop.
+    #[must_use]
+    pub fn rolename<S: AsRef<OsStr>>(mut self, rolename: S) -> Self {
+        self.rolename = Some(rolename.as_ref().to_os_string());
+        self
+    }
 }
 
 impl CommandBuilder for DropUserBuilder {
@@ -143,6 +151,14 @@ impl CommandBuilder for DropUserBuilder {
     fn get_args(&self) -> Vec<OsString> {
         let mut args: Vec<OsString> = Vec::new();
 
+        if self.version {
+            args.push("--version".into());
+        }
+
+        if self.help {
+            args.push("--help".into());
+        }
+
         if self.echo {
             args.push("--echo".into());
         }
@@ -151,16 +167,8 @@ impl CommandBuilder for DropUserBuilder {
             args.push("--interactive".into());
         }
 
-        if self.version {
-            args.push("--version".into());
-        }
-
         if self.if_exists {
             args.push("--if-exists".into());
-        }
-
-        if self.help {
-            args.push("--help".into());
         }
 
         if let Some(host) = &self.host {
@@ -184,6 +192,10 @@ impl CommandBuilder for DropUserBuilder {
 
         if self.password {
             args.push("--password".into());
+        }
+
+        if let Some(rolename) = &self.rolename {
+            args.push(rolename.into());
         }
 
         args
@@ -211,8 +223,10 @@ impl CommandBuilder for DropUserBuilder {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::CommandExecutor;
     use crate::TestSettings;
     use crate::TestSocketSettings;
+    use crate::test_utils::{TestResult, assert_args, binary_dir};
     use crate::traits::CommandToString;
     use test_log::test;
 
@@ -256,6 +270,7 @@ mod tests {
             .no_password()
             .password()
             .pg_password("password")
+            .rolename("test_role")
             .build();
         #[cfg(not(target_os = "windows"))]
         let command_prefix = r#"PGDATABASE="database" PGPASSWORD="password" "#;
@@ -264,7 +279,7 @@ mod tests {
 
         assert_eq!(
             format!(
-                r#"{command_prefix}"dropuser" "--echo" "--interactive" "--version" "--if-exists" "--help" "--host" "localhost" "--port" "5432" "--username" "postgres" "--no-password" "--password""#
+                r#"{command_prefix}"dropuser" "--version" "--help" "--echo" "--interactive" "--if-exists" "--host" "localhost" "--port" "5432" "--username" "postgres" "--no-password" "--password" "test_role""#
             ),
             command.to_command_string()
         );
@@ -284,5 +299,44 @@ mod tests {
             ),
             command.to_command_string()
         );
+    }
+
+    #[test]
+    fn test_positional_arguments_follow_options() {
+        assert_args(
+            DropUserBuilder::new().rolename("old role").if_exists(),
+            &["--if-exists", "old role"],
+        );
+    }
+
+    #[test]
+    fn test_options() {
+        assert_args(DropUserBuilder::new().rolename("test role"), &["test role"]);
+    }
+
+    #[test]
+    fn test_informational_options_come_first_on_configured_builders() {
+        let version = DropUserBuilder::from(&TestSettings).version().get_args();
+        assert_eq!(version.first(), Some(&OsString::from("--version")));
+        let help = DropUserBuilder::from(&TestSettings).help().get_args();
+        assert_eq!(help.first(), Some(&OsString::from("--help")));
+    }
+
+    #[test]
+    fn test_cli_help_and_version() -> TestResult {
+        let Some(bin) = binary_dir() else {
+            return Ok(());
+        };
+        DropUserBuilder::new()
+            .program_dir(&bin)
+            .version()
+            .build()
+            .execute()?;
+        DropUserBuilder::new()
+            .program_dir(&bin)
+            .help()
+            .build()
+            .execute()?;
+        Ok(())
     }
 }

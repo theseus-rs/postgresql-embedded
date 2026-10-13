@@ -17,6 +17,7 @@ tokio = { workspace = true, features = ["full"], optional = true }
 tracing = { workspace = true, features = ["log"] }
 
 [dev-dependencies]
+tempfile = { workspace = true }
 test-log = { workspace = true }
 tokio = { workspace = true, features = ["full"] }
 
