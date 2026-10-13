@@ -459,7 +459,7 @@ impl CommandBuilder for InitDbBuilder {
         }
 
         if let Some(directory) = &self.directory {
-            args.push("--directory".into());
+            args.push("-L".into());
             args.push(directory.into());
         }
 
@@ -584,7 +584,7 @@ mod tests {
 
         assert_eq!(
             format!(
-                r#"{command_prefix}"initdb" "--auth" "md5" "--auth-host" "md5" "--auth-local" "md5" "--pgdata" "pgdata" "--encoding" "UTF8" "--allow-group-access" "--icu-locale" "en_US" "--icu-rules" "phonebook" "--data-checksums" "--locale" "en_US" "--lc-collate" "en_US" "--lc-ctype" "en_US" "--lc-messages" "en_US" "--lc-monetary" "en_US" "--lc-numeric" "en_US" "--lc-time" "en_US" "--no-locale" "--locale-provider" "icu" "--pwfile" ".pwfile" "--text-search-config" "english" "--username" "postgres" "--pwprompt" "--waldir" "waldir" "--wal-segsize" "1" "--set" "timezone=UTC" "--debug" "--discard-caches" "--directory" "directory" "--no-clean" "--no-sync" "--no-instructions" "--show" "--sync-only" "--version" "--help""#
+                r#"{command_prefix}"initdb" "--auth" "md5" "--auth-host" "md5" "--auth-local" "md5" "--pgdata" "pgdata" "--encoding" "UTF8" "--allow-group-access" "--icu-locale" "en_US" "--icu-rules" "phonebook" "--data-checksums" "--locale" "en_US" "--lc-collate" "en_US" "--lc-ctype" "en_US" "--lc-messages" "en_US" "--lc-monetary" "en_US" "--lc-numeric" "en_US" "--lc-time" "en_US" "--no-locale" "--locale-provider" "icu" "--pwfile" ".pwfile" "--text-search-config" "english" "--username" "postgres" "--pwprompt" "--waldir" "waldir" "--wal-segsize" "1" "--set" "timezone=UTC" "--debug" "--discard-caches" "-L" "directory" "--no-clean" "--no-sync" "--no-instructions" "--show" "--sync-only" "--version" "--help""#
             ),
             command.to_command_string()
         );
