@@ -49,6 +49,10 @@ pub struct Settings {
     pub host: String,
     /// `PostgreSQL` port
     pub port: u16,
+    /// Number of times to retry starting the server with a new OS-assigned ephemeral port if the
+    /// port is set to `0` and the selected port becomes unavailable before the server can bind to
+    /// it. Ignored when an explicit, non-zero port is configured.
+    pub port_retries: u32,
     /// `PostgreSQL` user name
     pub username: String,
     /// `PostgreSQL` password
@@ -110,6 +114,7 @@ impl Settings {
             data_dir,
             host: "localhost".to_string(),
             port: 0,
+            port_retries: 3,
             username: BOOTSTRAP_SUPERUSER.to_string(),
             password,
             temporary: true,
@@ -199,6 +204,17 @@ impl Settings {
         }
         if let Some(port) = parsed_url.port() {
             settings.port = port;
+        }
+        if let Some(port_retries) = query_parameters.get("port_retries") {
+            settings.port_retries = match port_retries.parse::<u32>() {
+                Ok(port_retries) => port_retries,
+                Err(error) => {
+                    return Err(Error::InvalidUrl {
+                        url: url.as_ref().to_string(),
+                        message: error.to_string(),
+                    });
+                }
+            };
         }
         if !parsed_url.username().is_empty() {
             settings.username = parsed_url.username().to_string();
@@ -364,6 +380,14 @@ impl SettingsBuilder {
         self
     }
 
+    /// Set the number of retries when an automatically assigned ephemeral port becomes
+    /// unavailable before the server can bind to it.
+    #[must_use]
+    pub fn port_retries(mut self, port_retries: u32) -> Self {
+        self.settings.port_retries = port_retries;
+        self
+    }
+
     /// Set the database username.
     #[must_use]
     pub fn username<S: Into<String>>(mut self, username: S) -> Self {
@@ -485,6 +509,7 @@ mod tests {
         assert_eq!(Some(Duration::from_secs(5)), settings.timeout);
         assert!(settings.configuration.is_empty());
         assert!(settings.socket_dir.is_none());
+        assert_eq!(3, settings.port_retries);
     }
 
     #[test]
@@ -514,8 +539,9 @@ mod tests {
         let trust_installation_dir = "trust_installation_dir=true";
         let timeout = "timeout=10";
         let configuration = "configuration.max_connections=42";
+        let port_retries = "port_retries=5";
         let url = format!(
-            "{base_url}?{releases_url}&{version}&{installation_dir}&{password_file}&{data_dir}&{temporary}&{trust_installation_dir}&{timeout}&{configuration}"
+            "{base_url}?{releases_url}&{version}&{installation_dir}&{password_file}&{data_dir}&{temporary}&{trust_installation_dir}&{timeout}&{configuration}&{port_retries}"
         );
 
         let settings = Settings::from_url(url)?;
@@ -535,6 +561,7 @@ mod tests {
         let configuration = HashMap::from([("max_connections".to_string(), "42".to_string())]);
         assert_eq!(configuration, settings.configuration);
         assert!(settings.socket_dir.is_none());
+        assert_eq!(5, settings.port_retries);
         assert_eq!(base_url, settings.url("test"));
 
         Ok(())
@@ -581,6 +608,7 @@ mod tests {
         assert!(settings.temporary);
         assert!(settings.socket_dir.is_none());
         assert_eq!(Some(Duration::from_secs(5)), settings.timeout);
+        assert_eq!(3, settings.port_retries);
     }
 
     #[test]
@@ -594,6 +622,7 @@ mod tests {
             .data_dir("/tmp/data")
             .host("127.0.0.1")
             .port(5433)
+            .port_retries(7)
             .username("admin")
             .password("secret")
             .temporary(false)
@@ -609,6 +638,7 @@ mod tests {
         assert_eq!(PathBuf::from("/tmp/data"), settings.data_dir);
         assert_eq!("127.0.0.1", settings.host);
         assert_eq!(5433, settings.port);
+        assert_eq!(7, settings.port_retries);
         assert_eq!("admin", settings.username);
         assert_eq!("secret", settings.password);
         assert!(!settings.temporary);
