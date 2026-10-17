@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- **Breaking for default-feature consumers:** `theseus` is no longer a
+  default feature of `postgresql_embedded` or `postgresql_archive`. With
+  defaults, the crates previously downloaded and executed PostgreSQL binaries
+  from GitHub releases at runtime; that is now opt-in. Consumers who relied on
+  it add `"theseus"` to their feature list. Rationale: a disabled default is
+  overridden by Cargo feature unification whenever any dependency enables
+  defaults, so it cannot serve as a guarantee — only a non-default feature
+  can; and runtime download-and-execute of binaries is a supply-chain surface
+  a consumer should have to ask for. `bundled`, `zonky`, and `github` are
+  unaffected.
+
 ## `postgresql_extensions` - [0.21.0](https://github.com/theseus-rs/postgresql-embedded/compare/postgresql_extensions-v0.20.4...postgresql_extensions-v0.21.0) - 2026-07-19
 
 ### Added
