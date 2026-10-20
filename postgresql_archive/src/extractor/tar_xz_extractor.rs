@@ -1,6 +1,7 @@
 use crate::Error::Unexpected;
 use crate::Result;
 use crate::extractor::ExtractDirectories;
+use crate::extractor::hard_link::{HardLink, extract_hard_links};
 use liblzma::bufread::XzDecoder;
 use std::fs::{File, create_dir_all};
 use std::io::{BufReader, Cursor, copy};
@@ -15,6 +16,7 @@ use tracing::{debug, instrument, warn};
 #[instrument(skip(bytes))]
 pub fn extract(bytes: &Vec<u8>, extract_directories: &ExtractDirectories) -> Result<Vec<PathBuf>> {
     let mut files = Vec::new();
+    let mut hard_links = Vec::new();
     let input = BufReader::new(Cursor::new(bytes));
     let decoder = XzDecoder::new(input);
     let mut archive = Archive::new(decoder);
@@ -43,7 +45,21 @@ pub fn extract(bytes: &Vec<u8>, extract_directories: &ExtractDirectories) -> Res
         let mut entry_name = extract_dir.clone();
         entry_name.push(entry_header_path);
 
-        if entry_type.is_dir() || entry_name.is_dir() {
+        if entry_type.is_hard_link() {
+            let target = entry.link_name()?.ok_or_else(|| {
+                Unexpected(format!(
+                    "Missing hard link target for {}",
+                    entry_name.display()
+                ))
+            })?;
+            hard_links.push(HardLink::new(
+                entry_name,
+                extract_dir.clone(),
+                &target,
+                extract_directories,
+                false,
+            )?);
+        } else if entry_type.is_dir() || entry_name.is_dir() {
             create_dir_all(&entry_name)?;
         } else if entry_type.is_file() {
             if let Some(parent) = entry_name.parent() {
@@ -69,6 +85,7 @@ pub fn extract(bytes: &Vec<u8>, extract_directories: &ExtractDirectories) -> Res
         }
     }
 
+    extract_hard_links(hard_links, &mut files)?;
     let number_of_files = files.len();
     debug!("Extracted {number_of_files} files totalling {extracted_bytes}");
 

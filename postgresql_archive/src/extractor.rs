@@ -1,3 +1,5 @@
+#[cfg(any(feature = "tar-gz", feature = "tar-xz"))]
+mod hard_link;
 mod model;
 pub mod registry;
 #[cfg(feature = "tar-gz")]
