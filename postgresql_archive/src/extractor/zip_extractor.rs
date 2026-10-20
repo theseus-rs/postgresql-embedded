@@ -20,7 +20,7 @@ pub fn extract(bytes: &Vec<u8>, extract_directories: &ExtractDirectories) -> Res
 
     for i in 0..archive.len() {
         let mut file = archive.by_index(i)?;
-        let file_path = PathBuf::from(file.name());
+        let file_path = PathBuf::from(file.name()?.as_ref());
         let file_path = PathBuf::from(file_path.file_name().unwrap_or_default());
         let file_name = file_path.to_string_lossy();
 

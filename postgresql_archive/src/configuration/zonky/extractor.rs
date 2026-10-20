@@ -47,7 +47,7 @@ pub fn extract(bytes: &Vec<u8>, extract_directories: &ExtractDirectories) -> Res
     let mut archive_bytes = Vec::new();
     for i in 0..archive.len() {
         let mut file = archive.by_index(i)?;
-        let file_name = file.name().to_string();
+        let file_name = file.name()?.into_owned();
         if file_name.ends_with(".txz") {
             debug!("Found archive file: {file_name}");
             std::io::copy(&mut file, &mut archive_bytes)?;
