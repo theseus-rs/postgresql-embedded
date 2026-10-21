@@ -10,6 +10,44 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## `postgresql_extensions` - [0.22.0](https://github.com/theseus-rs/postgresql-embedded/compare/postgresql_extensions-v0.21.0...postgresql_extensions-v0.22.0) - 2026-10-21
 
 ### Other
+- postgresql-embedded-v0.22.0
+- update dependencies
+- remove ci benchmarks
+
+## `postgresql_embedded` - [0.22.0](https://github.com/theseus-rs/postgresql-embedded/compare/v0.21.0...v0.22.0) - 2026-10-21
+
+### Fixed
+- preserve TAR hard links when extracting PostgreSQL archives
+- update builder command arguments
+- use -L for the initdb input files directory
+
+### Other
+- postgresql-embedded-v0.22.0
+- update dependencies
+- remove ci benchmarks
+- update dependencies
+- resolve exact GitHub release versions with a single tag lookup
+
+## `postgresql_commands` - [0.22.0](https://github.com/theseus-rs/postgresql-embedded/compare/postgresql_commands-v0.21.0...postgresql_commands-v0.22.0) - 2026-10-21
+
+### Fixed
+- update builder command arguments
+- use -L for the initdb input files directory
+
+## `postgresql_archive` - [0.22.0](https://github.com/theseus-rs/postgresql-embedded/compare/postgresql_archive-v0.21.0...postgresql_archive-v0.22.0) - 2026-10-21
+
+### Fixed
+- preserve TAR hard links when extracting PostgreSQL archives
+
+### Other
+- update dependencies
+- update dependencies
+- remove ci benchmarks
+- resolve exact GitHub release versions with a single tag lookup
+
+## `postgresql_extensions` - [0.22.0](https://github.com/theseus-rs/postgresql-embedded/compare/postgresql_extensions-v0.21.0...postgresql_extensions-v0.22.0) - 2026-10-21
+
+### Other
 - update dependencies
 - remove ci benchmarks
 
