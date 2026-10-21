@@ -3,7 +3,10 @@ mod unix_socket_tests {
     use postgresql_embedded::{PostgreSQL, Result, SettingsBuilder, Status};
     use sqlx::{PgPool, Row};
     use std::path::PathBuf;
+    use std::time::Duration;
     use test_log::test;
+
+    const TEST_COMMAND_TIMEOUT: Duration = Duration::from_secs(30);
 
     #[test(tokio::test)]
     async fn test_unix_socket_lifecycle() -> Result<()> {
@@ -11,6 +14,7 @@ mod unix_socket_tests {
         let socket_path = socket_dir.path().to_path_buf();
 
         let settings = SettingsBuilder::new()
+            .timeout(Some(TEST_COMMAND_TIMEOUT))
             .socket_dir(socket_path.clone())
             .build();
 
@@ -48,6 +52,7 @@ mod unix_socket_tests {
         let socket_path = socket_dir.path().to_path_buf();
 
         let settings = SettingsBuilder::new()
+            .timeout(Some(TEST_COMMAND_TIMEOUT))
             .socket_dir(socket_path.clone())
             .config("max_connections", "50")
             .build();
@@ -77,6 +82,7 @@ mod unix_socket_tests {
         let socket_path = socket_dir.keep();
 
         let settings = SettingsBuilder::new()
+            .timeout(Some(TEST_COMMAND_TIMEOUT))
             .socket_dir(socket_path.clone())
             .temporary(true)
             .build();
@@ -119,6 +125,7 @@ mod unix_socket_tests {
         let socket_path = socket_dir.path().to_path_buf();
 
         let settings = SettingsBuilder::new()
+            .timeout(Some(TEST_COMMAND_TIMEOUT))
             .socket_dir(socket_path.clone())
             .build();
 
