@@ -63,7 +63,6 @@ configuration and extractor features.
 | Name      | Description                         | Default? |
 |-----------|-------------------------------------|----------|
 | `theseus` | Enables theseus PostgreSQL binaries | Yes      |
-| `zonky`   | Enables zonky PostgreSQL binaries   | No       |
 
 ### Extractors
 
@@ -77,8 +76,6 @@ configuration and extractor features.
 
 | Name   | Description          | Default? |
 |--------|----------------------|----------|
-| `md5`  | Enables md5 hashers  | No       |
-| `sha1` | Enables sha1 hashers | No       |
 | `sha2` | Enables sha2 hashers | Yes¹     |
 
 ¹ enabled by the `theseus` feature flag.
@@ -88,7 +85,6 @@ configuration and extractor features.
 | Name     | Description               | Default? |
 |----------|---------------------------|----------|
 | `github` | Enables github repository | Yes¹     |
-| `maven`  | Enables maven repository  | No       |
 
 ¹ enabled by the `theseus` feature flag.
 
@@ -97,7 +93,6 @@ configuration and extractor features.
 `postgresql_archive` provides implementations for the following:
 
 * [theseus-rs/postgresql-binaries](https://github.com/theseus-rs/postgresql-binaries)
-* [zonkyio/embedded-postgres-binaries](https://github.com/zonkyio/embedded-postgres-binaries)
 
 ## License
 

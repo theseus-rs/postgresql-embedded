@@ -2004,8 +2004,6 @@ dependencies = [
  "futures-util",
  "hex",
  "liblzma",
- "md-5",
- "quick-xml",
  "regex-lite",
  "reqwest",
  "reqwest-middleware",
@@ -2015,7 +2013,6 @@ dependencies = [
  "semver",
  "serde",
  "serde_json",
- "sha1",
  "sha2",
  "tar",
  "target-tuple",
@@ -2104,16 +2101,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "985e7ec9bb745e6ce6535b544d84d6cd6f7ad8bd711c398938ae983b91a766d9"
 dependencies = [
  "unicode-ident",
-]
-
-[[package]]
-name = "quick-xml"
-version = "0.42.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "41b1177fdf999d2321d3fb46ff47159d9c1fb9ad66a4879f8c50a0b504615e9b"
-dependencies = [
- "memchr",
- "serde",
 ]
 
 [[package]]
@@ -2673,17 +2660,6 @@ dependencies = [
  "itoa",
  "ryu",
  "serde",
-]
-
-[[package]]
-name = "sha1"
-version = "0.11.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "aacc4cc499359472b4abe1bf11d0b12e688af9a805fa5e3016f9a386dc2d0214"
-dependencies = [
- "cfg-if",
- "cpufeatures",
- "digest",
 ]
 
 [[package]]
@@ -3978,15 +3954,6 @@ name = "zmij"
 version = "1.0.23"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "29666d0abbfad1e3dc4dcf6144730dd3a3ab225bbbdac83319345b1b44ccfc1b"
-
-[[package]]
-name = "zonky"
-version = "0.22.0"
-dependencies = [
- "postgresql_archive",
- "postgresql_embedded",
- "tokio",
-]
 
 [[package]]
 name = "zopfli"

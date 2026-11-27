@@ -69,7 +69,6 @@
 //! | Name      | Description                         | Default? |
 //! |-----------|-------------------------------------|----------|
 //! | `theseus` | Enables theseus PostgreSQL binaries | Yes      |
-//! | `zonky`   | Enables zonky PostgreSQL binaries   | No       |
 //!
 //! ### Extractors
 //!
@@ -83,8 +82,6 @@
 //!
 //! | Name   | Description          | Default? |
 //! |--------|----------------------|----------|
-//! | `md5`  | Enables md5 hashers  | No       |
-//! | `sha1` | Enables sha1 hashers | No       |
 //! | `sha2` | Enables sha2 hashers | Yes¹     |
 //!
 //! ¹ enabled by the `theseus` feature flag.
@@ -94,7 +91,6 @@
 //! | Name     | Description               | Default? |
 //! |----------|---------------------------|----------|
 //! | `github` | Enables github repository | Yes¹     |
-//! | `maven`  | Enables maven repository  | No       |
 //!
 //! ¹ enabled by the `theseus` feature flag.
 //!
@@ -103,7 +99,6 @@
 //! `postgresql_archive` provides implementations for the following:
 //!
 //! * [theseus-rs/postgresql-binaries](https://github.com/theseus-rs/postgresql-binaries)
-//! * [zonkyio/embedded-postgres-binaries](https://github.com/zonkyio/embedded-postgres-binaries)
 //!
 //! ## Safety
 //!
@@ -137,10 +132,7 @@ pub use semver::{Version, VersionReq};
 pub use version::{ExactVersion, ExactVersionReq};
 
 /// Installs Ring as the process-level Rustls crypto provider when requested.
-#[cfg(all(
-    feature = "tls-rustls-ring",
-    any(feature = "github", feature = "maven", test)
-))]
+#[cfg(all(feature = "tls-rustls-ring", any(feature = "github", test)))]
 pub(crate) fn install_crypto_provider() {
     use std::sync::Once;
 
@@ -151,8 +143,5 @@ pub(crate) fn install_crypto_provider() {
 }
 
 /// No-op when Ring is not the selected Rustls crypto provider.
-#[cfg(all(
-    not(feature = "tls-rustls-ring"),
-    any(feature = "github", feature = "maven", test)
-))]
+#[cfg(all(not(feature = "tls-rustls-ring"), any(feature = "github", test)))]
 pub(crate) fn install_crypto_provider() {}

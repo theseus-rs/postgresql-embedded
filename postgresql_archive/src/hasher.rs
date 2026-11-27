@@ -1,8 +1,4 @@
-#[cfg(feature = "md5")]
-pub mod md5;
 pub mod registry;
-#[cfg(feature = "sha1")]
-pub mod sha1;
 #[cfg(feature = "sha2")]
 pub mod sha2_256;
 #[cfg(feature = "sha2")]

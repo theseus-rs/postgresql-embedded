@@ -16,8 +16,6 @@ flate2 = { workspace = true, optional = true }
 futures-util = { workspace = true }
 hex = { workspace = true }
 liblzma = { workspace = true, optional = true }
-md-5 = { workspace = true, optional = true }
-quick-xml = { workspace = true, features = ["serialize"], optional = true }
 regex-lite = { workspace = true }
 reqwest = { workspace = true, default-features = false, features = ["http2", "json", "query", "stream"] }
 reqwest-middleware = { workspace = true, features = ["query"] }
@@ -27,7 +25,6 @@ rustls = { workspace = true, features = ["ring"], optional = true }
 semver = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true, optional = true }
-sha1 = { workspace = true, optional = true }
 sha2 = { workspace = true, optional = true }
 tar = { workspace = true, optional = true }
 target-tuple = { workspace = true }
@@ -56,20 +53,12 @@ github = [
 indicatif = [
     "dep:tracing-indicatif"
 ]
-maven = [
-    "dep:quick-xml",
-    "md5",
-    "sha1",
-    "sha2",
-]
-md5 = ["dep:md-5"]
 tls-native-tls = ["reqwest/native-tls"]
 tls-rustls-aws-lc-rs = ["reqwest/rustls"]
 tls-rustls-ring = [
     "dep:rustls",
     "reqwest/rustls-no-provider",
 ]
-sha1 = ["dep:sha1"]
 sha2 = ["dep:sha2"]
 tar-gz = [
     "dep:flate2",
@@ -87,11 +76,6 @@ theseus = [
 zip = [
     "dep:zip",
 ]
-zonky = [
-    "maven",
-    "tar-xz",
-    "zip",
-]
 
 [package.metadata.docs.rs]
 features = ["blocking"]
@@ -104,6 +88,5 @@ required-features = ["blocking", "theseus"]
 
 [package.metadata.cargo-machete]
 ignored = [
-    "md-5",
     "serde_json",
 ]

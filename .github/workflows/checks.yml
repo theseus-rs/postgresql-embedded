@@ -73,7 +73,6 @@ jobs:
           cargo check --workspace --all-targets --features tls-rustls-ring
           cargo check --workspace --all-targets --features theseus
           cargo check --workspace --all-targets --features tokio
-          cargo check --workspace --all-targets --features zonky
           cargo check --workspace --all-targets --all-features
 
   clippy:

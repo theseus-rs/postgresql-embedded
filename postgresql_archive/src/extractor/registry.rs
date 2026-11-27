@@ -2,8 +2,6 @@ use crate::Error::UnsupportedExtractor;
 use crate::Result;
 #[cfg(feature = "theseus")]
 use crate::configuration::theseus;
-#[cfg(feature = "zonky")]
-use crate::configuration::zonky;
 use crate::extractor::ExtractDirectories;
 use std::path::PathBuf;
 use std::sync::{Arc, LazyLock, Mutex, RwLock};
@@ -61,12 +59,10 @@ impl Default for RepositoryRegistry {
     /// Creates a new repository registry with the default repositories registered.
     fn default() -> Self {
         let registry = Self::new();
-        #[cfg(any(feature = "theseus", feature = "zonky"))]
+        #[cfg(feature = "theseus")]
         let mut registry = registry;
         #[cfg(feature = "theseus")]
         registry.register(|url| Ok(url.starts_with(theseus::URL)), theseus::extract);
-        #[cfg(feature = "zonky")]
-        registry.register(|url| Ok(url.starts_with(zonky::URL)), zonky::extract);
         registry
     }
 }
