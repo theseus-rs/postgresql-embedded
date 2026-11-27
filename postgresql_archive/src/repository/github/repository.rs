@@ -361,7 +361,7 @@ fn reqwest_client() -> ClientWithMiddleware {
         .build()
 }
 
-#[cfg(test)]
+#[cfg(all(test, feature = "theseus"))]
 mod tests {
     use super::*;
     use crate::configuration::theseus::URL;

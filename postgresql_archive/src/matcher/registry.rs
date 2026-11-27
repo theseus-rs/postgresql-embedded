@@ -2,8 +2,6 @@ use crate::Error::UnsupportedMatcher;
 use crate::Result;
 #[cfg(feature = "theseus")]
 use crate::configuration::theseus;
-#[cfg(feature = "zonky")]
-use crate::configuration::zonky;
 use semver::Version;
 use std::sync::{Arc, LazyLock, Mutex, RwLock};
 
@@ -61,12 +59,10 @@ impl Default for MatchersRegistry {
     /// Creates a new matcher registry with the default matchers registered.
     fn default() -> Self {
         let registry = Self::new();
-        #[cfg(any(feature = "theseus", feature = "zonky"))]
+        #[cfg(feature = "theseus")]
         let mut registry = registry;
         #[cfg(feature = "theseus")]
         registry.register(|url| Ok(url == theseus::URL), theseus::matcher);
-        #[cfg(feature = "zonky")]
-        registry.register(|url| Ok(url == zonky::URL), zonky::matcher);
         registry
     }
 }
@@ -117,11 +113,5 @@ mod tests {
     #[cfg(feature = "theseus")]
     fn test_get_theseus_postgresql_binaries() {
         assert!(get(theseus::URL).is_ok());
-    }
-
-    #[test]
-    #[cfg(feature = "zonky")]
-    fn test_get_zonyk_postgresql_binaries() {
-        assert!(get(zonky::URL).is_ok());
     }
 }

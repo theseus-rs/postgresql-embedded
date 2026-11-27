@@ -137,14 +137,6 @@ impl From<url::ParseError> for Error {
     }
 }
 
-#[cfg(feature = "maven")]
-/// Converts a [`quick_xml::DeError`] into a [`ParseError`](Error::ParseError)
-impl From<quick_xml::DeError> for Error {
-    fn from(error: quick_xml::DeError) -> Self {
-        Error::ParseError(error.to_string())
-    }
-}
-
 #[cfg(feature = "zip")]
 /// Converts a [`zip::result::ZipError`] into a [`ParseError`](Error::Unexpected)
 impl From<zip::result::ZipError> for Error {
@@ -306,16 +298,6 @@ mod test {
         let parse_error = url::ParseError::EmptyHost;
         let error = Error::from(parse_error);
         assert_eq!(error.to_string(), "empty host");
-    }
-
-    #[cfg(feature = "maven")]
-    #[test]
-    fn test_from_quick_xml_error() {
-        let xml = "<invalid>";
-        let quick_xml_error = quick_xml::de::from_str::<String>(xml).expect_err("quick_xml error");
-        let message = quick_xml_error.to_string();
-        let error = Error::from(quick_xml_error);
-        assert_eq!(error.to_string(), message);
     }
 
     #[cfg(feature = "zip")]

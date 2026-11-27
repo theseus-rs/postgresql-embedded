@@ -144,7 +144,6 @@
 //! | `tls-rustls-ring`          | Enables Rustls with the Ring crypto provider             | No       |
 //! | `theseus`                  | Enables theseus PostgreSQL binaries                      | Yes      |
 //! | `tokio`                    | Enables using tokio for async                            | No       |
-//! | `zonky`                    | Enables zonky PostgreSQL binaries                        | No       |
 //!
 //! ## Safety
 //!

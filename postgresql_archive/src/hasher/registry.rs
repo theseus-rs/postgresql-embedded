@@ -2,16 +2,8 @@ use crate::Error::UnsupportedHasher;
 use crate::Result;
 #[cfg(feature = "theseus")]
 use crate::configuration::theseus;
-#[cfg(feature = "md5")]
-use crate::hasher::md5;
-#[cfg(feature = "sha1")]
-use crate::hasher::sha1;
-#[cfg(feature = "sha2")]
+#[cfg(feature = "theseus")]
 use crate::hasher::sha2_256;
-#[cfg(all(feature = "sha2", feature = "maven"))]
-use crate::hasher::sha2_512;
-#[cfg(feature = "maven")]
-use crate::repository::maven;
 use std::sync::{Arc, LazyLock, Mutex, RwLock};
 
 static REGISTRY: LazyLock<Arc<Mutex<HasherRegistry>>> =
@@ -69,33 +61,12 @@ impl Default for HasherRegistry {
     /// Creates a new hasher registry with the default hashers registered.
     fn default() -> Self {
         let registry = Self::new();
-        #[cfg(any(feature = "theseus", feature = "maven"))]
+        #[cfg(feature = "theseus")]
         let mut registry = registry;
         #[cfg(feature = "theseus")]
         registry.register(
             |url, extension| Ok(url.starts_with(theseus::URL) && extension == "sha256"),
             sha2_256::hash,
-        );
-        // Register the Maven hashers: https://maven.apache.org/resolver/about-checksums.html#implemented-checksum-algorithms
-        #[cfg(feature = "maven")]
-        registry.register(
-            |url, extension| Ok(url.starts_with(maven::URL) && extension == "md5"),
-            md5::hash,
-        );
-        #[cfg(feature = "maven")]
-        registry.register(
-            |url, extension| Ok(url.starts_with(maven::URL) && extension == "sha1"),
-            sha1::hash,
-        );
-        #[cfg(feature = "maven")]
-        registry.register(
-            |url, extension| Ok(url.starts_with(maven::URL) && extension == "sha256"),
-            sha2_256::hash,
-        );
-        #[cfg(feature = "maven")]
-        registry.register(
-            |url, extension| Ok(url.starts_with(maven::URL) && extension == "sha512"),
-            sha2_512::hash,
         );
         registry
     }
@@ -163,11 +134,5 @@ mod tests {
     #[cfg(feature = "theseus")]
     fn test_get_theseus_postgresql_binaries() {
         assert!(get(theseus::URL, "sha256").is_ok());
-    }
-
-    #[test]
-    #[cfg(feature = "maven")]
-    fn test_get_zonky_postgresql_binaries() {
-        assert!(get(maven::URL, "sha512").is_ok());
     }
 }

@@ -156,7 +156,6 @@ The following features are available:
 | `tls-rustls-ring`      | Enables Rustls with the Ring crypto provider             | No       |
 | `theseus`              | Enables theseus PostgreSQL binaries                      | Yes      |
 | `tokio`                | Enables using tokio for async                            | No       |
-| `zonky`                | Enables zonky PostgreSQL binaries                        | No       |
 
 To use Ring without compiling AWS-LC, disable default features and enable `tls-rustls-ring` together with the required
 PostgreSQL binary source features.
@@ -187,10 +186,7 @@ environment variable. The repository must contain the releases with archives in 
 
 ## Notes
 
-Supports using PostgreSQL binaries from:
-
-* [theseus-rs/postgresql-binaries](https://github.com/theseus-rs/postgresql-binaries) (default)
-* [zonkyio/embedded-postgres-binaries](https://github.com/zonkyio/embedded-postgres-binaries)
+Supports using PostgreSQL binaries from [theseus-rs/postgresql-binaries](https://github.com/theseus-rs/postgresql-binaries) (default)
 
 ## License
 

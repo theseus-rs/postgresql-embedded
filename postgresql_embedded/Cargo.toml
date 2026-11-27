@@ -64,9 +64,6 @@ tokio = [
     "postgresql_commands/tokio",
     "sqlx/runtime-tokio",
 ]
-zonky = [
-    "postgresql_archive/zonky",
-]
 
 [package.metadata.release]
 dependent-version = "upgrade"
