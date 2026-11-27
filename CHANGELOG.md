@@ -7,6 +7,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## `postgresql_extensions` - [0.23.0](https://github.com/theseus-rs/postgresql-embedded/compare/postgresql_extensions-v0.22.0...postgresql_extensions-v0.23.0) - 2026-11-27
+
+### Other
+- remove direct anyhow dependency across the workspace
+
+## `postgresql_embedded` - [0.23.0](https://github.com/theseus-rs/postgresql-embedded/compare/v0.22.0...v0.23.0) - 2026-11-27
+
+### Added
+- add postgresql 19 support
+
+### Other
+- [**breaking**] remove Zonky and Maven support and related dependencies
+- remove direct anyhow dependency across the workspace
+- update Cargo.toml dependencies
+
+## `postgresql_commands` - [0.23.0](https://github.com/theseus-rs/postgresql-embedded/compare/postgresql_commands-v0.22.0...postgresql_commands-v0.23.0) - 2026-11-27
+
+### Other
+- update Cargo.toml dependencies
+
+## `postgresql_archive` - [0.23.0](https://github.com/theseus-rs/postgresql-embedded/compare/postgresql_archive-v0.22.0...postgresql_archive-v0.23.0) - 2026-11-27
+
+### Other
+- [**breaking**] remove Zonky and Maven support and related dependencies
+- remove direct anyhow dependency across the workspace
+
 ## `postgresql_extensions` - [0.22.0](https://github.com/theseus-rs/postgresql-embedded/compare/postgresql_extensions-v0.21.0...postgresql_extensions-v0.22.0) - 2026-10-21
 
 ### Other
