@@ -123,7 +123,7 @@
 //! - Unix: `$HOME/.theseus/postgresql`
 //! - Windows: `%USERPROFILE%\.theseus\postgresql`
 //!
-//! Performance can be improved by using a specific version of the PostgreSQL binaries (e.g. `=16.10.0`).
+//! Performance can be improved by using a specific version of the PostgreSQL binaries (e.g. `=19.0.0`).
 //! After the first download, the PostgreSQL binaries will be cached and reused for subsequent runs.
 //! Further, the repository will no longer be queried to calculate the version match.
 //!
@@ -176,6 +176,9 @@ use std::sync::LazyLock;
 /// The latest PostgreSQL version requirement
 pub static LATEST: VersionReq = VersionReq::STAR;
 
+/// The latest PostgreSQL version 19
+pub static V19: LazyLock<VersionReq> = LazyLock::new(|| VersionReq::parse("=19").unwrap());
+
 /// The latest PostgreSQL version 18
 pub static V18: LazyLock<VersionReq> = LazyLock::new(|| VersionReq::parse("=18").unwrap());
 
@@ -186,14 +189,11 @@ pub static V17: LazyLock<VersionReq> = LazyLock::new(|| VersionReq::parse("=17")
 pub static V16: LazyLock<VersionReq> = LazyLock::new(|| VersionReq::parse("=16").unwrap());
 
 /// The latest PostgreSQL version 15
-pub static V15: LazyLock<VersionReq> = LazyLock::new(|| VersionReq::parse("=15").unwrap());
-
-/// The latest PostgreSQL version 14
 #[deprecated(
-    since = "0.18.0",
+    since = "0.23.0",
     note = "See https://www.postgresql.org/developer/roadmap/"
 )]
-pub static V14: LazyLock<VersionReq> = LazyLock::new(|| VersionReq::parse("=14").unwrap());
+pub static V15: LazyLock<VersionReq> = LazyLock::new(|| VersionReq::parse("=15").unwrap());
 
 pub use settings::BOOTSTRAP_DATABASE;
 pub use settings::BOOTSTRAP_SUPERUSER;
@@ -204,8 +204,8 @@ mod tests {
 
     #[test]
     fn test_version() -> Result<()> {
-        let version = VersionReq::parse("=18.2.0")?;
-        assert_eq!(version.to_string(), "=18.2.0");
+        let version = VersionReq::parse("=19.0.0")?;
+        assert_eq!(version.to_string(), "=19.0.0");
         Ok(())
     }
 
@@ -218,6 +218,11 @@ mod tests {
     #[test]
     fn test_runtime_archive_target() {
         assert_eq!(target_tuple::TARGET, postgresql_archive::matcher::target());
+    }
+
+    #[test]
+    fn test_version_19() {
+        assert_eq!(V19.to_string(), "=19");
     }
 
     #[test]
@@ -236,13 +241,8 @@ mod tests {
     }
 
     #[test]
+    #[allow(deprecated)]
     fn test_version_15() {
         assert_eq!(V15.to_string(), "=15");
-    }
-
-    #[test]
-    #[allow(deprecated)]
-    fn test_version_14() {
-        assert_eq!(V14.to_string(), "=14");
     }
 }
