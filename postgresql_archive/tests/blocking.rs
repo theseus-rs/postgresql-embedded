@@ -1,13 +1,13 @@
 #![cfg(all(feature = "blocking", feature = "theseus"))]
 
-use postgresql_archive::VersionReq;
 use postgresql_archive::blocking::{extract, get_archive, get_version};
 use postgresql_archive::configuration::theseus;
+use postgresql_archive::{Result, VersionReq};
 use std::fs::remove_dir_all;
 use test_log::test;
 
 #[test]
-fn test_get_version() -> anyhow::Result<()> {
+fn test_get_version() -> Result<()> {
     let version_req = VersionReq::STAR;
     let latest_version = get_version(theseus::URL, &version_req)?;
 
@@ -16,7 +16,7 @@ fn test_get_version() -> anyhow::Result<()> {
 }
 
 #[test]
-fn test_get_archive_and_extract() -> anyhow::Result<()> {
+fn test_get_archive_and_extract() -> Result<()> {
     let url = theseus::URL;
     let version_req = &VersionReq::parse("=16.4.0")?;
     let (archive_version, archive) = get_archive(url, version_req)?;

@@ -1,11 +1,11 @@
-use postgresql_embedded::{BOOTSTRAP_DATABASE, PostgreSQL, Settings};
+use postgresql_embedded::{BOOTSTRAP_DATABASE, PostgreSQL, Result, Settings};
 use sqlx::{PgPool, Row};
 use std::collections::HashMap;
 use std::time::Duration;
 use test_log::test;
 
 #[test(tokio::test)]
-async fn start_config() -> anyhow::Result<()> {
+async fn start_config() -> Result<()> {
     let configuration = HashMap::from([("max_connections".to_string(), "42".to_string())]);
     let settings = Settings {
         configuration,

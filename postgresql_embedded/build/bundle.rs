@@ -1,6 +1,5 @@
 #![allow(dead_code)]
 
-use anyhow::Result;
 use postgresql_archive::repository::github::repository::GitHub;
 use postgresql_archive::{ExactVersion, Version, VersionReq, matcher};
 use postgresql_archive::{get_archive, repository};
@@ -19,7 +18,7 @@ static BUNDLE_TARGET: LazyLock<String> =
 /// it can be included in the final binary. This is useful for creating a
 /// self-contained binary that does not require the PostgreSQL archive to be
 /// downloaded at runtime.
-pub(crate) async fn stage_postgresql_archive() -> Result<()> {
+pub(crate) async fn stage_postgresql_archive() -> Result<(), Box<dyn std::error::Error>> {
     println!("cargo:rerun-if-env-changed=POSTGRESQL_VERSION");
     println!("cargo:rerun-if-env-changed=POSTGRESQL_RELEASES_URL");
     #[cfg(feature = "theseus")]
@@ -108,13 +107,13 @@ fn bundle_matcher(_url: &str, name: &str, version: &Version) -> postgresql_archi
     Ok(name == expected_name)
 }
 
-fn register_custom_repository() -> Result<()> {
+fn register_custom_repository() -> postgresql_archive::Result<()> {
     repository::registry::register(supports_github_url, Box::new(GitHub::new))?;
     matcher::registry::register(supports_github_url, bundle_matcher)?;
     Ok(())
 }
 
-fn register_theseus_repository() -> Result<()> {
+fn register_theseus_repository() -> postgresql_archive::Result<()> {
     repository::registry::register(supports_github_url, Box::new(GitHub::new))?;
     matcher::registry::register(supports_github_url, bundle_matcher)?;
     Ok(())

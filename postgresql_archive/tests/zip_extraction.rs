@@ -1,5 +1,6 @@
 #![cfg(feature = "zip")]
 
+use postgresql_archive::Result;
 use postgresql_archive::extractor::{ExtractDirectories, zip_extract};
 use regex_lite::Regex;
 use std::fs;
@@ -8,7 +9,7 @@ use zip::ZipWriter;
 use zip::write::SimpleFileOptions;
 
 #[test]
-fn test_zip_extraction_maps_filenames_and_skips_unmatched_entries() -> anyhow::Result<()> {
+fn test_zip_extraction_maps_filenames_and_skips_unmatched_entries() -> Result<()> {
     let root = tempfile::tempdir()?;
     let control_dir = root.path().join("control");
     let sql_dir = root.path().join("sql");

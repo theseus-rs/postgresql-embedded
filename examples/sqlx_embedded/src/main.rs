@@ -1,5 +1,4 @@
-use anyhow::Result;
-use postgresql_embedded::PostgreSQL;
+use postgresql_embedded::{PostgreSQL, Result};
 use sqlx::Row;
 use sqlx::postgres::PgPool;
 

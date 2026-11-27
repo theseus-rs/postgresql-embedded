@@ -1,4 +1,3 @@
-use anyhow::Result;
 use indoc::indoc;
 use pgvector::Vector;
 use sqlx::{PgPool, Row};
@@ -10,7 +9,7 @@ use postgresql_embedded::{PostgreSQL, Settings, VersionReq};
 ///
 /// See: <https://github.com/pgvector/pgvector?tab=readme-ov-file#getting-started>
 #[tokio::main]
-async fn main() -> Result<()> {
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
     tracing_subscriber::fmt().compact().init();
 
     info!("Installing PostgreSQL");
@@ -78,7 +77,7 @@ async fn main() -> Result<()> {
     Ok(())
 }
 
-async fn enable_extension(pool: &PgPool) -> Result<()> {
+async fn enable_extension(pool: &PgPool) -> Result<(), sqlx::Error> {
     sqlx::query("DROP EXTENSION IF EXISTS vector")
         .execute(pool)
         .await?;
@@ -88,7 +87,7 @@ async fn enable_extension(pool: &PgPool) -> Result<()> {
     Ok(())
 }
 
-async fn create_table(pool: &PgPool) -> Result<()> {
+async fn create_table(pool: &PgPool) -> Result<(), sqlx::Error> {
     sqlx::query(indoc! {"
         CREATE TABLE IF NOT EXISTS items (
             id bigserial PRIMARY KEY,
@@ -100,7 +99,7 @@ async fn create_table(pool: &PgPool) -> Result<()> {
     Ok(())
 }
 
-async fn create_data(pool: &PgPool) -> Result<()> {
+async fn create_data(pool: &PgPool) -> Result<(), sqlx::Error> {
     sqlx::query(indoc! {"
         INSERT INTO items (embedding)
         VALUES
@@ -112,7 +111,7 @@ async fn create_data(pool: &PgPool) -> Result<()> {
     Ok(())
 }
 
-async fn execute_query(pool: &PgPool, query: &'static str) -> Result<()> {
+async fn execute_query(pool: &PgPool, query: &'static str) -> Result<(), sqlx::Error> {
     info!("Query: {query}");
     let rows = sqlx::query(query).fetch_all(pool).await?;
     for row in rows {
@@ -130,7 +129,7 @@ mod test {
 
     #[cfg(not(all(target_os = "linux", target_arch = "x86_64")))]
     #[test]
-    fn test_portal_corp_extension_main() -> Result<()> {
+    fn test_portal_corp_extension_main() -> Result<(), Box<dyn std::error::Error>> {
         main()
     }
 }

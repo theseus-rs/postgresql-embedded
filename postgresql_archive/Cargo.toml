@@ -39,7 +39,6 @@ url = { workspace = true }
 zip = { workspace = true, optional = true }
 
 [dev-dependencies]
-anyhow = { workspace = true }
 criterion = { workspace = true }
 hex = { workspace = true }
 test-log = { workspace = true }

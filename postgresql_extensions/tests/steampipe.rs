@@ -1,7 +1,7 @@
 #[cfg(any(target_os = "linux", target_os = "macos"))]
 #[cfg(feature = "steampipe")]
 #[tokio::test]
-async fn test_extensions_steampipe_lifecycle() -> anyhow::Result<()> {
+async fn test_extensions_steampipe_lifecycle() -> Result<(), Box<dyn std::error::Error>> {
     let installation_dir = tempfile::tempdir()?.path().to_path_buf();
     let postgresql_version = semver::VersionReq::parse("=15.7.0")?;
     let settings = postgresql_embedded::Settings {

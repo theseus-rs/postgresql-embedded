@@ -1,8 +1,7 @@
-use anyhow::Result;
 use postgresql_extensions::get_available_extensions;
 
 #[tokio::test]
-async fn test_get_available_extensions() -> Result<()> {
+async fn test_get_available_extensions() -> postgresql_extensions::Result<()> {
     let extensions = get_available_extensions().await?;
     #[cfg(feature = "steampipe")]
     assert!(
@@ -21,7 +20,7 @@ async fn test_get_available_extensions() -> Result<()> {
 
 #[cfg(all(target_os = "linux", feature = "tensor-chord"))]
 #[tokio::test]
-async fn test_extensions_tensor_chord_lifecycle() -> Result<()> {
+async fn test_extensions_tensor_chord_lifecycle() -> Result<(), Box<dyn std::error::Error>> {
     let installation_dir = tempfile::tempdir()?.path().to_path_buf();
     let postgresql_version = semver::VersionReq::parse("=16.4.0")?;
     let settings = postgresql_embedded::Settings {
