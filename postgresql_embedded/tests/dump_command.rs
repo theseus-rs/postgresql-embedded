@@ -8,7 +8,7 @@ use tempfile::NamedTempFile;
 use test_log::test;
 
 #[test(tokio::test)]
-async fn dump_command() -> anyhow::Result<()> {
+async fn dump_command() -> Result<(), Box<dyn std::error::Error>> {
     let settings = Settings {
         timeout: Some(Duration::from_secs(30)),
         ..Default::default()

@@ -1,4 +1,3 @@
-use anyhow::Result;
 use axum::extract::State;
 use axum::{Json, Router, http::StatusCode, routing::get};
 use postgresql_embedded::{PostgreSQL, Settings, VersionReq};
@@ -11,7 +10,7 @@ use tracing::info;
 
 /// Example of how to use postgresql embedded with axum.
 #[tokio::main]
-async fn main() -> Result<()> {
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
     tracing_subscriber::fmt().compact().init();
 
     let db_url =
@@ -67,7 +66,7 @@ async fn main() -> Result<()> {
     Ok(())
 }
 
-async fn enable_extension(pool: &PgPool) -> Result<()> {
+async fn enable_extension(pool: &PgPool) -> Result<(), sqlx::Error> {
     sqlx::query("CREATE EXTENSION IF NOT EXISTS vector")
         .execute(pool)
         .await?;

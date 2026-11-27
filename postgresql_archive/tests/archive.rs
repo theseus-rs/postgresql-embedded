@@ -1,14 +1,14 @@
 #![cfg(feature = "theseus")]
 
 use postgresql_archive::configuration::theseus;
-use postgresql_archive::extract;
+use postgresql_archive::{Result, extract};
 use postgresql_archive::{get_archive, get_version};
 use semver::VersionReq;
 use std::fs::remove_dir_all;
 use test_log::test;
 
 #[test(tokio::test)]
-async fn test_get_version_not_found() -> postgresql_archive::Result<()> {
+async fn test_get_version_not_found() -> Result<()> {
     let invalid_version_req = VersionReq::parse("=1.0.0")?;
     let result = get_version(theseus::URL, &invalid_version_req).await;
 
@@ -17,7 +17,7 @@ async fn test_get_version_not_found() -> postgresql_archive::Result<()> {
 }
 
 #[test(tokio::test)]
-async fn test_get_version() -> anyhow::Result<()> {
+async fn test_get_version() -> Result<()> {
     let version_req = VersionReq::parse("=16.4.0")?;
     let latest_version = get_version(theseus::URL, &version_req).await?;
 
@@ -26,7 +26,7 @@ async fn test_get_version() -> anyhow::Result<()> {
 }
 
 #[test(tokio::test)]
-async fn test_get_archive_and_extract() -> anyhow::Result<()> {
+async fn test_get_archive_and_extract() -> Result<()> {
     let url = theseus::URL;
     let version_req = VersionReq::parse("=16.4.0")?;
     let (archive_version, archive) = get_archive(url, &version_req).await?;
@@ -48,7 +48,7 @@ async fn test_get_archive_and_extract() -> anyhow::Result<()> {
 }
 
 #[test(tokio::test)]
-async fn test_get_archive_version_not_found() -> postgresql_archive::Result<()> {
+async fn test_get_archive_version_not_found() -> Result<()> {
     let invalid_version_req = VersionReq::parse("=1.0.0")?;
     let result = get_archive(theseus::URL, &invalid_version_req).await;
 

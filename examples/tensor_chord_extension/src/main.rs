@@ -1,4 +1,3 @@
-use anyhow::Result;
 use indoc::indoc;
 use sqlx::{PgPool, Row};
 use tracing::info;
@@ -9,7 +8,7 @@ use postgresql_embedded::{PostgreSQL, Settings, VersionReq};
 ///
 /// See: <https://github.com/tensorchord/pgvecto.rs/?tab=readme-ov-file#quick-start>
 #[tokio::main]
-async fn main() -> Result<()> {
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
     tracing_subscriber::fmt().compact().init();
 
     info!("Installing PostgreSQL");
@@ -83,7 +82,7 @@ async fn main() -> Result<()> {
     Ok(())
 }
 
-async fn configure_extension(pool: &PgPool) -> Result<()> {
+async fn configure_extension(pool: &PgPool) -> Result<(), sqlx::Error> {
     sqlx::query("ALTER SYSTEM SET shared_preload_libraries = \"vectors.so\"")
         .execute(pool)
         .await?;
@@ -93,7 +92,7 @@ async fn configure_extension(pool: &PgPool) -> Result<()> {
     Ok(())
 }
 
-async fn enable_extension(pool: &PgPool) -> Result<()> {
+async fn enable_extension(pool: &PgPool) -> Result<(), sqlx::Error> {
     sqlx::query("DROP EXTENSION IF EXISTS vectors")
         .execute(pool)
         .await?;
@@ -103,7 +102,7 @@ async fn enable_extension(pool: &PgPool) -> Result<()> {
     Ok(())
 }
 
-async fn create_table(pool: &PgPool) -> Result<()> {
+async fn create_table(pool: &PgPool) -> Result<(), sqlx::Error> {
     sqlx::query(indoc! {"
         CREATE TABLE IF NOT EXISTS items (
             id bigserial PRIMARY KEY,
@@ -115,7 +114,7 @@ async fn create_table(pool: &PgPool) -> Result<()> {
     Ok(())
 }
 
-async fn create_data(pool: &PgPool) -> Result<()> {
+async fn create_data(pool: &PgPool) -> Result<(), sqlx::Error> {
     sqlx::query(indoc! {"
         INSERT INTO items (embedding)
         VALUES
@@ -136,7 +135,7 @@ async fn create_data(pool: &PgPool) -> Result<()> {
     Ok(())
 }
 
-async fn execute_query(pool: &PgPool, query: &'static str) -> Result<()> {
+async fn execute_query(pool: &PgPool, query: &'static str) -> Result<(), sqlx::Error> {
     let row = sqlx::query(query).fetch_one(pool).await?;
     let value: f32 = row.try_get("value")?;
     info!("{}: {}", query, value);
@@ -149,7 +148,7 @@ async fn execute_query(pool: &PgPool, query: &'static str) -> Result<()> {
 //
 //     #[test]
 //     #[ignore = "this extension has been deprecated"]
-//     fn test_tensor_chord_extension_main() -> Result<()> {
+//     fn test_tensor_chord_extension_main() -> Result<(), Box<dyn std::error::Error>> {
 //         main()
 //     }
 // }

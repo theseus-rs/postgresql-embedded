@@ -109,7 +109,6 @@ fn regex(key: &str) -> Result<Regex> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use anyhow::Result;
 
     #[test]
     fn test_invalid_url() -> Result<()> {

@@ -1,10 +1,10 @@
-use postgresql_embedded::{PostgreSQL, Settings, Status};
+use postgresql_embedded::{PostgreSQL, Result, Settings, Status};
 use std::env;
 use std::time::Duration;
 use test_log::test;
 
 #[test(tokio::test)]
-async fn lifecycle() -> anyhow::Result<()> {
+async fn lifecycle() -> Result<()> {
     // Explicitly set PGDATABASE environment variable to verify that the library behavior
     // is not affected by the environment
     unsafe {

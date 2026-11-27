@@ -1,5 +1,6 @@
 #![cfg(any(feature = "tar-gz", feature = "tar-xz"))]
 
+use postgresql_archive::Result;
 use postgresql_archive::extractor::ExtractDirectories;
 use regex_lite::Regex;
 use std::fs;
@@ -23,35 +24,25 @@ const FORMATS: &[Format] = &[
 ];
 
 impl Format {
-    fn extract(
-        self,
-        archive: &[u8],
-        directories: &ExtractDirectories,
-    ) -> anyhow::Result<Vec<PathBuf>> {
+    fn extract(self, archive: &[u8], directories: &ExtractDirectories) -> Result<Vec<PathBuf>> {
         match self {
             #[cfg(feature = "tar-gz")]
             Self::Gzip => {
                 let mut encoder =
                     flate2::write::GzEncoder::new(Vec::new(), flate2::Compression::default());
                 encoder.write_all(archive)?;
-                Ok(postgresql_archive::extractor::tar_gz_extract(
-                    &encoder.finish()?,
-                    directories,
-                )?)
+                postgresql_archive::extractor::tar_gz_extract(&encoder.finish()?, directories)
             }
             #[cfg(feature = "tar-xz")]
             Self::Xz => {
                 let mut encoder = liblzma::write::XzEncoder::new(Vec::new(), 1);
                 encoder.write_all(archive)?;
-                Ok(postgresql_archive::extractor::tar_xz_extract(
-                    &encoder.finish()?,
-                    directories,
-                )?)
+                postgresql_archive::extractor::tar_xz_extract(&encoder.finish()?, directories)
             }
         }
     }
 
-    fn path(self, root: &Path, archive_path: &str) -> anyhow::Result<PathBuf> {
+    fn path(self, root: &Path, archive_path: &str) -> Result<PathBuf> {
         let path = Path::new(archive_path);
         match self {
             #[cfg(feature = "tar-gz")]
@@ -62,7 +53,7 @@ impl Format {
     }
 }
 
-fn archive() -> anyhow::Result<Builder<Vec<u8>>> {
+fn archive() -> Result<Builder<Vec<u8>>> {
     let mut archive = Builder::new(Vec::new());
     for path in [
         "postgresql",
@@ -78,7 +69,7 @@ fn archive() -> anyhow::Result<Builder<Vec<u8>>> {
     Ok(archive)
 }
 
-fn file(archive: &mut Builder<Vec<u8>>, path: &str) -> anyhow::Result<()> {
+fn file(archive: &mut Builder<Vec<u8>>, path: &str) -> Result<()> {
     let contents = b"timezone data";
     let mut header = Header::new_gnu();
     header.set_mode(0o644);
@@ -92,7 +83,7 @@ fn link(
     path: &str,
     target: &str,
     entry_type: EntryType,
-) -> anyhow::Result<()> {
+) -> Result<()> {
     let mut header = Header::new_gnu();
     header.set_entry_type(entry_type);
     header.set_mode(0o644);
@@ -101,7 +92,7 @@ fn link(
     Ok(())
 }
 
-fn directories(root: &Path) -> anyhow::Result<ExtractDirectories> {
+fn directories(root: &Path) -> Result<ExtractDirectories> {
     Ok(ExtractDirectories::new(vec![(
         Regex::new("^postgresql$")?,
         root.to_path_buf(),
@@ -109,7 +100,7 @@ fn directories(root: &Path) -> anyhow::Result<ExtractDirectories> {
 }
 
 #[test]
-fn test_timezone_hard_links() -> anyhow::Result<()> {
+fn test_timezone_hard_links() -> Result<()> {
     for format in FORMATS {
         let root = tempfile::tempdir()?;
         let mut archive = archive()?;
@@ -152,7 +143,7 @@ fn test_timezone_hard_links() -> anyhow::Result<()> {
 }
 
 #[test]
-fn test_hard_link_targets_use_directory_mappings() -> anyhow::Result<()> {
+fn test_hard_link_targets_use_directory_mappings() -> Result<()> {
     for format in FORMATS {
         let root = tempfile::tempdir()?;
         let source = root.path().join("source");
@@ -182,7 +173,7 @@ fn test_hard_link_targets_use_directory_mappings() -> anyhow::Result<()> {
 }
 
 #[test]
-fn test_missing_and_cyclic_hard_link_targets_fail() -> anyhow::Result<()> {
+fn test_missing_and_cyclic_hard_link_targets_fail() -> Result<()> {
     for format in FORMATS {
         for cyclic in [false, true] {
             let root = tempfile::tempdir()?;
@@ -209,7 +200,7 @@ fn test_missing_and_cyclic_hard_link_targets_fail() -> anyhow::Result<()> {
 }
 
 #[test]
-fn test_hard_link_header_without_target_fails() -> anyhow::Result<()> {
+fn test_hard_link_header_without_target_fails() -> Result<()> {
     for format in FORMATS {
         let root = tempfile::tempdir()?;
         let mut archive = archive()?;
@@ -233,7 +224,7 @@ fn test_hard_link_header_without_target_fails() -> anyhow::Result<()> {
 }
 
 #[test]
-fn test_hard_link_targets_cannot_escape_destination() -> anyhow::Result<()> {
+fn test_hard_link_targets_cannot_escape_destination() -> Result<()> {
     for format in FORMATS {
         let root = tempfile::tempdir()?;
         let outside = root.path().join("outside");
@@ -266,7 +257,7 @@ fn test_hard_link_targets_cannot_escape_destination() -> anyhow::Result<()> {
 
 #[cfg(unix)]
 #[test]
-fn test_hard_links_cannot_follow_symlinks_outside_destination() -> anyhow::Result<()> {
+fn test_hard_links_cannot_follow_symlinks_outside_destination() -> Result<()> {
     for format in FORMATS {
         for link_is_target in [false, true] {
             let root = tempfile::tempdir()?;

@@ -1,8 +1,7 @@
-use anyhow::Result;
 use postgres::{Client, NoTls};
 use postgresql_embedded::blocking::PostgreSQL;
 
-fn main() -> Result<()> {
+fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut postgresql = PostgreSQL::default();
     postgresql.setup()?;
     postgresql.start()?;
@@ -41,7 +40,7 @@ fn main() -> Result<()> {
     Ok(())
 }
 
-fn create_table_todo(client: &mut Client) -> Result<()> {
+fn create_table_todo(client: &mut Client) -> Result<(), postgres::Error> {
     let _ = client.execute(
         "CREATE TABLE IF NOT EXISTS todos (id BIGSERIAL PRIMARY KEY, description TEXT NOT NULL, done BOOLEAN NOT NULL DEFAULT FALSE);",
         &[],
@@ -50,7 +49,7 @@ fn create_table_todo(client: &mut Client) -> Result<()> {
     Ok(())
 }
 
-fn add_todo(client: &mut Client, description: &str) -> Result<i64> {
+fn add_todo(client: &mut Client, description: &str) -> Result<i64, postgres::Error> {
     let row = client.query_one(
         "INSERT INTO todos (description) VALUES ($1) RETURNING id",
         &[&description],
@@ -60,13 +59,13 @@ fn add_todo(client: &mut Client, description: &str) -> Result<i64> {
     Ok(id)
 }
 
-fn complete_todo(client: &mut Client, id: i64) -> Result<bool> {
+fn complete_todo(client: &mut Client, id: i64) -> Result<bool, postgres::Error> {
     let rows_affected = client.execute("UPDATE todos SET done = TRUE WHERE id = $1", &[&id])?;
 
     Ok(rows_affected > 0)
 }
 
-fn list_todos(client: &mut Client) -> Result<()> {
+fn list_todos(client: &mut Client) -> Result<(), postgres::Error> {
     let rows = client.query("SELECT id, description, done FROM todos ORDER BY id", &[])?;
 
     for rec in rows {
@@ -89,7 +88,7 @@ mod test {
     use super::*;
 
     #[test]
-    fn test_postgres_embedded_main() -> Result<()> {
+    fn test_postgres_embedded_main() -> Result<(), Box<dyn std::error::Error>> {
         main()
     }
 }

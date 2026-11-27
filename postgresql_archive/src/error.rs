@@ -165,7 +165,6 @@ impl<T> From<PoisonError<T>> for Error {
 #[cfg(test)]
 mod test {
     use super::*;
-    use anyhow::anyhow;
     use semver::VersionReq;
     use std::ops::Add;
     use std::path::PathBuf;
@@ -252,7 +251,7 @@ mod test {
     #[tokio::test]
     async fn test_from_reqwest_middeleware_error() {
         let reqwest_middleware_error =
-            reqwest_middleware::Error::Middleware(anyhow!("middleware error: test"));
+            reqwest_middleware::Error::middleware(std::io::Error::other("middleware error: test"));
         let error = Error::from(reqwest_middleware_error);
         assert!(error.to_string().contains("middleware error: test"));
     }

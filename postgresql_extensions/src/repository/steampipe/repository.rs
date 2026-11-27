@@ -125,7 +125,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_get_archive_error() -> anyhow::Result<()> {
+    async fn test_get_archive_error() -> Result<(), semver::Error> {
         let repository = Steampipe;
         let postgresql_version = "15.7";
         let name = "does-not-exist";

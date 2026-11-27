@@ -4,7 +4,7 @@
 )))]
 #[cfg(feature = "portal-corp")]
 #[tokio::test]
-async fn test_extensions_portal_corp_lifecycle() -> anyhow::Result<()> {
+async fn test_extensions_portal_corp_lifecycle() -> Result<(), Box<dyn std::error::Error>> {
     let installation_dir = tempfile::tempdir()?.path().to_path_buf();
     let postgresql_version = semver::VersionReq::parse("=16.4.0")?;
     let settings = postgresql_embedded::Settings {

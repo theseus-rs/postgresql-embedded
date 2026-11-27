@@ -1,4 +1,3 @@
-use anyhow::Result;
 use indicatif::ProgressStyle;
 use postgresql_embedded::{PostgreSQL, Settings, VersionReq};
 use tracing_indicatif::IndicatifLayer;
@@ -8,7 +7,7 @@ use tracing_subscriber::{Registry, fmt};
 
 /// Example of how to display a progress bar for the postgresql embedded archive download
 #[tokio::main]
-async fn main() -> Result<()> {
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let progress_style = ProgressStyle::with_template("{span_child_prefix}{spinner} {span_name} [{elapsed_precise}] [{wide_bar:.green.bold}] {bytes}/{total_bytes} ({bytes_per_sec}, {eta})")?
         .progress_chars("=> ");
     let indicatif_layer = IndicatifLayer::new().with_progress_style(progress_style);
@@ -39,7 +38,7 @@ mod test {
     use super::*;
 
     #[test]
-    fn test_download_progress_bar_main() -> Result<()> {
+    fn test_download_progress_bar_main() -> Result<(), Box<dyn std::error::Error>> {
         main()
     }
 }
